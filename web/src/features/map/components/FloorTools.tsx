@@ -16,8 +16,6 @@ import type {
 } from "@trojan-compass/shared";
 import { SearchPanel } from "@/features/search/components/SearchPanel";
 import { RoutePlanner } from "@/features/routing/components/RoutePlanner";
-import { RouteInstructions } from "@/features/routing/components/RouteInstructions";
-import type { Route as ApiRoute } from "@trojan-compass/shared/api";
 import {
   ChatPanel,
   type ChatMessage,
@@ -68,16 +66,9 @@ export function FloorTools({
   onChat,
   onDraftChange,
   onRoutePreferenceChange,
-  directions,
 }: {
   floors: ReactNode;
   layers: ReactNode;
-  directions: {
-    route: ApiRoute | null;
-    activeStep: number;
-    onStep: (i: number) => void;
-    onClear: () => void;
-  };
   dataVersion: string;
   locations: Record<LocationField, string>;
   onLocationChange: (field: LocationField, value: string) => void;
@@ -414,9 +405,6 @@ export function FloorTools({
                 lastPick={lastPick}
                 setNotice={setNotice}
               />
-            )}
-            {active === "directions" && directions.route && (
-              <RouteInstructions {...directions} route={directions.route} />
             )}
             {active === "chat" && (
               <ChatPanel

@@ -31,8 +31,10 @@ import type { Route } from "../../routing/viewer-route";
 import { COLORS, type LayerKey, type MapLocation, type View } from "../types";
 import { MapLoading } from "@/components/layout/AppShellFallback";
 import { Header } from "@/components/layout/Header";
+import { campusLink } from '../campus-link';
 import { FloorTools, type LocationField } from "./FloorTools";
 import { Breadcrumb, FloorSelector, LayerPanel } from "./MapOverlays";
+import { RouteAppearanceProvider } from "@/features/routing/components/RouteAppearance";
 
 const MapCanvas = dynamic(
   () => import("../renderer/MapCanvas").then((m) => m.MapCanvas),
@@ -50,8 +52,13 @@ const DEFAULT_LAYERS: LayerKey[] = [
   "stairs",
   "entrances",
 ];
-export default function Wayfinder() {
+export default function Wayfinder({ bundled = false }: { bundled?: boolean }) {
+  return <RouteAppearanceProvider><WayfinderContent bundled={bundled} /></RouteAppearanceProvider>;
+}
+
+function WayfinderContent({ bundled }: { bundled: boolean }) {
   const params = useSearchParams();
+  const campusHref = campusLink(new URLSearchParams(params.toString()), bundled);
   const initial = useRef(params.toString());
   const session = useRef<ViewerSession | null>(null);
   const requests = useRef(new LatestRequest());
@@ -66,7 +73,6 @@ export default function Wayfinder() {
   const [reload, setReload] = useState(0);
   const [layers, setLayers] = useState(() => new Set(DEFAULT_LAYERS));
   const [route, setRoute] = useState<Route | null>(null);
-  const [activeStep, setActiveStep] = useState(0);
   const [apiRoute, setApiRoute] = useState<ApiRoute | null>(null);
   function invalidate() {
     requests.current.invalidate();
@@ -75,7 +81,6 @@ export default function Wayfinder() {
     invalidate();
     setRoute(null);
     setApiRoute(null);
-    setActiveStep(0);
   }
   const [selectedCell, setSelectedCell] = useState<string>();
   const [locations, setLocations] = useState({ from: "", to: "" });
@@ -120,7 +125,6 @@ export default function Wayfinder() {
         placeId: origin.placeId ?? undefined,
       });
     }
-    setActiveStep(0);
     if (result.wireRoute) {
       const { origin, destination } = result.wireRoute;
       setRefs({ from: origin.requested, to: destination.requested });
@@ -211,8 +215,10 @@ export default function Wayfinder() {
         commit(result);
         if (link.allFloors && result.view.type === "building")
           setView({ ...result.view, allFloors: true });
-        if (!link.buildingId && !link.room && !link.from && !link.to)
-          setView({ type: "campus" });
+        if (!link.buildingId && !link.room && !link.from && !link.to) {
+          window.location.replace(campusHref);
+          return;
+        }
         setReady(true);
         setError(notice);
         if (!result.wireRoute) {
@@ -233,6 +239,8 @@ export default function Wayfinder() {
   useEffect(() => {
     if (!ready) return;
     const q = new URLSearchParams();
+    if (new URLSearchParams(initial.current).get('campusPort') === '3101')
+      q.set('campusPort', '3101');
     if (view.type === "building") {
       q.set("building", view.code);
       q.set(
@@ -469,6 +477,11 @@ export default function Wayfinder() {
             ? currentLocation.floor
             : undefined
         }
+        destinationFloor={
+          apiRoute?.destination.buildingId === view.code
+            ? Number(apiRoute.destination.floorId)
+            : undefined
+        }
         onSelect={selectFloor}
         onSelectAll={() => {
           invalidate();
@@ -480,7 +493,7 @@ export default function Wayfinder() {
     );
   return (
     <div className="compass-app flex h-full flex-col">
-      <Header />
+      <Header campusHref={campusHref} />
       {error && (
         <div
           role="alert"
@@ -514,9 +527,6 @@ export default function Wayfinder() {
               layers={layers}
               route={route}
               apiRoute={apiRoute}
-              activeLegId={
-                activeStep > 0 ? apiRoute?.steps[activeStep]?.legId : null
-              }
               highlights={highlights}
               selectedCell={selectedCell}
               currentLocation={currentLocation}
@@ -558,7 +568,7 @@ export default function Wayfinder() {
               view={view}
               onCampus={() => {
                 invalidate();
-                setView({ type: "campus" });
+                window.location.assign(campusHref);
               }}
             />
             {floorControls()}
@@ -578,22 +588,6 @@ export default function Wayfinder() {
               />
             }
             dataVersion={version}
-            directions={{
-              route: apiRoute,
-              activeStep,
-              onClear: clearRoute,
-              onStep: (i) => {
-                const step = apiRoute?.steps[i];
-                if (!step || !step.buildingId || step.floorId === null) return;
-                invalidate();
-                setActiveStep(i);
-                setView({
-                  type: "building",
-                  code: step.buildingId as "LAW",
-                  floor: Number(step.floorId),
-                });
-              },
-            }}
             locations={locations}
             picking={picking}
             onPick={(field) => {

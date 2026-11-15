@@ -3,15 +3,15 @@ import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import type { Group } from "three";
 import type { Line2 } from "three/examples/jsm/lines/Line2.js";
-import { COLORS } from "../types";
 import { routeChevrons } from "@/features/routing/route-scene";
 import { useReducedMotion } from "./useReducedMotion";
+import { useRouteAppearance } from "@/features/routing/components/RouteAppearance";
 
 /** Animated "marching ants" route polyline. */
 export function RouteLine({
   points,
   width = 5,
-  color = COLORS.route,
+  color: customColor,
   active = true,
   overlay = false,
 }: {
@@ -22,7 +22,12 @@ export function RouteLine({
   overlay?: boolean;
 }) {
   const ref = useRef<Line2>(null);
-  const arrows = useMemo(() => routeChevrons(points), [points]);
+  const appearance = useRouteAppearance();
+  const color = customColor ?? appearance.color;
+  const arrows = useMemo(
+    () => routeChevrons(points, appearance.arrowStyle),
+    [points, appearance.arrowStyle],
+  );
   const reducedMotion = useReducedMotion();
   useFrame((_, dt) => {
     const mat = ref.current?.material as { dashOffset: number } | undefined;
@@ -33,8 +38,8 @@ export function RouteLine({
     <group>
       <Line
         points={points}
-        color="#ffffff"
-        lineWidth={width + 3}
+        color={color === "#ffcc00" ? "#594600" : "#ffffff"}
+        lineWidth={width + 1.5}
         depthTest={!overlay}
         depthWrite={!overlay}
         renderOrder={overlay ? 100 : 0}
@@ -55,7 +60,7 @@ export function RouteLine({
         <Line
           ref={ref}
           points={points}
-          color="#dcfce7"
+          color="#ffffff"
           lineWidth={Math.max(1.5, width * 0.35)}
           dashed
           dashSize={0.18}
@@ -69,8 +74,8 @@ export function RouteLine({
         <group key={i}>
           <Line
             points={arrow}
-            color="#ffffff"
-            lineWidth={6.5}
+            color={color === "#ffcc00" ? "#594600" : "#ffffff"}
+            lineWidth={5}
             depthTest={!overlay}
             depthWrite={!overlay}
             renderOrder={overlay ? 104 : 1}
@@ -94,6 +99,7 @@ export function RouteLine({
 }
 
 export function EndPin({ position }: { position: [number, number, number] }) {
+  const { color } = useRouteAppearance();
   const ref = useRef<Group>(null);
   const reducedMotion = useReducedMotion();
   useFrame(({ clock }) => {
@@ -108,11 +114,11 @@ export function EndPin({ position }: { position: [number, number, number] }) {
       <group ref={ref} position={position}>
         <mesh position={[0, 1.15, 0]} castShadow>
           <sphereGeometry args={[0.45, 24, 24]} />
-          <meshStandardMaterial color={COLORS.route} roughness={0.4} />
+          <meshStandardMaterial color={color} roughness={0.4} />
         </mesh>
         <mesh position={[0, 0.55, 0]} rotation={[Math.PI, 0, 0]} castShadow>
           <coneGeometry args={[0.32, 0.9, 24]} />
-          <meshStandardMaterial color={COLORS.route} roughness={0.4} />
+          <meshStandardMaterial color={color} roughness={0.4} />
         </mesh>
         <mesh position={[0, 1.15, 0]}>
           <sphereGeometry args={[0.18, 16, 16]} />
@@ -124,13 +130,14 @@ export function EndPin({ position }: { position: [number, number, number] }) {
         rotation={[-Math.PI / 2, 0, 0]}
       >
         <ringGeometry args={[0.35, 0.6, 32]} />
-        <meshBasicMaterial color={COLORS.route} transparent opacity={0.35} />
+        <meshBasicMaterial color={color} transparent opacity={0.35} />
       </mesh>
     </group>
   );
 }
 
 export function StartDot({ position }: { position: [number, number, number] }) {
+  const { color } = useRouteAppearance();
   return (
     <group position={position}>
       <mesh position={[0, 0.12, 0]}>
@@ -139,7 +146,7 @@ export function StartDot({ position }: { position: [number, number, number] }) {
       </mesh>
       <mesh position={[0, 0.22, 0]}>
         <cylinderGeometry args={[0.3, 0.3, 0.06, 32]} />
-        <meshStandardMaterial color={COLORS.route} />
+        <meshStandardMaterial color={color} />
       </mesh>
     </group>
   );

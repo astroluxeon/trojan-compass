@@ -17,7 +17,7 @@ const copy = readFileSync(bundle + "campus/index.html", "utf8").replaceAll(
 assert.equal(
   copy,
   original.replace(
-    '<script src="demo.js" type="module"></script>',
+    '<script src="demo.js?v=campus-modes-1" type="module"></script>',
     '<script src="campus.js"></script>',
   ),
 );

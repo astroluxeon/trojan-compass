@@ -9,10 +9,10 @@ Use Node.js 22.9 or later and npm. The optional saved campus demo also needs Pyt
 ```sh
 npm install
 npm run dev           # web :3000 and API :4000
-npm run dev:demo      # also starts saved campus demo :3001
+npm run dev:demo      # web campus :3001, iOS campus preview :3101, interiors :3000, API :4000
 ```
 
-Open http://localhost:3000/?building=LAW&floor=1. Search `LAW 101`, calculate directions from `LAW 101` to `LAW 107`, or configure AI below and ask chat `Show LAW 101` and `Route from LAW 101 to LAW 107`.
+Open http://localhost:3001 for the original saved official campus map or http://localhost:3101 for the custom iOS campus preview (use browser device mode). Both open building interiors on port 3000; All buildings returns to the originating campus. Native iOS uses bundled campus/interior pages. Search `LAW 101`, calculate directions from `LAW 101` to `LAW 107`, or configure AI below and ask chat `Show LAW 101` and `Route from LAW 101 to LAW 107`.
 
 Copy `server/.env.example` to `server/.env` and `web/.env.example` to `web/.env.local` when changing addresses. Restart after changes. Public API and viewer URLs must be reachable from the consuming device. The web proxy uses `API_BASE_URL`; iPhone uses `COMPASS_VIEWER_URL` in Xcode. Never publish provider credentials in a frontend environment variable.
 

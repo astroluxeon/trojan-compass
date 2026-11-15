@@ -5,6 +5,7 @@ import { LocationAutocomplete } from "@/features/search/components/LocationAutoc
 import { INPUT, ACTION } from "@/components/ui/form-styles";
 import type { RouteMode } from "@trojan-compass/shared";
 import type { LocationField } from "../types";
+import { RouteAppearance } from "./RouteAppearance";
 
 export function RoutePlanner({
   dataVersion,
@@ -195,7 +196,7 @@ export function RoutePlanner({
           ).map(({ value, label, icon: Icon }) => (
             <label
               key={value}
-              className={`flex cursor-pointer items-center justify-center gap-2 rounded-lg border px-3 py-2.5 text-[13px] font-semibold transition focus-within:ring-2 focus-within:ring-cardinal/30 ${travelMode === value ? "border-cardinal bg-cardinal-50 text-cardinal" : "border-neutral-200 text-neutral-600 hover:bg-neutral-50"} ${accessibleOnly && value === "stairs" ? "cursor-not-allowed opacity-40" : ""}`}
+              className={`relative flex cursor-pointer items-center justify-center gap-2 rounded-lg border px-3 py-2.5 text-[13px] font-semibold transition focus-within:ring-2 focus-within:ring-cardinal/30 ${travelMode === value ? "border-cardinal bg-cardinal-50 text-cardinal" : "border-neutral-200 text-neutral-600 hover:bg-neutral-50"} ${accessibleOnly && value === "stairs" ? "cursor-not-allowed opacity-40" : ""}`}
             >
               <input
                 type="radio"
@@ -212,6 +213,7 @@ export function RoutePlanner({
           ))}
         </div>
       </fieldset>
+      <RouteAppearance />
       <button
         id="directions-submit"
         disabled={pending}

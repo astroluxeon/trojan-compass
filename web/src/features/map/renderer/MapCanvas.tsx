@@ -9,7 +9,6 @@ import { buildingFrame, roomFacingAngle, roomLabelsVisible } from "../camera";
 import type { LayerKey, MapLocation, View } from "../types";
 import { BuildingScene } from "./BuildingScene";
 import { LabelLayerContext } from "./MapHtml";
-import { CampusScene } from "./CampusScene";
 
 interface Props {
   view: View;
@@ -75,9 +74,6 @@ export function MapCanvas(props: Props) {
       ? indoorLegs.find((l) => l.building === view.code)
       : undefined;
   const isFinalLeg = !!leg && route?.to.building === leg.building;
-  const emphasized: BuildingCode[] = route
-    ? [...new Set([route.from.building, route.to.building])]
-    : [];
 
   return (
     <div
@@ -117,13 +113,7 @@ export function MapCanvas(props: Props) {
             shadow-camera-far={160}
             shadow-bias={-0.0004}
           />
-          {view.type === "campus" ? (
-            <CampusScene
-              emphasized={emphasized}
-
-              onSelect={props.onSelectBuilding}
-            />
-          ) : (
+          {view.type === "building" && (
             <BuildingScene
               apiRoute={props.apiRoute}
               activeLegId={props.activeLegId}

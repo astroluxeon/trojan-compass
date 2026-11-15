@@ -10,7 +10,9 @@ export function buildingCode(place) {
 
 export function compassUrl(code) {
   if (!SUPPORTED_CODES.includes(code)) return null
-  return `http://localhost:3000/?building=${code}&floor=1`
+  if (globalThis.location?.protocol === 'compass-web:') return `/interior/index.html?building=${code}&floor=1`
+  const campusPort = globalThis.location?.port === '3101' ? '3101' : '3001'
+  return `http://localhost:3000/?building=${code}&floor=1&campusPort=${campusPort}`
 }
 
 // Saved Google map uses Web Mercator at zoom 16, centered on these coordinates.

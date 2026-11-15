@@ -1,13 +1,21 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { Canvas, useThree } from "@react-three/fiber";
-import { CameraControls, Line } from "@react-three/drei";
+import { CameraControls } from "@react-three/drei";
 import { DoubleSide, Vector3 } from "three";
 import { MapCanvas } from "../../web/src/features/map/renderer/MapCanvas";
 import { clientRequestId } from "../../web/src/lib/api-client";
 import { MapHtml } from "../../web/src/features/map/renderer/MapHtml";
 import { FloorTransitionBeacon } from "../../web/src/features/map/renderer/FloorTransitionBeacon";
-import { sceneRoute } from "../../web/src/features/routing/route-scene";
+import { RouteLine } from "../../web/src/features/map/renderer/RouteLine";
+import {
+  RouteAppearance,
+  RouteAppearanceProvider,
+} from "../../web/src/features/routing/components/RouteAppearance";
+import {
+  sceneRoute,
+  routeUsesStair,
+} from "../../web/src/features/routing/route-scene";
 import {
   BUILDINGS,
   type BuildingCode,
@@ -173,56 +181,67 @@ function Viewer() {
       coordinateSpace: "preview-meters",
     });
   };
-  if (s.source === "live") return <LiveViewer s={s} />;
   return (
-    <MapCanvas
-      key={`${s.reset}-${s.reduceMotion}`}
-      view={{
-        type: "building",
-        code,
-        floor: Number(s.floorId),
-        allFloors: s.allFloors,
-      }}
-      layers={new Set(s.layers)}
-      route={null}
-      highlights={new Map()}
-      selectedCell={s.selectedPlaceId}
-      currentLocation={
-        s.origin
-          ? {
-              building: s.origin.buildingId,
-              floor: Number(s.origin.floorId),
-              label: s.origin.label,
-              x: s.origin.x,
-              z: s.origin.z,
-            }
-          : null
-      }
-      placingCurrentLocation={s.picking === "origin"}
-      onMoveCurrentLocation={() => emit("move_origin", {})}
-      onSelectLocation={s.picking ? location : undefined}
-      onSelectBuilding={() => {}}
-      onSelectFloor={(floor) =>
-        emit("floor_selected", { floorId: String(floor) })
-      }
-      onSelectCell={(c) => {
-        if (s.picking) {
-          const [x, z] = cellCenter(c);
-          location({
-            building: code,
-            floor: c.floor,
-            label: cellTitle(c),
-            x,
-            z,
-          });
-        } else
-          emit("place_selected", {
-            buildingId: code,
-            floorId: String(c.floor),
-            placeId: c.id,
-          });
-      }}
-    />
+    <div className="relative h-full">
+      {s.source === "live" ? (
+        <LiveViewer s={s} />
+      ) : (
+        <MapCanvas
+          key={`${s.reset}-${s.reduceMotion}`}
+          view={{
+            type: "building",
+            code,
+            floor: Number(s.floorId),
+            allFloors: s.allFloors,
+          }}
+          layers={new Set(s.layers)}
+          route={null}
+          apiRoute={s.route}
+          highlights={new Map()}
+          selectedCell={s.selectedPlaceId}
+          currentLocation={
+            s.origin
+              ? {
+                  building: s.origin.buildingId,
+                  floor: Number(s.origin.floorId),
+                  label: s.origin.label,
+                  x: s.origin.x,
+                  z: s.origin.z,
+                }
+              : null
+          }
+          placingCurrentLocation={s.picking === "origin"}
+          onMoveCurrentLocation={() => emit("move_origin", {})}
+          onSelectLocation={s.picking ? location : undefined}
+          onSelectBuilding={() => {}}
+          onSelectFloor={(floor) =>
+            emit("floor_selected", { floorId: String(floor) })
+          }
+          onSelectCell={(c) => {
+            if (s.picking) {
+              const [x, z] = cellCenter(c);
+              location({
+                building: code,
+                floor: c.floor,
+                label: cellTitle(c),
+                x,
+                z,
+              });
+            } else
+              emit("place_selected", {
+                buildingId: code,
+                floorId: String(c.floor),
+                placeId: c.id,
+              });
+          }}
+        />
+      )}
+      {s.route && (
+        <div className="absolute bottom-3 left-3 z-40 max-h-[45%] w-72 max-w-[calc(100%-1.5rem)] overflow-y-auto rounded-xl bg-white shadow-lg">
+          <RouteAppearance />
+        </div>
+      )}
+    </div>
   );
 }
 const point = (p: Point): [number, number, number] => [p.x, p.y, p.z];
@@ -241,6 +260,11 @@ function LiveViewer({ s }: { s: State }) {
           {f.objects.map((o: any) => {
             const selected = o.placeId === s.selectedPlaceId;
             const place = f.places.find((p) => p.id === o.placeId);
+            if (
+              place?.kind === "stairs" &&
+              !routeUsesStair(s.route, s.buildingId, f.id, place.position)
+            )
+              return null;
             const pick = (e: any) => {
               e.stopPropagation();
               if (s.picking) {
@@ -303,7 +327,10 @@ function LiveViewer({ s }: { s: State }) {
           })}
           {f.places
             .filter(
-              (p) => p.id === s.selectedPlaceId || layerVisible(p, s.layers),
+              (p) =>
+                (p.kind !== "stairs" ||
+                  routeUsesStair(s.route, s.buildingId, f.id, p.position)) &&
+                (p.id === s.selectedPlaceId || layerVisible(p, s.layers)),
             )
             .map((p) => (
               <MapHtml key={p.id} position={point(p.position)} center>
@@ -349,11 +376,10 @@ function LiveViewer({ s }: { s: State }) {
                 l.points.length > 1,
             )
             .map((l: any) => (
-              <Line
+              <RouteLine
                 key={l.id}
                 points={l.points.map((p: Point) => [p.x, p.y + 0.12, p.z])}
-                color="#ffcc00"
-                lineWidth={5}
+                overlay
               />
             ))}
           {s.origin?.buildingId === s.buildingId &&
@@ -390,6 +416,8 @@ function LiveViewer({ s }: { s: State }) {
               <FloorTransitionBeacon
                 key={transition.id}
                 transition={transition}
+                floor={Number(s.floorId)}
+                allFloors={s.allFloors}
                 active
                 onSelectFloor={(floor) =>
                   emit("floor_selected", { floorId: String(floor) })
@@ -457,6 +485,8 @@ function LiveCamera({ s }: { s: State }) {
 }
 createRoot(document.getElementById("root")!).render(
   <ViewerBoundary>
-    <Viewer />
+    <RouteAppearanceProvider>
+      <Viewer />
+    </RouteAppearanceProvider>
   </ViewerBoundary>,
 );

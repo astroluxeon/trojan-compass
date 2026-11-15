@@ -28,7 +28,11 @@ import { RestroomIcon } from "./RestroomIcon";
 import { WheelchairIcon } from "./WheelchairIcon";
 import { EndPin, RouteLine, StartDot } from "./RouteLine";
 import { FloorTransitionBeacon } from "./FloorTransitionBeacon";
-import { sceneRoute, scenePosition } from "@/features/routing/route-scene";
+import {
+  sceneRoute,
+  scenePosition,
+  routeUsesStair,
+} from "@/features/routing/route-scene";
 import type { Route as ApiRoute } from "@trojan-compass/shared/api";
 import {
   CurrentLocationPin,
@@ -144,6 +148,8 @@ export function BuildingScene(props: Props) {
           <FloorTransitionBeacon
             key={segment.id}
             transition={segment}
+            floor={floor}
+            allFloors={props.allFloors}
             active={!props.activeLegId || props.activeLegId === segment.id}
             onSelectFloor={props.onSelectFloor}
           />
@@ -310,8 +316,21 @@ function ActiveFloor({
   selectedCell,
   onSelectCell,
   onSelectLocation,
+  apiRoute,
 }: Props) {
-  const layout = getLayout(code, floor);
+  const source = getLayout(code, floor);
+  const layout = {
+    ...source,
+    cells: source.cells.filter(
+      (c) =>
+        c.kind !== "stairs" ||
+        routeUsesStair(apiRoute, code, String(floor), {
+          x: c.door[0],
+          y: floorY(floor, code),
+          z: c.door[1],
+        }),
+    ),
+  };
   const [hover, setHover] = useState<string | null>(null);
   const accessibleOn = layers.has("accessible");
   const nodeById = new Map(layout.walkNodes.map((n) => [n.id, n]));
@@ -435,7 +454,6 @@ function ActiveFloor({
                 opacity={hl && !selected ? (c.open ? 0.45 : 0.85) : 1}
               />
             </mesh>
-            {c.kind === "stairs" && <Stairs c={c} />}
             {c.kind === "elevator" && (
               <mesh position={[cx, 0.6, cz]} castShadow>
                 <boxGeometry args={[w * 0.6, 1.2, d * 0.6]} />
@@ -455,41 +473,6 @@ function ActiveFloor({
         onSelectCell={onSelectCell}
         onSelectLocation={onSelectLocation}
       />
-    </group>
-  );
-}
-
-function Stairs({ c }: { c: Cell }) {
-  const [cx, cz] = cellCenter(c);
-  const alongX = c.x1 - c.x0 >= c.z1 - c.z0;
-  const long = alongX ? c.x1 - c.x0 : c.z1 - c.z0;
-  const short = alongX ? c.z1 - c.z0 : c.x1 - c.x0;
-  const n = 6;
-  const stepLen = (long * 0.8) / n;
-  const flightW = short * 0.4;
-  return (
-    <group position={[cx, 0, cz]}>
-      {[-1, 1].map((sideSign) =>
-        Array.from({ length: n }, (_, i) => {
-          const along = sideSign * (long * 0.4 - stepLen * (i + 0.5));
-          const across = sideSign * short * 0.22;
-          const h = 0.12 + i * 0.16;
-          return (
-            <mesh
-              key={`${sideSign}-${i}`}
-              position={
-                alongX ? [along, h / 2, across] : [across, h / 2, along]
-              }
-              castShadow
-            >
-              <boxGeometry
-                args={alongX ? [stepLen, h, flightW] : [flightW, h, stepLen]}
-              />
-              <meshStandardMaterial color="#d4d4d8" />
-            </mesh>
-          );
-        }),
-      )}
     </group>
   );
 }

@@ -5,6 +5,6 @@ import { installNativeAPITransport } from "./api-bridge.mjs";
 installNativeAPITransport();
 createRoot(document.getElementById("root")!).render(
   <Suspense fallback={<p role="status">Loading map?</p>}>
-    <Wayfinder />
+    <Wayfinder bundled />
   </Suspense>,
 );

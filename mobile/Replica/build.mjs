@@ -34,7 +34,7 @@ cpSync(
 
 // Preserve the saved campus DOM, branding, CSS, tiles, credits, and behavior.
 const campus = read("demos/usc-map/index.html").replace(
-  '<script src="demo.js" type="module"></script>',
+  '<script src="demo.js?v=campus-modes-1" type="module"></script>',
   '<script src="campus.js"></script>',
 );
 writeFileSync(new URL("campus/index.html", output), campus);
@@ -51,7 +51,7 @@ await build({
     {
       name: "offline-directory",
       setup(b) {
-        b.onLoad({ filter: /demo\.js$/ }, ({ path }) => ({
+        b.onLoad({ filter: /ios\.js$/ }, ({ path }) => ({
           loader: "js",
           contents: readFileSync(path, "utf8")
             .replace(

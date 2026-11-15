@@ -3,13 +3,89 @@ import { useFrame } from "@react-three/fiber";
 import { ArrowDown, ArrowUp } from "lucide-react";
 import { useRef } from "react";
 import type { Group } from "three";
-import type { FloorTransition } from "@/features/routing/route-scene";
+import {
+  stairFlight,
+  type FloorTransition,
+} from "@/features/routing/route-scene";
+import { useRouteAppearance } from "@/features/routing/components/RouteAppearance";
 import { floorName } from "../data/viewer-data";
 import { MapHtml } from "./MapHtml";
 import { useReducedMotion } from "./useReducedMotion";
+import { RouteLine } from "./RouteLine";
+import { Staircase } from "./Staircase";
 
-/** Symbolic floor-change beacon: upright glass volume and a rising/falling rectangular pad. */
-export function FloorTransitionBeacon({
+/** Stairs connect the landing surfaces; elevators retain the upright lift beacon. */
+type Props = {
+  transition: FloorTransition;
+  active: boolean;
+  onSelectFloor: (floor: number) => void;
+  floor?: number;
+  allFloors?: boolean;
+};
+
+export function FloorTransitionBeacon(props: Props) {
+  return props.transition.connectorKind === "stairs" ? (
+    <StairTransition {...props} />
+  ) : (
+    <LiftTransition {...props} />
+  );
+}
+
+function StairTransition({
+  transition,
+  active,
+  onSelectFloor,
+  floor = transition.fromFloor,
+  allFloors = false,
+}: Props) {
+  const flight = stairFlight(
+    transition,
+    allFloors ? transition.fromFloor : floor,
+  );
+  if (!flight) return null;
+  const destination =
+    floor === transition.toFloor
+      ? transition.toFloor
+      : transition.direction === "up"
+        ? (transition.floors.find((f) => f > floor) ?? transition.toFloor)
+        : ([...transition.floors].reverse().find((f) => f < floor) ??
+          transition.toFloor);
+  const arrived = floor === transition.toFloor;
+  const caption = arrived
+    ? `Stairs · Arrive on ${floorName(floor)}`
+    : `Stairs · ${transition.direction} to ${floorName(destination)}`;
+  const label =
+    floor === transition.toFloor ? transition.exit : transition.entry;
+  return (
+    <group>
+      <Staircase parts={flight.parts} active={active} />
+      <RouteLine points={flight.points} active={active} overlay />
+      <MapHtml
+        position={[label[0], label[1] + 1.7, label[2]]}
+        center
+        zIndexRange={[25, 21]}
+      >
+        <button
+          type="button"
+          aria-label={caption}
+          onClick={() => onSelectFloor(destination)}
+          className="whitespace-nowrap rounded-xl border border-neutral-300 bg-white/95 px-3 py-2 text-left text-neutral-800 shadow-sm focus-visible:outline-2 focus-visible:outline-neutral-700"
+        >
+          <span className="block text-[11px] font-bold">
+            {arrived
+              ? "Leave stairs here"
+              : `${transition.direction === "up" ? "↗ Up" : "↘ Down"} to ${floorName(destination).toLowerCase()}`}
+          </span>
+          <span className="block text-[10px] text-neutral-500">
+            Stairs · {floorName(floor)}
+          </span>
+        </button>
+      </MapHtml>
+    </group>
+  );
+}
+
+function LiftTransition({
   transition,
   active,
   onSelectFloor,

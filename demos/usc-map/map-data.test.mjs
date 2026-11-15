@@ -39,3 +39,20 @@ test('map projection aligns with saved Taper Hall marker', () => {
   assert.ok(Math.abs(y - 35) < 1)
   assert.deepEqual(mapPoint(34.022798, -118.284647), [0, 0])
 })
+
+test('campus previews preserve their return port and native iOS stays bundled', () => {
+  const previous = Object.getOwnPropertyDescriptor(globalThis, 'location')
+  try {
+    for (const port of ['3001', '3101']) {
+      Object.defineProperty(globalThis, 'location', { configurable: true, value: { protocol: 'http:', port } })
+      const url = new URL(compassUrl('LAW'))
+      assert.equal(url.port, '3000')
+      assert.equal(url.searchParams.get('campusPort'), port)
+    }
+    Object.defineProperty(globalThis, 'location', { configurable: true, value: { protocol: 'compass-web:' } })
+    assert.equal(compassUrl('LAW'), '/interior/index.html?building=LAW&floor=1')
+  } finally {
+    if (previous) Object.defineProperty(globalThis, 'location', previous)
+    else delete globalThis.location
+  }
+})

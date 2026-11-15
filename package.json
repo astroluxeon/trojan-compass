@@ -15,7 +15,7 @@
     "dev": "concurrently -k -n web,api \"npm run dev:web\" \"npm run dev:api\"",
     "dev:web": "npm run dev --workspace=@trojan-compass/web",
     "dev:campus": "npm run dev --workspace=@trojan-compass/campus-demo",
-    "dev:demo": "concurrently -k -n campus,interiors,api \"npm run dev:campus\" \"npm run dev:web\" \"npm run dev:api\"",
+    "dev:demo": "concurrently -k -n campus,ios,interiors,api \"npm run dev:campus\" \"npm run dev:ios\" \"npm run dev:web\" \"npm run dev:api\"",
     "dev:api": "npm run dev --workspace=@trojan-compass/api",
     "test": "npm run contract:check && npm run test --workspaces --if-present",
     "contract:generate": "node scripts/contract.mjs --generate",
@@ -27,7 +27,8 @@
     "dev:server": "npm run dev --workspace=@trojan-compass/api",
     "build:mobile-viewer": "node mobile/Viewer/build.mjs",
     "build:mobile-replica": "node mobile/Replica/build.mjs",
-    "check:mobile": "node scripts/check-mobile-replica.mjs && node --test mobile/Replica/api-bridge.test.mjs"
+    "check:mobile": "node scripts/check-mobile-replica.mjs && node --test mobile/Replica/api-bridge.test.mjs",
+    "dev:ios": "python -m http.server 3101 --bind :: --directory demos/usc-map"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",

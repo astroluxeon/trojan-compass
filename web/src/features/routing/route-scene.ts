@@ -1,8 +1,37 @@
 import type { Route, Vector3 } from "@trojan-compass/shared/api";
 import type { BuildingCode } from "@/features/map/data/campus-display";
-import { getLevels } from "@/features/map/data/viewer-data";
+import { floorY, getLayout, getLevels } from "@/features/map/data/viewer-data";
+import {
+  stairGeometry,
+  type StairPart,
+} from "@/features/map/renderer/stair-geometry";
 
 export type ScenePoint = [number, number, number];
+
+export function routeUsesStair(
+  route: Pick<Route, "legs"> | null | undefined,
+  buildingId: string,
+  floorId: string,
+  position: Vector3,
+) {
+  return (
+    route?.legs.some(
+      (leg) =>
+        leg.kind === "vertical" &&
+        leg.connectorKind === "stairs" &&
+        leg.buildingId === buildingId &&
+        Number(floorId) >=
+          Math.min(Number(leg.fromFloorId), Number(leg.toFloorId)) &&
+        Number(floorId) <=
+          Math.max(Number(leg.fromFloorId), Number(leg.toFloorId)) &&
+        leg.points.some(
+          (p) =>
+            Math.hypot(p.x - position.x, p.y - position.y, p.z - position.z) <
+            0.1,
+        ),
+    ) ?? false
+  );
+}
 export type WalkingSegment = {
   kind: "indoor";
   id: string;
@@ -21,7 +50,43 @@ export type FloorTransition = {
   exit: ScenePoint;
   center: ScenePoint;
   size: ScenePoint;
+  anchors: ScenePoint[];
+  building: BuildingCode;
 };
+
+/** Full-height stairs and a route following the same treads. */
+export function stairFlight(transition: FloorTransition, floor: number) {
+  if (!transition.floors.includes(floor)) return null;
+  const parts: StairPart[] = [],
+    points: ScenePoint[] = [];
+  for (let i = 1; i < transition.anchors.length; i++) {
+    const a = transition.anchors[i - 1]!,
+      b = transition.anchors[i]!;
+    const low = a[1] < b[1] ? a : b;
+    const level = transition.floors.find(
+      (f) => Math.abs(floorY(f, transition.building) + 0.36 - low[1]) < 0.1,
+    );
+    const cell =
+      level === undefined
+        ? undefined
+        : getLayout(transition.building, level).cells.find(
+            (c) =>
+              c.kind === "stairs" &&
+              Math.hypot(c.door[0] - low[0], c.door[1] - low[2]) < 0.1,
+          );
+    const model = stairGeometry(
+      [a[0], a[1] - 0.36, a[2]],
+      [b[0], b[1] - 0.36, b[2]],
+      cell ? cell.x1 - cell.x0 : undefined,
+      cell ? cell.z1 - cell.z0 : undefined,
+    );
+    parts.push(...model.parts);
+    points.push(
+      ...model.points.map(([x, y, z]): ScenePoint => [x, y + 0.36, z]),
+    );
+  }
+  return { parts, points };
+}
 
 /** API geometry and routes share building-local meters. Apply only the overlay lift. */
 export function scenePosition(
@@ -54,14 +119,15 @@ export function sceneRoute(route: Pick<Route, "legs">, code: BuildingCode) {
     } else {
       const entry = points[0]!,
         exit = points.at(-1)!;
-      // A symbolic upright volume encloses the connector landings. It does not redraw
-      // misaligned floor anchors as a diagonal walking path or move the route endpoints.
+      // Keep the landing bounds for the elevator beacon; stairs use tread geometry.
       const minX = Math.min(...points.map((p) => p[0])),
         maxX = Math.max(...points.map((p) => p[0]));
       const minZ = Math.min(...points.map((p) => p[2])),
         maxZ = Math.max(...points.map((p) => p[2]));
       segments.push({
         kind: "vertical",
+        building: code,
+        anchors: points,
         id: leg.id,
         floors,
         connectorKind: leg.connectorKind,
@@ -87,7 +153,10 @@ export function sceneRoute(route: Pick<Route, "legs">, code: BuildingCode) {
 }
 
 /** Arrow tips follow ordered walking points, including reversed routes and short turns. */
-export function routeChevrons(points: ScenePoint[]): ScenePoint[][] {
+export function routeChevrons(
+  points: ScenePoint[],
+  style: "chevron" | "triangle" | "arrow" = "chevron",
+): ScenePoint[][] {
   const arrows: ScenePoint[][] = [];
   for (let i = 1; i < points.length && arrows.length < 64; i++) {
     const a = points[i - 1]!,
@@ -98,18 +167,22 @@ export function routeChevrons(points: ScenePoint[]): ScenePoint[][] {
     if (distance < 0.55 || Math.abs(b[1] - a[1]) > 0.05) continue;
     const ux = dx / distance,
       uz = dz / distance,
-      count = Math.max(1, Math.floor(distance / 2.5));
+      count = Math.max(1, Math.floor(distance / 10));
     for (let k = 0; k < count && arrows.length < 64; k++) {
       const along = (distance * (k + 0.5)) / count,
         x = a[0] + ux * along,
         z = a[2] + uz * along;
-      const size = Math.min(0.36, distance * 0.25),
+      const size = Math.min(0.48, distance * 0.25),
         y = a[1] + 0.025;
       arrows.push([
         [x - ux * size - uz * size * 0.8, y, z - uz * size + ux * size * 0.8],
         [x + ux * size * 0.35, y, z + uz * size * 0.35],
         [x - ux * size + uz * size * 0.8, y, z - uz * size - ux * size * 0.8],
       ]);
+      const arrow = arrows.at(-1)!;
+      if (style === "triangle") arrow.push(arrow[0]!);
+      if (style === "arrow")
+        arrow.push(arrow[1]!, [x - ux * size * 1.8, y, z - uz * size * 1.8]);
     }
   }
   return arrows;

@@ -164,6 +164,7 @@ export function FloorSelector({
   allFloors,
   routeFloors,
   currentFloor,
+  destinationFloor,
   onSelect,
   onSelectAll,
   inline = false,
@@ -174,6 +175,7 @@ export function FloorSelector({
   allFloors?: boolean;
   routeFloors: number[];
   currentFloor?: number;
+  destinationFloor?: number;
   onSelect: (f: number) => void;
   onSelectAll: () => void;
   inline?: boolean;
@@ -203,25 +205,34 @@ export function FloorSelector({
         <button
           key={f}
           onClick={() => onSelect(f)}
-          aria-label={`${floorName(f, code)}${f === currentFloor ? " · Current location" : ""}`}
-          title={
-            f === currentFloor
-              ? `${floorName(f, code)} · Current location`
-              : floorName(f, code)
-          }
+          aria-label={`${floorName(f, code)}${f === currentFloor ? " · Current location" : ""}${f === destinationFloor ? " · Destination" : ""}`}
+          title={`${floorName(f, code)}${f === currentFloor ? " · Current location" : ""}${f === destinationFloor ? " · Destination" : ""}`}
           aria-pressed={!allFloors && f === floor}
-          className={`relative grid h-9 w-9 place-items-center rounded-lg text-[14px] font-bold transition ${
-            !allFloors && f === floor
-              ? "bg-cardinal text-white"
-              : f === currentFloor
-                ? "bg-gold/20 text-cardinal hover:bg-gold/30"
-                : "text-neutral-600 hover:bg-neutral-100"
-          } ${f === currentFloor ? "ring-2 ring-inset ring-gold" : ""}`}
+          className={`relative grid place-items-center rounded-lg text-[14px] font-bold transition ${
+            f === destinationFloor
+              ? "bg-gold text-neutral-900 hover:bg-gold/80"
+              : !allFloors && f === floor
+                ? "bg-cardinal text-white"
+                : f === currentFloor
+                  ? "bg-gold/20 text-cardinal hover:bg-gold/30"
+                  : "text-neutral-600 hover:bg-neutral-100"
+          } ${f === currentFloor || f === destinationFloor ? "ring-2 ring-inset ring-gold" : ""} ${inline && (f === currentFloor || f === destinationFloor) ? "h-auto w-auto min-h-9 gap-1 px-3 py-2" : "h-9 w-9"}`}
         >
           {floorShort(f)}
-          {f === currentFloor && !inline && (
-            <span className="absolute right-full mr-2 whitespace-nowrap rounded-full bg-gold px-2 py-1 text-[10px] font-bold text-neutral-900 shadow-sm">
-              Current location
+          {(f === currentFloor || f === destinationFloor) && (
+            <span
+              className={`${inline ? "flex flex-col" : "absolute right-full mr-2 flex flex-col"} gap-1 whitespace-nowrap text-[10px] font-bold text-neutral-900`}
+            >
+              {f === currentFloor && (
+                <span className="rounded-full bg-gold px-2 py-1 shadow-sm">
+                  Current location
+                </span>
+              )}
+              {f === destinationFloor && (
+                <span className="rounded-full bg-gold px-2 py-1 shadow-sm">
+                  Destination
+                </span>
+              )}
             </span>
           )}
           {routeFloors.includes(f) && f !== floor && (
