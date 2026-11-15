@@ -28,9 +28,10 @@ Native interactive checks using the bundle origin (not localhost):
 - Opened the original campus sidebar; searched `LAW`; followed the result into
   the bundled LAW interior. The app's document URL changed to
   `compass-web://bundle/interior/index.html?building=LAW&floor=1`.
-- Opened the original Search & tools menu and Search panel, entered `LAW 101`,
-  verified original autocomplete, submitted Search rooms, and observed the
-  canonical room ID in the bundled map URL while Search remained open.
+- Opened Search & tools and Search, verified autocomplete, and submitted a room
+  search. After the requested search-dismissal update, `LAW 205` opened Floor 2,
+  retained the gold room highlight, and removed the Search panel so the map
+  occupies the screen again. `LAW 99999` left the query and no-match error visible.
 
 ## Shared foundation checks retained from the preceding implementation
 

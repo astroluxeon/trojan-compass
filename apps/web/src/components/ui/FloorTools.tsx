@@ -136,7 +136,12 @@ export function FloorTools({ locations, onLocationChange, picking, onPick, onSea
             {active === 'search' && (
               <form className="space-y-4" onSubmit={(event) => {
                 event.preventDefault()
-                setNotice(onSearch(query) ? '' : 'No matching building or room. Try LAW 101 or THH 201.')
+                if (onSearch(query)) {
+                  setNotice('')
+                  close()
+                } else {
+                  setNotice('No matching building or room. Try LAW 101 or THH 201.')
+                }
               }}>
                 <p className="text-[13px] leading-relaxed text-neutral-500">Find your next class, meeting, or study spot.</p>
                 <div>

@@ -42,6 +42,8 @@ final class ReplicaController: NSObject, ObservableObject, WKNavigationDelegate,
 
     func makeWebView() -> WKWebView {
         let config = WKWebViewConfiguration()
+        // Bundled pages have no accounts; a fresh session also avoids stale UI after app updates.
+        config.websiteDataStore = .nonPersistent()
         config.setURLSchemeHandler(ReplicaResourceHandler(), forURLScheme: ReplicaResourceHandler.scheme)
         config.userContentController.add(self, name: "replica")
         let bridge = """

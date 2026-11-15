@@ -6,6 +6,9 @@ The default Swift app now bundles the **actual website screens and assets** from
 campus map tiles/footprints, fonts, sidebar, menus, search, interior viewer, floor
 and layer controls, Directions/Chat panels, and updated Trojan guide/dances.
 The earlier Apple Maps screen and native bottom toolbar are no longer the default.
+Submitting a successful room/building search closes the Search panel and restores
+the full map, with the result highlighted. An unsuccessful search stays open with
+its error and query; reopening Search retains the previous query.
 
 ## Run
 
