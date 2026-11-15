@@ -1,33 +1,21 @@
-import type { Operation } from '../../bootstrap/http-types.js';
-import type { DatasetPort, SearchPort } from '../../ports/service-ports.js';
-export function mountBuildings(operation: Operation, datasets: DatasetPort, search: SearchPort) {
-  operation('get', '/buildings', 'BuildingListResponse', async (s, q) => {
-    const r = await search.searchBuildings(s, {
-      query: q.q ?? '',
-      limit: q.limit ?? 20,
-      cursor: q.cursor,
-    });
-    return { items: r.buildings, nextCursor: r.nextCursor };
-  });
-  operation('get', '/buildings/{buildingId}', 'BuildingResponse', async (s, q, p) => ({
-    building: await datasets.getBuilding(s, p.buildingId!),
-  }));
-  operation('get', '/buildings/{buildingId}/floors', 'FloorListResponse', async (s, q, p) => ({
-    items: (await datasets.getBuilding(s, p.buildingId!)).floors.sort(
-      (a, b) => a.sortOrder - b.sortOrder
-    ),
-    nextCursor: null,
-  }));
-  operation(
-    'get',
-    '/buildings/{buildingId}/floors/{floorId}',
-    'FloorResponse',
-    async (s, q, p) => ({
-      floor: await datasets.getFloor(s, p.buildingId!, p.floorId!),
-      geometry: await datasets.getFloorGeometry(s, p.buildingId!, p.floorId!),
-      places: (await datasets.listPlaces(s, p.buildingId!)).filter(
-        (place) => place.floorId === p.floorId
-      ),
-    })
+import { Router } from "express";
+import type { Services } from "../../bootstrap/services.js";
+import { buildingsController } from "./buildings.controller.js";
+import { disabled } from "../../lib/errors.js";
+export function buildingsRoutes(services: Services, exposeGraph: boolean) {
+  const router = Router(),
+    c = buildingsController(services);
+  router.get("/buildings", c.list);
+  router.get("/buildings/:buildingId", c.detail);
+  router.get("/buildings/:buildingId/floors", c.floors);
+  router.get("/buildings/:buildingId/floors/:floorId", c.floor);
+  router.get(
+    "/buildings/:buildingId/graph",
+    exposeGraph
+      ? c.graph
+      : () => {
+          throw disabled("Raw graph inspection is disabled.");
+        },
   );
+  return router;
 }

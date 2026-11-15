@@ -1,6 +1,9 @@
-import { useEffect, useRef, useState, type ComponentProps } from 'react';
-import { api, versionQuery } from '@/lib/api-client';
-import type { PlaceSearchResponse, BuildingListResponse } from '@trojan-compass/shared';
+import { useEffect, useRef, useState, type ComponentProps } from "react";
+import { compassApi } from "@/lib/api-client";
+import type {
+  PlaceSearchResponse,
+  BuildingListResponse,
+} from "@trojan-compass/shared";
 
 export function LocationAutocomplete({
   dataVersion,
@@ -10,7 +13,7 @@ export function LocationAutocomplete({
   includeOutside = false,
   accessibleOnly = false,
   ...props
-}: Omit<ComponentProps<'input'>, 'value' | 'onChange'> & {
+}: Omit<ComponentProps<"input">, "value" | "onChange"> & {
   dataVersion: string;
   id: string;
   value: string;
@@ -20,46 +23,59 @@ export function LocationAutocomplete({
 }) {
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
-  const [results, setResults] = useState<{ value: string; detail: string }[]>([]);
-  const [status, setStatus] = useState('');
+  const [results, setResults] = useState<{ value: string; detail: string }[]>(
+    [],
+  );
+  const [status, setStatus] = useState("");
   useEffect(() => {
     const controller = new AbortController();
     setResults([]);
     if (!dataVersion) return;
-    setStatus('Searching…');
+    setStatus("Searching…");
     const timer = setTimeout(async () => {
       try {
-        const suffix = versionQuery(dataVersion);
         const [places, buildings] = await Promise.all([
-          api<PlaceSearchResponse>(
-            `/places?q=${encodeURIComponent(value)}&limit=8&stepFree=${accessibleOnly}&${suffix}`,
-            { signal: controller.signal }
+          compassApi.places(
+            { q: value, limit: 8, stepFree: accessibleOnly, dataVersion },
+            controller.signal,
           ),
-          api<BuildingListResponse>(`/buildings?q=${encodeURIComponent(value)}&limit=8&${suffix}`, {
-            signal: controller.signal,
-          }),
+          compassApi.buildings(
+            { q: value, limit: 8, dataVersion },
+            controller.signal,
+          ),
         ]);
         if (controller.signal.aborted) return;
-        if (places.dataVersion !== dataVersion || buildings.dataVersion !== dataVersion)
-          throw new Error('Dataset changed. Reload map data.');
+        if (
+          places.dataVersion !== dataVersion ||
+          buildings.dataVersion !== dataVersion
+        )
+          throw new Error("Dataset changed. Reload map data.");
         const outside =
-          includeOutside && /^(?:outside(?: the building)?)?$/i.test(value.trim())
-            ? [{ value: 'Outside the building', detail: 'Choose a specific entrance if asked.' }]
+          includeOutside &&
+          /^(?:outside(?: the building)?)?$/i.test(value.trim())
+            ? [
+                {
+                  value: "Outside the building",
+                  detail: "Choose a specific entrance if asked.",
+                },
+              ]
             : [];
         setResults(
           [
             ...outside,
             ...places.items.map((r) => ({
               value: r.place.id,
-              detail: r.matchLabel + ' · ' + r.secondaryLabel,
+              detail: r.matchLabel + " · " + r.secondaryLabel,
             })),
             ...buildings.items.map((b) => ({ value: b.id, detail: b.name })),
-          ].slice(0, 12)
+          ].slice(0, 12),
         );
-        setStatus('No matching building or room.');
+        setStatus("No matching building or room.");
       } catch (error) {
         if (!controller.signal.aborted)
-          setStatus(error instanceof Error ? error.message : 'Search unavailable.');
+          setStatus(
+            error instanceof Error ? error.message : "Search unavailable.",
+          );
       }
     }, 180);
     return () => {
@@ -71,7 +87,7 @@ export function LocationAutocomplete({
   const activeOption = useRef<HTMLLIElement>(null);
 
   useEffect(() => {
-    if (expanded) activeOption.current?.scrollIntoView({ block: 'nearest' });
+    if (expanded) activeOption.current?.scrollIntoView({ block: "nearest" });
   }, [active, expanded]);
 
   function choose(next: string) {
@@ -91,7 +107,9 @@ export function LocationAutocomplete({
         aria-autocomplete="list"
         aria-expanded={expanded}
         aria-controls={`${id}-options`}
-        aria-activedescendant={expanded && results[active] ? `${id}-option-${active}` : undefined}
+        aria-activedescendant={
+          expanded && results[active] ? `${id}-option-${active}` : undefined
+        }
         onChange={(event) => {
           onChange(event.target.value);
           setActive(-1);
@@ -107,21 +125,24 @@ export function LocationAutocomplete({
         }}
         onKeyDown={(event) => {
           if (event.nativeEvent.isComposing) return;
-          if (event.key === 'Escape' && expanded) {
+          if (event.key === "Escape" && expanded) {
             event.preventDefault();
             event.stopPropagation();
             setOpen(false);
-          } else if ((event.key === 'ArrowDown' || event.key === 'ArrowUp') && results.length) {
+          } else if (
+            (event.key === "ArrowDown" || event.key === "ArrowUp") &&
+            results.length
+          ) {
             event.preventDefault();
             setOpen(true);
             setActive(
-              event.key === 'ArrowDown'
+              event.key === "ArrowDown"
                 ? (active + 1) % results.length
                 : active <= 0
                   ? results.length - 1
-                  : active - 1
+                  : active - 1,
             );
-          } else if (event.key === 'Enter' && expanded && results[active]) {
+          } else if (event.key === "Enter" && expanded && results[active]) {
             event.preventDefault();
             choose(results[active].value);
           }
@@ -129,7 +150,11 @@ export function LocationAutocomplete({
       />
       {expanded && (
         <div className="scrollbar-thin absolute inset-x-0 top-full z-50 mt-1 max-h-64 overflow-y-auto rounded-2xl border border-neutral-200 bg-white shadow-xl">
-          <ul id={`${id}-options`} role="listbox" aria-label="Building and room suggestions">
+          <ul
+            id={`${id}-options`}
+            role="listbox"
+            aria-label="Building and room suggestions"
+          >
             {results.map((option, index) => (
               <li
                 key={option.value}
@@ -140,7 +165,7 @@ export function LocationAutocomplete({
                 onPointerDown={(event) => event.preventDefault()}
                 onPointerMove={() => setActive(index)}
                 onClick={() => choose(option.value)}
-                className={`cursor-pointer px-3 py-2 text-left ${active === index ? 'bg-cardinal-50' : 'hover:bg-cardinal-50'}`}
+                className={`cursor-pointer px-3 py-2 text-left ${active === index ? "bg-cardinal-50" : "hover:bg-cardinal-50"}`}
               >
                 <span className="block text-[13px] font-semibold text-neutral-900">
                   {option.value}

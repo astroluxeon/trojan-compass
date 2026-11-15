@@ -25,7 +25,7 @@ import {
   entrancePlaces,
 } from "./prototype/floorplan.js";
 import { repositoryRoot } from "../contract.js";
-import type { NavigationSource } from "../../ports/service-ports.js";
+import type { PublishedNavigation as NavigationSource } from "./publication-format.js";
 
 const version = "usc-interiors-2026-11-14";
 const snapshot = new URL(`server/data/snapshots/${version}/`, repositoryRoot);

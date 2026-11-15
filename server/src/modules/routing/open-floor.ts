@@ -1,19 +1,26 @@
-import type { FloorGeometry, Place, Vector3 } from '@trojan-compass/shared';
-import { distance, obstructed } from './geometry.js';
+import type { FloorGeometry, Place, Vector3 } from "@trojan-compass/shared";
+import { distance, obstructed } from "./publication-geometry.js";
 
 type Rectangle = { min: Vector3; max: Vector3 };
 
 // Clip a segment to a floor rectangle. Merging these intervals checks the whole
 // segment against the slab union, including recesses and gaps between slabs.
-function interval(a: Vector3, b: Vector3, rect: Rectangle): [number, number] | null {
+function interval(
+  a: Vector3,
+  b: Vector3,
+  rect: Rectangle,
+): [number, number] | null {
   let low = 0,
     high = 1;
-  for (const axis of ['x', 'z'] as const) {
+  for (const axis of ["x", "z"] as const) {
     const delta = b[axis] - a[axis];
     if (Math.abs(delta) < 1e-9) {
       if (a[axis] < rect.min[axis] || a[axis] > rect.max[axis]) return null;
     } else {
-      const ends = [(rect.min[axis] - a[axis]) / delta, (rect.max[axis] - a[axis]) / delta];
+      const ends = [
+        (rect.min[axis] - a[axis]) / delta,
+        (rect.max[axis] - a[axis]) / delta,
+      ];
       low = Math.max(low, Math.min(...ends));
       high = Math.min(high, Math.max(...ends));
       if (low > high) return null;
@@ -29,7 +36,7 @@ export class OpenFloor {
 
   constructor(geometry: FloorGeometry, places: Place[]) {
     for (const object of geometry.objects) {
-      if (object.kind !== 'box' || Math.abs(object.yawRadians) > 1e-9) continue;
+      if (object.kind !== "box" || Math.abs(object.yawRadians) > 1e-9) continue;
       const rect = {
         min: {
           x: object.center.x - object.size.x / 2,
@@ -42,14 +49,21 @@ export class OpenFloor {
           z: object.center.z + object.size.z / 2,
         },
       };
-      if (object.role === 'slab') this.slabs.push(rect);
-      if (object.role === 'wall' || (object.role === 'room_highlight' && !object.placeId))
+      if (object.role === "slab") this.slabs.push(rect);
+      if (
+        object.role === "wall" ||
+        (object.role === "room_highlight" && !object.placeId)
+      )
         this.obstacles.push({ ...rect, floorId: geometry.floorId });
     }
     // An open-space attachment must not take a shortcut through another room,
     // stairs, elevator or restricted block, even through an open door gap.
     for (const place of places) {
-      if (place.floorId === geometry.floorId && place.bounds && place.description !== 'Open area')
+      if (
+        place.floorId === geometry.floorId &&
+        place.bounds &&
+        place.description !== "Open area"
+      )
         this.obstacles.push({ ...place.bounds, floorId: geometry.floorId });
     }
     this.floorId = geometry.floorId;
@@ -97,18 +111,21 @@ export class OpenFloor {
     const zs = this.slabs.flatMap((rect) => [rect.min.z, rect.max.z]);
     for (const x of xs)
       for (const z of zs)
-        for (const dx of [-margin, margin]) for (const dz of [-margin, margin]) add(x + dx, z + dz);
+        for (const dx of [-margin, margin])
+          for (const dz of [-margin, margin]) add(x + dx, z + dz);
     return (this.corners = [...points.values()]);
   }
 
   connect<T extends { position: Vector3 }>(
     start: Vector3,
-    candidates: T[]
+    candidates: T[],
   ): { target: T; points: Vector3[] } | null {
     if (!this.contains(start)) return null;
     const targets = candidates
       .filter((c) => this.contains(c.position))
-      .sort((a, b) => distance(start, a.position) - distance(start, b.position));
+      .sort(
+        (a, b) => distance(start, a.position) - distance(start, b.position),
+      );
     const direct = targets.find((c) => this.canTravel(start, c.position));
     if (direct) return { target: direct, points: [start, direct.position] };
     if (!targets.length) return null;
@@ -121,18 +138,25 @@ export class OpenFloor {
     const done = new Set<number>();
     let best: { target: T; index: number; cost: number } | undefined;
     while (open.size) {
-      const current = [...open].reduce((a, b) => (costs[a]! < costs[b]! ? a : b));
+      const current = [...open].reduce((a, b) =>
+        costs[a]! < costs[b]! ? a : b,
+      );
       open.delete(current);
       if (costs[current]! >= (best?.cost ?? Infinity)) break;
       done.add(current);
       for (const target of targets) {
-        const cost = costs[current]! + distance(points[current]!, target.position);
-        if (cost < (best?.cost ?? Infinity) && this.canTravel(points[current]!, target.position))
+        const cost =
+          costs[current]! + distance(points[current]!, target.position);
+        if (
+          cost < (best?.cost ?? Infinity) &&
+          this.canTravel(points[current]!, target.position)
+        )
           best = { target, index: current, cost };
       }
       for (let index = 1; index < points.length; index++) {
         if (done.has(index)) continue;
-        const cost = costs[current]! + distance(points[current]!, points[index]!);
+        const cost =
+          costs[current]! + distance(points[current]!, points[index]!);
         if (
           cost < costs[index]! &&
           cost < (best?.cost ?? Infinity) &&

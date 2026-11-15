@@ -2,7 +2,7 @@
 
 Trojan Compass is a USC building exploration application with a shared TypeScript backend for the website and iPhone app. Students search for buildings and rooms, explore floors, highlight destinations, and optionally request indoor directions through manual controls or AI chat.
 
-This document defines the integration architecture and ownership boundaries. It was prepared against GitHub `main` at `c118d93` and Eddie's local implementation. Publishing this document does not merge the application implementations. Paths identified as pending below describe code implemented locally but not yet integrated into `main`.
+This document defines the architecture and ownership boundaries. The integration branch now connects Eddie's services to the teammate's published building data and API-backed viewer. See [integration review](integration-review.md) for acceptance evidence, known publication gaps and merge guidance, and [backend guide](backend-guide.md) for implementation details. The mobile pull request remains separate.
 
 ## 1. Application boundaries
 
@@ -42,17 +42,17 @@ Navigation is optional. A building can support search, floor exploration, and hi
 
 ## 2. Ownership and parallel work
 
-| Owner | Responsibility | Main locations |
-| --- | --- | --- |
-| Eddie | Search, normalization, ranking, ambiguity resolution and autocomplete behavior | `server/src/modules/search/`, `web/src/features/search/` integration |
-| Eddie | Graph validation/construction, endpoint snapping, access rules, pathfinding and instructions | `server/src/modules/routing/`, `web/src/features/routing/` integration |
-| Eddie | Chat orchestration, provider adapter, clarification and validated actions | `server/src/modules/chat/`, `server/src/integrations/ai/`, `web/src/features/chat/` integration |
-| Eddie | Server composition, HTTP validation, errors and operational controls | `server/src/app.ts`, `server/src/bootstrap/`, `server/src/middleware/`, supporting `lib/` |
-| Data/rendering teammate | Canonical records, geometry, calibration, source navigation and provenance | `server/data/`, `server/src/infrastructure/datasets/` |
-| Data/rendering teammate | Building/floor/place detail reads and scene delivery | `server/src/modules/buildings/`, `places/`, `scenes/` |
-| Data/rendering teammate | Scene loading, camera, picking, highlighting and route drawing | `web/src/features/map/` |
-| Mobile teammate | Swift application, device networking, mobile controls and viewer integration | `mobile/` |
-| Affected owners together | Contracts, internal interfaces, coordinate changes, shared viewer wiring and dependencies | `shared/`, `server/src/ports/`, shared frontend files, root manifests |
+| Owner                    | Responsibility                                                                               | Main locations                                                                                  |
+| ------------------------ | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Eddie                    | Search, normalization, ranking, ambiguity resolution and autocomplete behavior               | `server/src/modules/search/`, `web/src/features/search/` integration                            |
+| Eddie                    | Graph validation/construction, endpoint snapping, access rules, pathfinding and instructions | `server/src/modules/routing/`, `web/src/features/routing/` integration                          |
+| Eddie                    | Chat orchestration, provider adapter, clarification and validated actions                    | `server/src/modules/chat/`, `server/src/integrations/ai/`, `web/src/features/chat/` integration |
+| Eddie                    | Server composition, HTTP validation, errors and operational controls                         | `server/src/app.ts`, `server/src/bootstrap/`, `server/src/middleware/`, supporting `lib/`       |
+| Data/rendering teammate  | Canonical records, geometry, calibration, source navigation and provenance                   | `server/data/`, `server/src/infrastructure/datasets/`                                           |
+| Data/rendering teammate  | Building/floor/place detail reads and scene delivery                                         | `server/src/modules/buildings/`, `places/`, `scenes/`                                           |
+| Data/rendering teammate  | Scene loading, camera, picking, highlighting and route drawing                               | `web/src/features/map/`                                                                         |
+| Mobile teammate          | Swift application, device networking, mobile controls and viewer integration                 | `mobile/`                                                                                       |
+| Affected owners together | Contracts, internal interfaces, coordinate changes, shared viewer wiring and dependencies    | `shared/`, `server/src/ports/`, shared frontend files, root manifests                           |
 
 Search, routing, and AI chat use Eddie's implementation as the integration source of truth. Building listing and building-scoped place queries delegate matching to the same search service. Data services expose records without importing routing or duplicating ranking.
 
@@ -60,7 +60,7 @@ The teammate owns source corridors, doors, entrances, barriers and stair/elevato
 
 ## 3. Repository structure
 
-This is the integration structure. It combines existing top-level directories with Eddie's controller/service implementation. The pending items are listed after the tree so the layout is not mistaken for a completed merge.
+This structure combines the existing top-level directories with the integrated controller/service implementation.
 
 ```text
 trojan-compass/
@@ -83,8 +83,6 @@ trojan-compass/
 │       │   ├── search/                 # Search UI and canonical selection
 │       │   ├── routing/
 │       │   │   ├── components/         # Directions inputs and returned steps
-│       │   │   ├── hooks/useRoute.ts   # Cancellation and route request lifecycle
-│       │   │   ├── directions-input.ts # Picked/typed endpoint adapter
 │       │   │   └── route-scene.ts      # Route-to-display coordinate adapter
 │       │   ├── chat/                   # Conversation UI and action application
 │       │   └── map/
@@ -96,7 +94,7 @@ trojan-compass/
 │       │           ├── MapCanvas.tsx
 │       │           ├── RouteLine.tsx   # Green walking paths and direction arrows
 │       │           └── FloorTransitionBeacon.tsx # Blue floor-change marker
-│       └── lib/api-client.ts           # Typed HTTP transport and response checks
+│       └── lib/                        # API transport + LatestRequest cancellation
 ├── mobile/                             # Mobile teammate's Swift implementation
 │   ├── TrojanCompass.xcodeproj/
 │   ├── TrojanCompass/                  # SwiftUI, networking/models, viewer shell
@@ -152,7 +150,7 @@ modules/<feature>/
 └── supporting modules       # Feature-specific algorithms and adapters
 ```
 
-**Pending integration:** GitHub currently composes services through `bootstrap/create-services.ts` and uses route binding functions. Eddie's local implementation uses `bootstrap/services.ts`, controllers, `lib/`, the expanded navigation contract, routing helpers, `useRoute`, `route-scene.ts`, and `FloorTransitionBeacon.tsx`. Reconcile startup and imports when those files are integrated. GitHub's API-backed scene loader should be retained and connected to those features. The mobile PR contains additional application work beyond the shell currently on `main`; its own merge remains separate.
+**Integration state:** `bootstrap/services.ts` is the active composition root. Controllers, source validation and the expanded routing contract are connected to the published-file adapter. `LatestRequest` owns client cancellation; `ViewerSession` stages scene actions; `route-scene.ts` preserves separate walking/vertical legs and canonical units. The mobile branch's additional app changes remain a separate merge.
 
 ## 4. Request and backend data flow
 
@@ -176,13 +174,13 @@ flowchart LR
 
 `server.ts` owns environment validation, publication preparation, and listening. `app.ts` composes HTTP behavior around injected service instances. Controllers handle transport; services own domain decisions. Services call each other through in-process interfaces, without HTTP calls back into the same server.
 
-| Interface | Responsibility | Main consumers |
-| --- | --- | --- |
-| `DatasetPort` | Pinned building, floor, place, scene, geometry and navigation-source reads | Read services, search, routing and chat |
-| `SearchPort` | Normalization, ranking, pagination and canonical matches | Search endpoint, directory filters, chat |
-| `RoutingPort` | Calculate a route from structured endpoints and preferences | Manual directions and chat |
-| `ChatPort` | Interpret a turn, resolve records and return a status/action batch | Chat endpoint |
-| Intent adapter | Convert bounded language/context into a constrained intent | Chat service only |
+| Interface      | Responsibility                                                             | Main consumers                           |
+| -------------- | -------------------------------------------------------------------------- | ---------------------------------------- |
+| `DatasetPort`  | Pinned building, floor, place, scene, geometry and navigation-source reads | Read services, search, routing and chat  |
+| `SearchPort`   | Normalization, ranking, pagination and canonical matches                   | Search endpoint, directory filters, chat |
+| `RoutingPort`  | Calculate a route from structured endpoints and preferences                | Manual directions and chat               |
+| `ChatPort`     | Interpret a turn, resolve records and return a status/action batch         | Chat endpoint                            |
+| Intent adapter | Convert bounded language/context into a constrained intent                 | Chat service only                        |
 
 The shared contract is defined in [OpenAPI](../shared/contracts/openapi.yaml). [Fixtures](../shared/fixtures/) describe wire behavior and are synthetic examples, not runtime campus data. TypeScript types support compilation; runtime checks independently validate requests, source records and responses.
 
@@ -240,7 +238,7 @@ The pathfinder uses a priority queue and nonnegative travel-time costs. Elevator
 
 The approved route display preserves horizontal walking legs and vertical legs separately. A blue upright transparent volume encloses the connector landings; an ascending/descending rectangular platform and an up/down floor label indicate the transition. It is a symbolic display marker. The client does not replace the backend route with a diagonal walking line or change physical route distances. Motion respects reduced-motion preferences.
 
-**Development preview:** Eddie's local `POST /api/preview/routes` explicitly serves illustrative routes for the existing prototype viewer. It is enabled only for the non-production prototype configuration, marks access/metrics as unverified or estimated, and never acts as an automatic fallback from `/api/routes`. This extension is pending integration and is not part of the shared production contract.
+**Development preview:** The compatibility `POST /api/preview/routes` explicitly serves illustrative routes for the existing prototype viewer. It is enabled only for the non-production prototype configuration, marks access/metrics as unverified or estimated, and never acts as an automatic fallback from `/api/routes`. The published viewer does not use this extension; it is not part of the shared production contract.
 
 ## 7. AI chat flow
 
@@ -304,26 +302,26 @@ Every selected place, scene, search result and route belongs to one `dataVersion
 
 Prototype conversion assumptions must not leak into the API-backed renderer. Eddie's current prototype adapter scales horizontal scene coordinates by 2.4 for LAW and 2 for generated buildings, while Y is already in meters. The incoming API-backed geometry is already canonical; applying the prototype conversion again would misalign paths.
 
-**Required adapter work:** GitHub snapshots currently use `current.json` with `dataVersion`, a per-version `manifest.json`, and split building files. Eddie's local loader expects a publication index with `currentVersion`/`availableVersions` and normalized `dataset.json` bundles. Preserve source records and add an explicit conversion/adapter rather than interpreting one layout as the other.
+**Published-file adapter:** The runtime now accepts the existing `{dataVersion}` pointer and split building files directly. It also supports `{currentVersion, availableVersions}` with normalized bundles. Source records are preserved; explicit conversion produces the expanded validated navigation source.
 
-The internal navigation formats also differ. Eddie's validator requires geometry, edge details, doors, place access bindings, reference entrances and evidence. Incoming centerlines, barrier boxes and connector memberships do not provide all these semantics. Agree or author missing inputs; do not invent door/access evidence to make validation pass. Buildings lacking adequate navigation inputs can still expose their directory and scene capabilities.
+The internal navigation source requires geometry, edge details, doors, place access bindings, reference entrances and evidence. The adapter combines source centerlines, barrier boxes, room bounds, explicit doors and connector memberships. Derived corridor links require unobstructed published floor space; missing door/access evidence is never fabricated. Buildings lacking adequate navigation inputs can still expose their directory and scene capabilities.
 
 ## 9. HTTP, state and deployment rules
 
-| Concern | Required behavior |
-| --- | --- |
-| Network ownership | One request owner per user action, including inside WKWebView |
-| Versioning | Discover a version, then pin related reads, routes and chat to it |
-| Stale responses | Cancel or supersede old requests; verify version and POST `clientRequestId` before commit |
-| Errors | Consistent `APIError` envelope, correlation ID and meaningful HTTP status |
-| Failure state | Preserve typed drafts, committed selections and camera until a replacement is ready |
-| Scene actions | Stage and validate the complete batch before committing viewer changes |
-| Secrets | Provider keys/configuration stay server-side |
-| Access | Unknown accessibility remains unknown; explicit evidence is required |
-| Caching | Graphs/indexes keyed by publication; GET revalidation; route/chat responses use `no-store` |
-| Operations | Runtime validation, bounded bodies/history, time budgets, rate limits and bounded provider concurrency |
-| Mobile networking | Use a reachable HTTPS API/viewer URL; phone localhost points to the phone |
-| Persistence | Read-only versioned publications; no student account or chat-history database required |
+| Concern           | Required behavior                                                                                      |
+| ----------------- | ------------------------------------------------------------------------------------------------------ |
+| Network ownership | One request owner per user action, including inside WKWebView                                          |
+| Versioning        | Discover a version, then pin related reads, routes and chat to it                                      |
+| Stale responses   | Cancel or supersede old requests; verify version and POST `clientRequestId` before commit              |
+| Errors            | Consistent `APIError` envelope, correlation ID and meaningful HTTP status                              |
+| Failure state     | Preserve typed drafts, committed selections and camera until a replacement is ready                    |
+| Scene actions     | Stage and validate the complete batch before committing viewer changes                                 |
+| Secrets           | Provider keys/configuration stay server-side                                                           |
+| Access            | Unknown accessibility remains unknown; explicit evidence is required                                   |
+| Caching           | Graphs/indexes keyed by publication; GET revalidation; route/chat responses use `no-store`             |
+| Operations        | Runtime validation, bounded bodies/history, time budgets, rate limits and bounded provider concurrency |
+| Mobile networking | Use a reachable HTTPS API/viewer URL; phone localhost points to the phone                              |
+| Persistence       | Read-only versioned publications; no student account or chat-history database required                 |
 
 These are the integration requirements. Eddie's local HTTP implementation supplies the operational controls; they must remain wired when combining startup and middleware with the dataset/renderer implementation. Multiple replicas may keep their own immutable graph caches; deployment-wide rate/admission limits require a shared mechanism when per-process limits are insufficient.
 
@@ -331,9 +329,9 @@ No account system, public building editor, campus-code module, live event feed o
 
 ## 10. Integration and acceptance
 
-1. Preserve the current GitHub history and create a reviewable integration commit/branch. Publishing this document does not resolve code conflicts.
+1. Preserve the current GitHub history and create a reviewable integration commit/branch. The integration PR contains the application reconciliation and its tests.
 2. Keep Eddie's search, routing, chat, AI adapter and supporting HTTP/service implementation together, including its behavioral tests.
-3. Retain teammate data, scene loading, geometry, camera and picking contributions. Implement the snapshot/navigation adapter against the agreed `DatasetPort`.
+3. Retain teammate data, scene loading, geometry, camera and picking contributions. Keep the snapshot/navigation adapter aligned with the agreed `DatasetPort`.
 4. Reconcile `service-ports.ts`, coordinate mappings, startup composition, frontend request ownership and dependency manifests together.
 5. Adapt route rendering to canonical scene coordinates while preserving green walking arrows, separate vertical markers and sidebar steps.
 6. Replace prototype-generated imports only when their consumers use the new presentation adapters. Remove compatibility scripts/copies after all callers and checks migrate.

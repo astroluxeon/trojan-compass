@@ -1,3 +1,7 @@
 # Server composition
 
-create-services.ts creates the snapshot repository and injects it into search and routing, then injects those interfaces and the selected intent provider into chat. app.ts mounts each feature's HTTP bindings and adds request scope, schema validation, cache semantics and common errors. All service calls are in process. Eddie owns composition and cross-feature integration.
+`services.ts` injects DatasetPort and IntentAdapter into SearchService, GraphStore, ReachabilityService, RoutingService, and ChatService. Chat reuses the exact manual search/routing services.
+
+`prepareServices()` validates all retained publications and only prepares navigation for buildings that advertise it. `app.ts` mounts HTTP handlers; importing the app does not start a listener or read credentials. `server.ts` owns environment configuration, provider setup, publication loading, logging, and graceful shutdown.
+
+See `docs/backend-guide.md` at the repository root for the full workflow and integration contract.
