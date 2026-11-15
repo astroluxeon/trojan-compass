@@ -8,30 +8,33 @@ import {
   Footprints,
   Layers,
   MapPin,
-  Toilet,
   X,
 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ComponentType } from 'react'
 import { BUILDING_BY_CODE } from '../../data/campus'
 import { floorName, floorShort } from '../../data/floorplan'
 import type { Route } from '../../lib/routing'
 import { COLORS, type LayerKey, type View } from '../../lib/types'
 import { STEP_ICONS } from './Directions'
+import { RestroomIcon } from '../map/RestroomIcon'
 
-const LAYER_META: { key: LayerKey; label: string; icon: typeof Layers; color: string }[] = [
+const LAYER_META: { key: LayerKey; label: string; icon: ComponentType<{ className?: string }>; color: string }[] = [
   { key: 'classrooms', label: 'Classrooms', icon: MapPin, color: '#262626' },
-  { key: 'toilets', label: 'Restrooms', icon: Toilet, color: '#3f3f46' },
+  { key: 'mensRestrooms', label: 'Men’s restrooms', icon: (props) => <RestroomIcon {...props} men />, color: COLORS.restroom },
+  { key: 'womensRestrooms', label: 'Women’s restrooms', icon: (props) => <RestroomIcon {...props} women />, color: COLORS.restroom },
   { key: 'accessible', label: 'Accessible paths', icon: Accessibility, color: COLORS.accessible },
   { key: 'elevators', label: 'Elevators', icon: ArrowUpDown, color: '#3f3f46' },
   { key: 'stairs', label: 'Stairs', icon: Footprints, color: '#3f3f46' },
+  { key: 'entrances', label: 'Entrances', icon: DoorOpen, color: COLORS.entrance },
   { key: 'exits', label: 'Emergency exits', icon: DoorOpen, color: COLORS.exit },
 ]
 
-export function LayerPanel({ layers, onToggle }: { layers: Set<LayerKey>; onToggle: (k: LayerKey) => void; view: View }) {
-  const [open, setOpen] = useState(true)
+export function LayerPanel({ layers, onToggle, view }: { layers: Set<LayerKey>; onToggle: (k: LayerKey) => void; view: View }) {
+  const [open, setOpen] = useState(false)
+  if (view.type !== 'building') return null
   return (
-    <div className="absolute bottom-4 left-4 z-30 w-56 overflow-hidden rounded-xl border border-neutral-200 bg-white/95 shadow-[0_4px_16px_rgba(0,0,0,0.08)] backdrop-blur max-md:w-52">
-      <button onClick={() => setOpen(!open)} className="flex w-full items-center justify-between px-3 py-2.5 text-[13px] font-bold">
+    <div className="absolute right-4 top-4 z-40 w-56 overflow-hidden rounded-xl border border-neutral-200 bg-white/95 shadow-[0_4px_16px_rgba(0,0,0,0.08)] backdrop-blur max-md:top-16 max-md:w-52">
+      <button onClick={() => setOpen(!open)} aria-expanded={open} className="flex w-full items-center justify-between px-3 py-2.5 text-[13px] font-bold">
         <span className="flex items-center gap-2">
           <Layers className="h-4 w-4 text-cardinal" /> Map layers
         </span>
@@ -68,25 +71,37 @@ export function LayerPanel({ layers, onToggle }: { layers: Set<LayerKey>; onTogg
 export function FloorSelector({
   levels,
   floor,
+  allFloors,
   routeFloors,
   onSelect,
+  onSelectAll,
 }: {
   levels: number[]
   floor: number
+  allFloors?: boolean
   routeFloors: number[]
   onSelect: (f: number) => void
+  onSelectAll: () => void
 }) {
   return (
     <div className="absolute right-4 top-1/2 z-30 flex -translate-y-1/2 flex-col items-center gap-1 rounded-xl border border-neutral-200 bg-white p-1 shadow-[0_4px_16px_rgba(0,0,0,0.08)]">
       <span className="px-1 pb-0.5 pt-1 text-[9px] font-bold uppercase tracking-[0.14em] text-neutral-400">Floor</span>
+      <button
+        onClick={onSelectAll}
+        aria-label="All floors"
+        aria-pressed={!!allFloors}
+        className={`grid h-9 w-9 place-items-center rounded-lg text-[13px] font-bold transition ${allFloors ? 'bg-cardinal text-white' : 'text-neutral-600 hover:bg-neutral-100'}`}
+      >
+        All
+      </button>
       {[...levels].reverse().map((f) => (
         <button
           key={f}
           onClick={() => onSelect(f)}
           aria-label={floorName(f)}
-          aria-pressed={f === floor}
+          aria-pressed={!allFloors && f === floor}
           className={`relative grid h-9 w-9 place-items-center rounded-lg text-[14px] font-bold transition ${
-            f === floor ? 'bg-cardinal text-white' : 'text-neutral-600 hover:bg-neutral-100'
+            !allFloors && f === floor ? 'bg-cardinal text-white' : 'text-neutral-600 hover:bg-neutral-100'
           }`}
         >
           {floorShort(f)}
@@ -100,12 +115,12 @@ export function FloorSelector({
 export function Breadcrumb({ view, onCampus }: { view: View; onCampus: () => void }) {
   if (view.type === 'campus') return null
   return (
-    <div className="absolute left-4 top-4 z-30 flex max-w-[calc(100%-5.5rem)] items-center gap-2 rounded-full border border-neutral-200 bg-white/95 px-3 py-2 text-[13px] shadow-sm backdrop-blur">
+    <div className="absolute left-4 top-4 z-30 flex max-w-[calc(100%-21rem)] items-center gap-2 rounded-full border border-neutral-200 bg-white/95 px-3 py-2 text-[13px] shadow-sm backdrop-blur max-md:max-w-[calc(100%-5.5rem)]">
       <button onClick={onCampus} className="shrink-0 font-semibold text-cardinal hover:underline">All buildings</button>
       <ChevronRight className="h-3.5 w-3.5 shrink-0 text-neutral-300" />
       <span className="rounded bg-cardinal px-1.5 py-0.5 text-[11px] font-bold text-white">{view.code}</span>
       <span className="truncate max-md:hidden">{BUILDING_BY_CODE[view.code].name}</span>
-      <span className="shrink-0 text-neutral-600">{floorName(view.floor)}</span>
+      <span className="shrink-0 text-neutral-600">{view.allFloors ? 'All floors' : floorName(view.floor)}</span>
     </div>
   )
 }

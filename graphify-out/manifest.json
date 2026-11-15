@@ -96,15 +96,15 @@
     "semantic_hash": ""
   },
   "apps/web/next-env.d.ts": {
-    "mtime": 1794699715.7216356,
-    "seen": 1794699726.5798557,
-    "ast_hash": "0e4a65e8b2b9aa3ed0f8957b9406bd41",
+    "mtime": 1794704782.7812152,
+    "seen": 1794704835.2927768,
+    "ast_hash": "8195d2c60ce847a459ae9d308d6a5724",
     "semantic_hash": ""
   },
   "apps/web/next.config.ts": {
-    "mtime": 1794698595.8391411,
-    "seen": 1794698964.532114,
-    "ast_hash": "910622b9cb0c69552713c44564bc39b8",
+    "mtime": 1794704225.203732,
+    "seen": 1794704235.1617606,
+    "ast_hash": "f53403921b8ba61a3b30e68e48fbb135",
     "semantic_hash": ""
   },
   "apps/web/package.json": {
@@ -150,9 +150,9 @@
     "semantic_hash": ""
   },
   "apps/web/src/components/Wayfinder.tsx": {
-    "mtime": 1794699854.5846813,
-    "seen": 1794699866.581342,
-    "ast_hash": "72b00c612c70aa893a2b1a1cd3a4432e",
+    "mtime": 1794707795.972407,
+    "seen": 1794707854.4777498,
+    "ast_hash": "98d1422788463a8a1d10f7b29afec766",
     "semantic_hash": ""
   },
   "apps/web/src/components/map/Badge.tsx": {
@@ -162,9 +162,9 @@
     "semantic_hash": ""
   },
   "apps/web/src/components/map/BuildingScene.tsx": {
-    "mtime": 1794698858.536239,
-    "seen": 1794698964.5334795,
-    "ast_hash": "fa33db5fd4d8ae8b351a8d9c2f9f42b1",
+    "mtime": 1794707795.9824176,
+    "seen": 1794707854.4784822,
+    "ast_hash": "28ea4f91d8fdc2df50e95dc585bd7852",
     "semantic_hash": ""
   },
   "apps/web/src/components/map/CampusScene.tsx": {
@@ -174,9 +174,9 @@
     "semantic_hash": ""
   },
   "apps/web/src/components/map/MapCanvas.tsx": {
-    "mtime": 1794699854.5856817,
-    "seen": 1794699866.581342,
-    "ast_hash": "886807fa64f3b5bdf87a32cec7972425",
+    "mtime": 1794707520.4302287,
+    "seen": 1794707550.343811,
+    "ast_hash": "64eac89b33c4c689a1bbd5addff4788a",
     "semantic_hash": ""
   },
   "apps/web/src/components/map/MapHtml.tsx": {
@@ -204,15 +204,15 @@
     "semantic_hash": ""
   },
   "apps/web/src/components/ui/Header.tsx": {
-    "mtime": 1794699465.7475972,
-    "seen": 1794699726.5798557,
-    "ast_hash": "f5d5eaf0617ab4c2efb07909cca17d7e",
+    "mtime": 1794705281.0104892,
+    "seen": 1794705437.0606596,
+    "ast_hash": "67e7b0653f4d6e8e01242e808841ce39",
     "semantic_hash": ""
   },
   "apps/web/src/components/ui/MapOverlays.tsx": {
-    "mtime": 1794699854.5836816,
-    "seen": 1794699866.581342,
-    "ast_hash": "f1a34fc173cee679b255457dff2b7cec",
+    "mtime": 1794707832.1509516,
+    "seen": 1794707854.4784822,
+    "ast_hash": "a0c7d930713e672cdff0250bcfc875c7",
     "semantic_hash": ""
   },
   "apps/web/src/components/ui/Panels.tsx": {
@@ -240,9 +240,9 @@
     "semantic_hash": ""
   },
   "apps/web/src/data/floorplan.ts": {
-    "mtime": 1794698858.5372462,
-    "seen": 1794698964.5334795,
-    "ast_hash": "4304adf0b91a9894683843d1ee0ffc60",
+    "mtime": 1794707795.9744196,
+    "seen": 1794707854.4784822,
+    "ast_hash": "3be7467fbf3ead9ca1edca9f97e569c9",
     "semantic_hash": ""
   },
   "apps/web/src/data/law.ts": {
@@ -324,9 +324,9 @@
     "semantic_hash": ""
   },
   "apps/web/src/lib/types.ts": {
-    "mtime": 1794727452.0,
-    "seen": 1794698964.5334795,
-    "ast_hash": "ec7b361bd61e2724edfb0a15496d7702",
+    "mtime": 1794707795.9714074,
+    "seen": 1794707854.4784822,
+    "ast_hash": "c9b344d06076b754cb8eaa31864881b8",
     "semantic_hash": ""
   },
   "apps/web/tests/routing.test.ts": {
@@ -342,9 +342,9 @@
     "semantic_hash": ""
   },
   "package.json": {
-    "mtime": 1794698595.862348,
-    "seen": 1794698964.5334795,
-    "ast_hash": "4791f553b3f6a889f2821ee74cfcf585",
+    "mtime": 1794705735.2278826,
+    "seen": 1794705747.7434158,
+    "ast_hash": "5fa6f1486d2e963ad37567139f9e6504",
     "semantic_hash": ""
   },
   "packages/shared/package.json": {
@@ -402,9 +402,9 @@
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1794699688.82354,
-    "seen": 1794699726.5798557,
-    "ast_hash": "1486d404ecce20e9abf3b4b70610bcb9",
+    "mtime": 1794705735.228884,
+    "seen": 1794705747.7434158,
+    "ast_hash": "640275baf412f1794a3423a8fc540cd0",
     "semantic_hash": ""
   },
   "apps/web/AGENTS.md": {
@@ -453,6 +453,282 @@
     "mtime": 1794699395.1576135,
     "seen": 1794699726.5798557,
     "ast_hash": "37d15f90375cad61f5a4db03a800d071",
+    "semantic_hash": ""
+  },
+  "apps/campus-demo/demo.js": {
+    "mtime": 1794705975.3706043,
+    "seen": 1794705978.19666,
+    "ast_hash": "69c63a031a255278a087b5d67fb8ffe7",
+    "semantic_hash": ""
+  },
+  "apps/campus-demo/locations.json": {
+    "mtime": 1794705010.362064,
+    "seen": 1794705437.0606596,
+    "ast_hash": "3492f8d626b4c7a0f549eb99678390d8",
+    "semantic_hash": ""
+  },
+  "apps/campus-demo/map-data.js": {
+    "mtime": 1794705191.697849,
+    "seen": 1794705437.0606596,
+    "ast_hash": "b4e6f02acef3bc3bd5fc575068f4f065",
+    "semantic_hash": ""
+  },
+  "apps/campus-demo/map-data.test.mjs": {
+    "mtime": 1794705191.7024708,
+    "seen": 1794705437.0606596,
+    "ast_hash": "3c22b919473ea187ca9aa62efca8739f",
+    "semantic_hash": ""
+  },
+  "apps/campus-demo/package.json": {
+    "mtime": 1794705191.70349,
+    "seen": 1794705437.0606596,
+    "ast_hash": "4de00dbbc8ca52b5d141f1f0830d2f7f",
+    "semantic_hash": ""
+  },
+  "apps/web/src/components/ui/FloorTools.tsx": {
+    "mtime": 1794707635.6030128,
+    "seen": 1794707693.4902415,
+    "ast_hash": "1c032ce13045362ce7bbc135b6bc218b",
+    "semantic_hash": ""
+  },
+  "apps/campus-demo/index.html": {
+    "mtime": 1794705764.4444263,
+    "seen": 1794705778.3243597,
+    "ast_hash": "654502db87c67de44a5cc32d22b9191e",
+    "semantic_hash": ""
+  },
+  "apps/campus-demo/assets/Hospital_Doctor_Stethoscopes_List_Red.png": {
+    "mtime": 1794704922.3604403,
+    "seen": 1794705437.0606596,
+    "ast_hash": "50658b9cca1540d21f1af259bb52bbd7",
+    "semantic_hash": ""
+  },
+  "apps/campus-demo/assets/House_Residential_List_Red.png": {
+    "mtime": 1794704922.369442,
+    "seen": 1794705437.0606596,
+    "ast_hash": "f52ee181da26e16f232addbf0b4432fa",
+    "semantic_hash": ""
+  },
+  "apps/campus-demo/assets/athletic-fields_list_red.png": {
+    "mtime": 1794704922.251421,
+    "seen": 1794705437.0606596,
+    "ast_hash": "8c6e9e06d3cc24e21aae0617f0be4727",
+    "semantic_hash": ""
+  },
+  "apps/campus-demo/assets/c3d-logo.svg": {
+    "mtime": 1794704922.2735023,
+    "seen": 1794705437.0606596,
+    "ast_hash": "dbfccd4c8e362362637ef7561d99af62",
+    "semantic_hash": ""
+  },
+  "apps/campus-demo/assets/computer-lab_list_red.png": {
+    "mtime": 1794704922.282776,
+    "seen": 1794705437.0606596,
+    "ast_hash": "cd9f47316b77d889d6e62323b2eb4242",
+    "semantic_hash": ""
+  },
+  "apps/campus-demo/assets/dining_list_red.png": {
+    "mtime": 1794704922.3329315,
+    "seen": 1794705437.0606596,
+    "ast_hash": "564adcaa503a8da138e056af72c17f09",
+    "semantic_hash": ""
+  },
+  "apps/campus-demo/assets/emergency-phone_list_blue.png": {
+    "mtime": 1794704922.3410463,
+    "seen": 1794705437.0606596,
+    "ast_hash": "fcbbcf954dba6a5437d71174209ec6df",
+    "semantic_hash": ""
+  },
+  "apps/campus-demo/assets/fountain_list_red.png": {
+    "mtime": 1794704922.351765,
+    "seen": 1794705437.0606596,
+    "ast_hash": "a854bd12b2de2a5a7ac32ac4a9863dab",
+    "semantic_hash": ""
+  },
+  "apps/campus-demo/assets/information_list_red_1.png": {
+    "mtime": 1794704922.4834616,
+    "seen": 1794705437.0606596,
+    "ast_hash": "f2cfd0421e40720987fc8899459bd367",
+    "semantic_hash": ""
+  },
+  "apps/campus-demo/assets/lecture-hall_list_red.png": {
+    "mtime": 1794704922.4924579,
+    "seen": 1794705437.0606596,
+    "ast_hash": "55d7f1e7ed0fb5e2e5701b2288c371b9",
+    "semantic_hash": ""
+  },
+  "apps/campus-demo/assets/library_list_red.png": {
+    "mtime": 1794704922.500124,
+    "seen": 1794705437.0606596,
+    "ast_hash": "92f0eb97493350095b3e92ced2a33a0f",
+    "semantic_hash": ""
+  },
+  "apps/campus-demo/assets/list-ada.png": {
+    "mtime": 1794704922.5096295,
+    "seen": 1794705437.0606596,
+    "ast_hash": "984f10a1c409dc99a4b42ab4e0774bf5",
+    "semantic_hash": ""
+  },
+  "apps/campus-demo/assets/list-parking.png": {
+    "mtime": 1794704922.5188143,
+    "seen": 1794705437.0606596,
+    "ast_hash": "0c57535d03827846f8b9aff9d15aa4c4",
+    "semantic_hash": ""
+  },
+  "apps/campus-demo/assets/sustainability_list__2x.png": {
+    "mtime": 1794704922.5260823,
+    "seen": 1794705437.0606596,
+    "ast_hash": "72df7aa3693c880687c8f4bdf4efbd2b",
+    "semantic_hash": ""
+  },
+  "apps/campus-demo/assets/tunnel_List_Red.png": {
+    "mtime": 1794704922.5437238,
+    "seen": 1794705437.0606596,
+    "ast_hash": "12c35bb083befbcb5263f17c7077bc04",
+    "semantic_hash": ""
+  },
+  "apps/campus-demo/assets/undo_poly.png": {
+    "mtime": 1794704922.5550413,
+    "seen": 1794705437.0606596,
+    "ast_hash": "2bb1383e2a9ee6528ddb13196809fb3f",
+    "semantic_hash": ""
+  },
+  "apps/campus-demo/assets/university-building_list_red.png": {
+    "mtime": 1794704922.5638435,
+    "seen": 1794705437.0606596,
+    "ast_hash": "bae7778a2a14dd6392ff6c61619b66f6",
+    "semantic_hash": ""
+  },
+  "apps/campus-demo/assets/usc_campus_01_1.jpg": {
+    "mtime": 1794704922.5740073,
+    "seen": 1794705437.0606596,
+    "ast_hash": "d112f71d018c9bf10ed933fa0b4713e0",
+    "semantic_hash": ""
+  },
+  "apps/campus-demo/assets/usc_monogram_white_210x76.png": {
+    "mtime": 1794704922.5815582,
+    "seen": 1794705437.0606596,
+    "ast_hash": "48e1cf76747f2d91550020fd1cb86153",
+    "semantic_hash": ""
+  },
+  "apps/campus-demo/assets/marker-0.png": {
+    "mtime": 1794704922.3779013,
+    "seen": 1794705778.3243597,
+    "ast_hash": "13a179f7fdb8ea46c80ff4421e12a439",
+    "semantic_hash": ""
+  },
+  "apps/campus-demo/assets/marker-1.png": {
+    "mtime": 1794704922.386367,
+    "seen": 1794705778.3243597,
+    "ast_hash": "ee95095bd69430b87ab55b9ff82e285e",
+    "semantic_hash": ""
+  },
+  "apps/campus-demo/assets/marker-10.png": {
+    "mtime": 1794704922.452359,
+    "seen": 1794705778.3243597,
+    "ast_hash": "eb72a8bb816103ef8dd63e97701f68b7",
+    "semantic_hash": ""
+  },
+  "apps/campus-demo/assets/marker-11.png": {
+    "mtime": 1794704922.4540806,
+    "seen": 1794705778.3243597,
+    "ast_hash": "6e2f70094238d787a4f82a61ea65e219",
+    "semantic_hash": ""
+  },
+  "apps/campus-demo/assets/marker-12.png": {
+    "mtime": 1794704922.464705,
+    "seen": 1794705778.3243597,
+    "ast_hash": "d619e8d01c1312b6a335402f6de8eceb",
+    "semantic_hash": ""
+  },
+  "apps/campus-demo/assets/marker-13.png": {
+    "mtime": 1794704922.4657066,
+    "seen": 1794705778.3243597,
+    "ast_hash": "64f972b15d87c32ebdbbbe0e924386c1",
+    "semantic_hash": ""
+  },
+  "apps/campus-demo/assets/marker-14.png": {
+    "mtime": 1794704922.4742143,
+    "seen": 1794705778.3243597,
+    "ast_hash": "fe7a9f0dbecb2d419c19bb5ccd1bc542",
+    "semantic_hash": ""
+  },
+  "apps/campus-demo/assets/marker-2.png": {
+    "mtime": 1794704922.3948212,
+    "seen": 1794705778.3243597,
+    "ast_hash": "6e2f70094238d787a4f82a61ea65e219",
+    "semantic_hash": ""
+  },
+  "apps/campus-demo/assets/marker-3.png": {
+    "mtime": 1794704922.4033291,
+    "seen": 1794705778.3243597,
+    "ast_hash": "53bd8a1990ca66e2203238e996e16b45",
+    "semantic_hash": ""
+  },
+  "apps/campus-demo/assets/marker-4.png": {
+    "mtime": 1794704922.404346,
+    "seen": 1794705778.3243597,
+    "ast_hash": "53bd8a1990ca66e2203238e996e16b45",
+    "semantic_hash": ""
+  },
+  "apps/campus-demo/assets/marker-5.png": {
+    "mtime": 1794704922.4150403,
+    "seen": 1794705778.3243597,
+    "ast_hash": "27a97271fca4ad4d6374b7534f757c10",
+    "semantic_hash": ""
+  },
+  "apps/campus-demo/assets/marker-6.png": {
+    "mtime": 1794704922.423507,
+    "seen": 1794705778.3243597,
+    "ast_hash": "64f972b15d87c32ebdbbbe0e924386c1",
+    "semantic_hash": ""
+  },
+  "apps/campus-demo/assets/marker-7.png": {
+    "mtime": 1794704922.4329772,
+    "seen": 1794705778.3243597,
+    "ast_hash": "2679e210571b43a4a581fedf044f4b96",
+    "semantic_hash": ""
+  },
+  "apps/campus-demo/assets/marker-8.png": {
+    "mtime": 1794704922.4426012,
+    "seen": 1794705778.3243597,
+    "ast_hash": "4a7f0765ad8e47caa0e1fe543e020a3b",
+    "semantic_hash": ""
+  },
+  "apps/campus-demo/assets/marker-9.png": {
+    "mtime": 1794704922.4447024,
+    "seen": 1794705778.3243597,
+    "ast_hash": "53bd8a1990ca66e2203238e996e16b45",
+    "semantic_hash": ""
+  },
+  "apps/web/tests/room-search.test.ts": {
+    "mtime": 1794707400.6544328,
+    "seen": 1794707479.6904871,
+    "ast_hash": "b916213161ff2eab4064fc21a2d2c6f8",
+    "semantic_hash": ""
+  },
+  "apps/web/src/components/map/TommyTrojan.tsx": {
+    "mtime": 1794707677.5007107,
+    "seen": 1794707693.4902415,
+    "ast_hash": "4ecc10e5f33b0e4df4058e9950a48a3c",
+    "semantic_hash": ""
+  },
+  "apps/web/src/lib/map-location.ts": {
+    "mtime": 1794707478.1000884,
+    "seen": 1794707550.343811,
+    "ast_hash": "79bfa3e61d95d981f040f7fec5a2fa3b",
+    "semantic_hash": ""
+  },
+  "apps/web/tests/map-location.test.ts": {
+    "mtime": 1794707555.3766527,
+    "seen": 1794707634.169203,
+    "ast_hash": "2fc6bf8ed9ffe8c7a8e820aa37b5b040",
+    "semantic_hash": ""
+  },
+  "apps/web/src/components/map/RestroomIcon.tsx": {
+    "mtime": 1794707795.9771733,
+    "seen": 1794707854.4784822,
+    "ast_hash": "3ab80447d57deac6c1469f61759d0ddc",
     "semantic_hash": ""
   }
 }

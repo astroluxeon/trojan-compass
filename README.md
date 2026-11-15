@@ -85,10 +85,38 @@ trojan-compass/
 
 ## UI development
 
-The Figma mockup is integrated into the existing Next.js web workspace. `/` and
-`/map` open the full-width interactive viewer. `/events` currently opens the same viewer.
-Run `npm run dev` from the root and edit files in `apps/web/src` for live reload.
-If port 3000 is occupied, run `npm run dev --workspace=@trojan-compass/web -- --port 3001`.
+### Two-site campus demo
+
+Run `npm run dev:demo` to start both frontend sites together, or run these in
+separate terminals:
+
+```sh
+npm run dev:web       # Trojan Compass interiors, http://localhost:3000
+npm run dev:campus    # USC campus map replica, http://localhost:3001 (Python 3)
+```
+
+Start at <http://localhost:3001>. Click a building footprint or search for a building
+such as `LAW`. The nine supported buildings open their matching Trojan Compass
+interior on port 3000. "All buildings" returns to port 3001. Opening port 3000
+without a building also returns to the campus demo.
+
+`apps/campus-demo` reuses the supplied saved USC page and its map tiles, with a
+local copy of the public building directory and footprints from
+<https://maps.usc.edu/?id=1928>. It is a local demonstration, not the official site.
+The saved map covers University Park Campus; Health Sciences, extra categories,
+tours and Street View link to or point users to the official site. Unsupported
+buildings show an availability message instead of opening the wrong interior.
+No USC application scripts, analytics, or backend services run in the replica.
+
+Edit `demo.js` and `demo.css`, then refresh port 3001 to see changes. Port 3000
+continues to support automatic updates. Run the demo checks with
+`npm test --workspace=@trojan-compass/campus-demo`.
+
+The Figma mockup is integrated into the existing Next.js web workspace. Building
+links such as `/?building=LAW&floor=1` open the interactive interior viewer.
+Run `npm run dev:web` from the root and edit files in `apps/web/src` for live reload.
+Port 3001 is reserved for the campus demo; keep the interior viewer on port 3000
+so links between the two sites work.
 
 - `components/Wayfinder.tsx`: page state, navigation, and panel composition.
 - `components/ui/`: USC header, toast, floor controls, and map overlays.

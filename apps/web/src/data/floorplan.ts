@@ -10,6 +10,7 @@ export interface Cell {
   building: BuildingCode
   floor: number
   kind: CellKind
+  restroom?: 'men' | 'women' | 'both'
   /** Room number as printed on the plan (may be empty for named spaces). */
   number: string
   name: string
@@ -118,7 +119,7 @@ function templateLayout(building: BuildingCode, floor: number): FloorLayout {
     } else if (kind === 'elevator') {
       cells.push({ ...base, id: `${building}-${floor}-EL`, number: 'EL', name: 'Elevator', core: 'E', node: `${building}:${floor}:elevator` })
     } else {
-      cells.push({ ...base, id: `${building}-${floor}-RR`, number: 'RR', name: 'Restrooms (all-gender, accessible)', node: `${building}:${floor}:restroom` })
+      cells.push({ ...base, id: `${building}-${floor}-RR`, number: 'RR', name: 'Restrooms (all-gender, accessible)', restroom: 'both', node: `${building}:${floor}:restroom` })
     }
   }
   NORTH.forEach(make('north'))
@@ -171,6 +172,7 @@ function lawLayout(floor: number): FloorLayout {
       building,
       floor,
       kind,
+      restroom: kind === 'restroom' ? 'both' : undefined,
       number: number.replace(/-(IT|LAB)$/, ''),
       name,
       label,
@@ -350,6 +352,13 @@ export function findPlace(id: string): Place | undefined {
   const code = id.slice(0, 3) as BuildingCode
   if (!BUILDING_BY_CODE[code]) return undefined
   return getBuildingPlaces(code).find((p) => p.id === id)
+}
+
+export function findRoom(query: string): Place | undefined {
+  const compact = query.toUpperCase().replace(/[\s-]+/g, '')
+  const code = compact.slice(0, 3) as BuildingCode
+  if (!BUILDING_BY_CODE[code]) return undefined
+  return getBuildingPlaces(code).find((place) => place.kind === 'room' && place.id.replace(/-/g, '') === compact)
 }
 
 export function findCell(id: string): Cell | undefined {

@@ -1,10 +1,11 @@
 import { Edges, Line } from '@react-three/drei'
 import { MapHtml } from './MapHtml'
-import { Accessibility, ArrowUpDown, DoorOpen, Footprints, Toilet, TriangleAlert } from 'lucide-react'
+import { Accessibility, ArrowUpDown, DoorOpen, Footprints, TriangleAlert } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import type { BuildingCode } from '../../data/campus'
 import {
   cellCenter,
+  floorName,
   floorY,
   getLayout,
   getLevels,
@@ -13,16 +14,23 @@ import {
   type FloorLayout,
 } from '../../data/floorplan'
 import type { IndoorLeg } from '../../lib/routing'
-import { COLORS, type LayerKey } from '../../lib/types'
+import { COLORS, type LayerKey, type MapLocation } from '../../lib/types'
 import { MapBadge } from './Badge'
+import { RestroomIcon } from './RestroomIcon'
 import { EndPin, RouteLine, StartDot } from './RouteLine'
+import { TommyTrojanMarker, TommyTrojanPlacement } from './TommyTrojan'
 
 interface Props {
   code: BuildingCode
   floor: number
+  allFloors?: boolean
   layers: Set<LayerKey>
   highlights: Map<string, string>
   selectedCell?: string
+  currentLocation: MapLocation | null
+  placingCurrentLocation: boolean
+  onMoveCurrentLocation: () => void
+  onSelectLocation?: (location: MapLocation) => void
   leg?: IndoorLeg
   isFinalLeg: boolean
   onSelectCell: (cell: Cell) => void
@@ -44,8 +52,8 @@ export function BuildingScene(props: Props) {
         <shadowMaterial opacity={0.1} />
       </mesh>
       {levels.map((f) =>
-        f === floor ? (
-          <ActiveFloor key={f} {...props} />
+        props.allFloors || f === floor ? (
+          <ActiveFloor key={f} {...props} floor={f} />
         ) : (
           <GhostFloor
             key={f}
@@ -53,9 +61,16 @@ export function BuildingScene(props: Props) {
             floor={f}
             above={f > floor}
             inRoute={!!leg?.floors.includes(f)}
+            interactive={!props.onSelectLocation}
             onClick={() => props.onSelectFloor(f)}
           />
         ),
+      )}
+      {!props.placingCurrentLocation && props.currentLocation?.building === code && (props.allFloors || props.currentLocation.floor === floor) && (
+        <TommyTrojanMarker key={`${props.currentLocation.x}-${props.currentLocation.z}-${props.currentLocation.floor}`} location={props.currentLocation} onGrab={props.onMoveCurrentLocation} />
+      )}
+      {props.placingCurrentLocation && props.onSelectLocation && (
+        <TommyTrojanPlacement layout={getLayout(code, floor)} onDrop={props.onSelectLocation} />
       )}
       {routePts && last && routePts.length > 1 && (
         <>
@@ -72,11 +87,12 @@ export function BuildingScene(props: Props) {
   )
 }
 
-function Slabs({ layout, color, opacity = 1, edge, depthWrite = true }: { layout: FloorLayout; color: string; opacity?: number; edge: string; depthWrite?: boolean }) {
+function Slabs({ layout, color, opacity = 1, edge, depthWrite = true, onSelect }: { layout: FloorLayout; color: string; opacity?: number; edge: string; depthWrite?: boolean; onSelect?: (x: number, z: number) => void }) {
   return (
     <>
       {layout.slabs.map(([x0, z0, x1, z1], i) => (
-        <mesh key={i} position={[(x0 + x1) / 2, -0.12, (z0 + z1) / 2]} receiveShadow={opacity === 1} castShadow={opacity === 1}>
+        <mesh key={i} position={[(x0 + x1) / 2, -0.12, (z0 + z1) / 2]} receiveShadow={opacity === 1} castShadow={opacity === 1}
+          onClick={onSelect ? (event) => { event.stopPropagation(); onSelect(event.point.x, event.point.z) } : undefined}>
           <boxGeometry args={[x1 - x0 + 0.3, 0.24, z1 - z0 + 0.3]} />
           <meshStandardMaterial color={color} transparent={opacity < 1} opacity={opacity} depthWrite={depthWrite} />
           <Edges color={edge} />
@@ -86,7 +102,7 @@ function Slabs({ layout, color, opacity = 1, edge, depthWrite = true }: { layout
   )
 }
 
-function GhostFloor({ code, floor, above, inRoute, onClick }: { code: BuildingCode; floor: number; above: boolean; inRoute: boolean; onClick: () => void }) {
+function GhostFloor({ code, floor, above, inRoute, interactive, onClick }: { code: BuildingCode; floor: number; above: boolean; inRoute: boolean; interactive: boolean; onClick: () => void }) {
   const [hover, setHover] = useState(false)
   const layout = getLayout(code, floor)
   const b = planBounds(code)
@@ -94,10 +110,12 @@ function GhostFloor({ code, floor, above, inRoute, onClick }: { code: BuildingCo
     <group
       position={[0, floorY(floor), 0]}
       onClick={(e) => {
+        if (!interactive) return
         e.stopPropagation()
         onClick()
       }}
       onPointerOver={(e) => {
+        if (!interactive) return
         e.stopPropagation()
         setHover(true)
         document.body.style.cursor = 'pointer'
@@ -174,14 +192,15 @@ function CellWalls({ c }: { c: Cell }) {
   )
 }
 
-function ActiveFloor({ code, floor, layers, highlights, selectedCell, onSelectCell }: Props) {
+function ActiveFloor({ code, floor, layers, highlights, selectedCell, onSelectCell, onSelectLocation }: Props) {
   const layout = getLayout(code, floor)
   const [hover, setHover] = useState<string | null>(null)
   const accessibleOn = layers.has('accessible')
   const nodeById = new Map(layout.walkNodes.map((n) => [n.id, n]))
   return (
     <group position={[0, floorY(floor), 0]}>
-      <Slabs layout={layout} color="#f4f4f6" edge="#b8b8be" />
+      <Slabs layout={layout} color="#f4f4f6" edge="#b8b8be"
+        onSelect={onSelectLocation ? (x, z) => onSelectLocation({ label: `${code} ${floorName(floor)} · open area`, building: code, floor, x, z }) : undefined} />
       {accessibleOn &&
         layout.walkEdges.map(([a, b], i) => {
           const na = nodeById.get(a)!
@@ -208,7 +227,7 @@ function ActiveFloor({ code, floor, layers, highlights, selectedCell, onSelectCe
                   : c.kind === 'stairs'
                     ? '#e6e6e9'
                     : '#e9e9ec'
-        const color = selected ? COLORS.cardinal : hl ?? (hovered ? '#e6d3d3' : base)
+        const color = selected ? COLORS.gold : hl ?? (hovered ? '#e6d3d3' : base)
         return (
           <group key={c.id}>
             <mesh
@@ -256,7 +275,7 @@ function ActiveFloor({ code, floor, layers, highlights, selectedCell, onSelectCe
           </group>
         )
       })}
-      <FloorMarkers layout={layout} layers={layers} highlights={highlights} selectedCell={selectedCell} onSelectCell={onSelectCell} />
+      <FloorMarkers layout={layout} layers={layers} highlights={highlights} selectedCell={selectedCell} onSelectCell={onSelectCell} onSelectLocation={onSelectLocation} />
     </group>
   )
 }
@@ -294,12 +313,14 @@ function FloorMarkers({
   highlights,
   selectedCell,
   onSelectCell,
+  onSelectLocation,
 }: {
   layout: FloorLayout
   layers: Set<LayerKey>
   highlights: Map<string, string>
   selectedCell?: string
   onSelectCell: (c: Cell) => void
+  onSelectLocation?: (location: MapLocation) => void
 }) {
   const icon = 'h-3.5 w-3.5'
   const markers: { key: string; pos: [number, number, number]; node: ReactNode }[] = []
@@ -321,7 +342,7 @@ function FloorMarkers({
               className="whitespace-nowrap rounded-md border px-1.5 py-0.5 text-[11px] font-bold tabular-nums shadow-sm transition hover:-translate-y-0.5"
               style={
                 selected
-                  ? { background: COLORS.cardinal, borderColor: COLORS.cardinal, color: '#fff' }
+                  ? { background: COLORS.gold, borderColor: COLORS.gold, color: '#3b2f00' }
                   : hl
                     ? { background: hl, borderColor: hl, color: hl === '#E8B400' ? '#3b2f00' : '#fff' }
                     : { background: '#fff', borderColor: '#d4d4d8', color: '#262626' }
@@ -335,7 +356,9 @@ function FloorMarkers({
       continue
     }
     if (c.kind === 'restroom') {
-      if (layers.has('toilets')) badges.push(<MapBadge key="t" color="#3f3f46" title="Restrooms"><Toilet className={icon} /></MapBadge>)
+      const men = c.restroom !== 'women' && layers.has('mensRestrooms')
+      const women = c.restroom !== 'men' && layers.has('womensRestrooms')
+      if (men || women) badges.push(<MapBadge key="t" color={COLORS.restroom} title={men && women ? 'Men’s and women’s restrooms' : men ? 'Men’s restroom' : 'Women’s restroom'}><RestroomIcon men={men} women={women} className="h-5 w-5" /></MapBadge>)
       if (layers.has('accessible')) badges.push(<MapBadge key="a" color={COLORS.accessible} title="Accessible restroom"><Accessibility className={icon} /></MapBadge>)
     }
     if (c.kind === 'elevator') {
@@ -350,10 +373,13 @@ function FloorMarkers({
   }
   for (const e of layout.entrances) {
     const b: ReactNode[] = []
-    if (layers.has('exits')) b.push(<MapBadge key="x" color={COLORS.exit} title={e.label}><DoorOpen className={icon} /></MapBadge>)
+    if (layers.has(e.entrance ? 'entrances' : 'exits') || onSelectLocation) b.push(<MapBadge key="x" color={e.entrance ? COLORS.entrance : COLORS.exit} title={e.label}><DoorOpen className={icon} /></MapBadge>)
     if (layers.has('accessible') && e.stepFree) b.push(<MapBadge key="a" color={COLORS.accessible} title="Step-free entrance"><Accessibility className={icon} /></MapBadge>)
     if (layers.has('accessible') && !e.stepFree) b.push(<MapBadge key="w" color="#B45309" title="Steps at this entrance"><TriangleAlert className={icon} /></MapBadge>)
-    if (b.length) markers.push({ key: e.id, pos: [e.x, 1.1, e.z], node: <span className="flex gap-1">{b}</span> })
+    if (b.length) markers.push({ key: e.id, pos: [e.x, 1.1, e.z], node: onSelectLocation ? (
+      <button type="button" aria-label={`Select ${layout.building} ${e.label}`} className="flex gap-1 rounded-full outline-offset-2 focus-visible:outline-2 focus-visible:outline-cardinal"
+        onClick={() => onSelectLocation({ label: `${layout.building} ${e.label}`, building: layout.building, floor: layout.floor, x: e.x, z: e.z })}>{b}</button>
+    ) : <span className="flex gap-1">{b}</span> })
   }
   return (
     <>
@@ -365,4 +391,3 @@ function FloorMarkers({
     </>
   )
 }
-
