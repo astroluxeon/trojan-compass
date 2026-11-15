@@ -150,7 +150,7 @@ final class ReplicaController: NSObject, ObservableObject, WKNavigationDelegate,
                 }
                 guard self.webView?.url == pageURL else { return }
                 self.webView?.callAsyncJavaScript("window.CompassReplicaTransport?.receive(message)",
-                    arguments: ["message": reply], in: nil, contentWorld: .page, completionHandler: nil)
+                    arguments: ["message": reply], in: nil, in: .page, completionHandler: nil)
             }
             return
         }
