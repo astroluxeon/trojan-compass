@@ -24,7 +24,13 @@ export const normalize = (value: string) =>
     .replace(/[^\p{L}\p{N}]+/gu, " ")
     .trim()
     .replace(/\s+/g, " ");
-const compact = (value: string) => normalize(value).replaceAll(" ", "");
+const compact = (value: string) =>
+  normalize(value)
+    .replace(
+      /\b(?:washrooms?|bathrooms?|toilets?|wc|restrooms?)\b/g,
+      "restroom",
+    )
+    .replaceAll(" ", "");
 const compare = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
 type Entry<T> = {
   value: T;

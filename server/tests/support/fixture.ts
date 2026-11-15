@@ -316,6 +316,10 @@ export const intent = (
   requestedStepFree: null,
   reference: "none",
   question: null,
+  restroomGoal: null,
+  exitQuery: null,
+  destinationQuery: null,
+  stopKind: null,
   ...patch,
 });
 export const makeServices = (
