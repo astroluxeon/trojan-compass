@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { routeThroughStop } from "../route-stop.js";
 import type {
   LocationRef,
   ResolvedEndpoint,
@@ -258,6 +259,8 @@ export class PreviewRoutingService implements RoutingPort {
       throw invalid("Preview routes require the current prototype map.");
     if (request.stepFree && request.mode === "stairs")
       throw invalid("Choose elevators when accessibility is enabled.");
+    const { via, ...direct } = request;
+    if (via) return routeThroughStop(this, scope, direct, via);
     if (request.origin.buildingId !== request.destination.buildingId)
       throw new AppError(
         "OUTDOOR_NETWORK_UNAVAILABLE",

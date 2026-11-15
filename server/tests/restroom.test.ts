@@ -179,16 +179,34 @@ const preview = (
 test("restroom intents resolve synonyms through mapped restroom kinds", async () => {
   for (const query of ["restroom", "washroom", "bathroom", "toilet", "WC"]) {
     const { chat } = preview("find_restroom", { query });
-    const result = await chat.respond(previewScope(), chatRequest({
-      dataVersion: "prototype-v1", message: `Find a ${query}`,
-      context: { buildingId: "LAW", floorId: "2", selectedPlace: null, origin: null },
-    }));
+    const result = await chat.respond(
+      previewScope(),
+      chatRequest({
+        dataVersion: "prototype-v1",
+        message: `Find a ${query}`,
+        context: {
+          buildingId: "LAW",
+          floorId: "2",
+          selectedPlace: null,
+          origin: null,
+        },
+      }),
+    );
     assert.equal(result.status, "needs_clarification");
     assert.ok(result.clarification!.candidates.length > 0);
     for (const candidate of result.clarification!.candidates) {
       assert.equal(candidate.kind, "place");
       if (candidate.kind === "place")
-        assert.equal((await prototypeStore().getPlace(previewScope(), "LAW", candidate.location.placeId)).kind, "restroom");
+        assert.equal(
+          (
+            await prototypeStore().getPlace(
+              previewScope(),
+              "LAW",
+              candidate.location.placeId,
+            )
+          ).kind,
+          "restroom",
+        );
     }
   }
 });

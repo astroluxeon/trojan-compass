@@ -48,7 +48,7 @@ final class ViewerCoordinator: NSObject, WKScriptMessageHandler, WKNavigationDel
         else if kind == "move_origin" { store.startPicking(.origin) }
         else if kind == "place_selected", let id = payload["placeId"] as? String,
                 let p = store.places.first(where: { $0.id == id }), p.buildingId == store.buildingId {
-            store.selectedPlace = p
+            store.cancelPendingChat(); store.selectedPlace = p
             if !store.allFloors { store.floorId = p.floorId }
         } else if kind == "position_picked", let field = store.picking {
             let isPreview = store.source == .preview

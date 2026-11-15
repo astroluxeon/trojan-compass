@@ -1,3 +1,4 @@
+import { joinRoutesThroughStop } from "../routing/route-stop.js";
 import type {
   LocationRef,
   Place,
@@ -9,7 +10,6 @@ import { AppError } from "../../lib/errors.js";
 import { checkScope } from "../../lib/scope.js";
 import {
   attemptRoute,
-  joinRoutesThroughStop,
   placeRef,
   StopoverService,
 } from "./stopover.service.js";

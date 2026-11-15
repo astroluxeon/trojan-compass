@@ -37,6 +37,20 @@ export const errorHandler: ErrorRequestHandler = (
       "An internal error occurred. Use the request ID when reporting this issue.",
     );
   response.locals.errorCode = publicError.code;
+  if (publicError.httpStatus >= 500) {
+    // Source locations diagnose failures without logging messages, request bodies or credentials.
+    const frames = error instanceof Error
+      ? (error.stack ?? "").split("\n").filter((line) => /^\s+at /.test(line))
+          .flatMap((line) => line.match(/([A-Za-z0-9_.-]+\.[cm]?[jt]s:\d+:\d+)\)?$/)?.[1] ?? [])
+          .slice(0, 12)
+      : [];
+    response.locals.errorDiagnostic = {
+      type: error instanceof Error && /^[A-Za-z]{1,64}$/.test(error.constructor.name)
+        ? error.constructor.name : "UnknownError",
+      ...(typeof error?.code === "string" && /^[A-Z_]{1,64}$/.test(error.code) ? { code: error.code } : {}),
+      frames,
+    };
+  }
   if (publicError.code === "RATE_LIMITED" && !response.hasHeader("Retry-After"))
     response.setHeader("Retry-After", "5");
   response.setHeader("Cache-Control", "no-store");

@@ -116,7 +116,7 @@ enum CompassFailure: LocalizedError {
 
 enum LinkIntent {
     case building(id: String, floor: String?, place: String?)
-    case route(from: String, to: String, mode: String)
+    case route(from: String, to: String, mode: String, via: String?, stepFree: Bool)
     static func parse(_ url: URL) throws -> Self {
         guard ["trojancompass", "https", "http"].contains(url.scheme?.lowercased() ?? ""),
               let c = URLComponents(url: url, resolvingAgainstBaseURL: false)
@@ -126,7 +126,11 @@ enum LinkIntent {
         if let from = value("from"), let to = value("to") {
             let mode = value("mode") ?? "fastest"
             guard ["fastest", "stairs", "elevator"].contains(mode) else { throw CompassFailure.message("Unsupported travel preference.") }
-            return .route(from: from, to: to, mode: mode)
+            let stepFree = value("stepFree"), via = value("via")
+            guard stepFree == nil || ["true", "false"].contains(stepFree!),
+                  via == nil || !via!.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            else { throw CompassFailure.message("The route link has an invalid stop or accessibility preference.") }
+            return .route(from: from, to: to, mode: mode, via: via, stepFree: stepFree == "true")
         }
         guard let id = value("building"), !id.isEmpty else { throw CompassFailure.message("The link has no building.") }
         let floor = value("floor").map { $0.uppercased() == "B" ? "0" : $0.lowercased() }

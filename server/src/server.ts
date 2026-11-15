@@ -24,10 +24,12 @@ const intent =
   config.aiProvider === "openai"
     ? createOpenAIAdapter(config.apiKey!, config.model!, config.aiConcurrency)
     : new DisabledIntentAdapter();
-const catalog = config.production ? undefined : await DemoCatalog.forSnapshot(datasets, {
-  requestId: "chat-catalog-startup",
-  dataVersion: datasets.currentVersion,
-});
+const catalog = config.production
+  ? undefined
+  : await DemoCatalog.forSnapshot(datasets, {
+      requestId: "chat-catalog-startup",
+      dataVersion: datasets.currentVersion,
+    });
 const services = createServices(
   datasets,
   () => datasets.currentVersion,

@@ -255,6 +255,7 @@ struct RouteWarning: Decodable, Sendable { let code, message: String }
 struct Route: Decodable, Sendable {
     let id, mode, accessProfile: String
     let origin, destination: ResolvedEndpoint
+    let via: ResolvedEndpoint?
     let distanceMeters, durationSeconds: Double
     let metricsEstimated, usesStairs, usesElevator, stepFreeRequested, verifiedStepFree: Bool
     let legs: [RouteLeg]
@@ -272,6 +273,7 @@ struct RouteRequest: Codable, Sendable {
     let mode: String
     let stepFree: Bool
     let accessProfile: String
+    var via: PlaceLocation? = nil
 }
 struct ChatHistoryMessage: Codable, Sendable { let role, content: String }
 struct ChatContext: Codable, Sendable {

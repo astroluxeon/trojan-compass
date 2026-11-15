@@ -249,6 +249,12 @@ test("rate limits include Retry-After; error bodies and logs do not expose inter
   assert.equal(limited.status, 429);
   assert.ok(Number(limited.headers.get("retry-after")) > 0);
   assert.equal(JSON.stringify(logs).includes("PRIVATE_QUERY"), false);
+  assert.equal(JSON.stringify(logs).includes("SECRET_INTERNAL_VALUE"), false);
+  const failure = logs.find((event) => event.status === 500)!;
+  assert.equal(failure.requestId, error.headers.get("x-request-id"));
+  const diagnostic = failure.diagnostic as { type: string; frames: string[] };
+  assert.equal(diagnostic.type, "Error");
+  assert.ok(diagnostic.frames.some((frame) => /^http\.test\.ts:\d+:\d+$/.test(frame)));
 });
 
 test("published scenes negotiate representation without generating or fetching external assets", async (t) => {

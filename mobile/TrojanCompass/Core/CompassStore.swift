@@ -52,7 +52,8 @@ final class CompassStore: ObservableObject {
     private var searchGeneration = UUID()
     private var lastFailedMessage: String?
 
-    init() {
+    init(client: CompassAPIClient? = nil) {
+        self.client = client
         do { catalog = try PreviewCatalog.load() }
         catch { notice = "Preview data could not be loaded: \(error.localizedDescription)" }
     }
@@ -74,16 +75,19 @@ final class CompassStore: ObservableObject {
         tool = next
     }
     func campus() {
+        cancelPendingChat()
         loadGeneration = UUID(); buildingId = nil; selectedPlace = nil; liveBuilding = nil; liveFloors = []
         picking = nil; invalidateRoute(); tool = nil; origin = nil; originText = ""
         viewerError = nil
     }
     func setFloor(_ id: String) {
         guard floorIDs.contains(id) else { return }
+        cancelPendingChat()
         if id != floorId { selectedPlace = nil }
         floorId = id; allFloors = false
     }
     func openBuilding(_ id: String, floor: String? = nil) async throws {
+        cancelPendingChat()
         let generation = UUID(); loadGeneration = generation
         if source == .preview {
             guard let b = catalog?.interiors.first(where: { $0.id == id }) else {
@@ -190,6 +194,7 @@ final class CompassStore: ObservableObject {
         }.prefix(8))
     }
     func choose(_ suggestion: SearchSuggestion, field: EndpointField? = nil) {
+        cancelPendingChat()
         Task {
             do {
                 invalidateRoute(); picking = nil
@@ -210,28 +215,33 @@ final class CompassStore: ObservableObject {
         else { searchError = "No matching building or room. Try LAW or LAW 101." }
     }
     func editEndpoint(_ text: String, field: EndpointField) {
+        cancelPendingChat()
         invalidateRoute()
         if field == .origin { originText = text; origin = nil } else { destinationText = text; destination = nil }
         search(text, field: field)
     }
     func setEndpoint(_ value: SelectedLocation, field: EndpointField) {
+        cancelPendingChat()
         invalidateRoute()
         if field == .origin { origin = value; originText = value.label }
         else { destination = value; destinationText = value.label }
         floorId = value.floorId; allFloors = false; picking = nil; suggestions = []
     }
     func startPicking(_ field: EndpointField) {
+        cancelPendingChat()
         guard buildingId != nil else { notice = "Open a building before picking a location."; return }
         picking = field; allFloors = false; selectedPlace = nil
     }
     func accessibilityChanged() {
+        cancelPendingChat()
         if stepFree { routeMode = "elevator" }
         invalidateRoute(); suggestions = []
     }
     func invalidateRoute() { routeGeneration = UUID(); route = nil; activeStep = 0; routeError = nil; routeLoading = false }
     func cancelPendingRoute() { routeGeneration = UUID(); routeLoading = false }
 
-    func calculateRoute() async {
+    func calculateRoute(via: PlaceLocation? = nil) async {
+        cancelPendingChat()
         guard let origin, let destination else { routeError = "Choose a suggested location or pick each endpoint on the map."; return }
         guard canRoute, let client else { routeError = "Routing is not connected in Preview. Your selected endpoints are kept."; return }
         guard origin.coordinateSpace == "canonical-meters", destination.coordinateSpace == "canonical-meters" else { routeError = "Choose both locations again using the live dataset."; return }
@@ -239,7 +249,7 @@ final class CompassStore: ObservableObject {
         routeLoading = true; routeError = nil
         defer { if generation == routeGeneration { routeLoading = false } }
         do {
-            let result = try await client.calculateRoute(RouteRequest(clientRequestId: id, dataVersion: dataVersion, origin: origin.reference, destination: destination.reference, mode: routeMode, stepFree: stepFree, accessProfile: "public"))
+            let result = try await client.calculateRoute(RouteRequest(clientRequestId: id, dataVersion: dataVersion, origin: origin.reference, destination: destination.reference, mode: routeMode, stepFree: stepFree, accessProfile: "public", via: via))
             guard generation == routeGeneration else { return }
             guard result.clientRequestId == id, result.dataVersion == dataVersion else { throw CompassFailure.message("The route response is stale. Please try again.") }
             try validateRoute(result.route)
@@ -268,6 +278,8 @@ final class CompassStore: ObservableObject {
         } catch { routeError = describeFailure(error) }
     }
 
+    func cancelPendingChat() { chatGeneration = UUID(); chatLoading = false }
+
     func sendChat(retry: Bool = false) async {
         let text = (retry ? lastFailedMessage ?? "" : chatDraft).trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty, !chatLoading else { return }
@@ -288,7 +300,8 @@ final class CompassStore: ObservableObject {
             let result = try await client.chat(payload)
             guard generation == chatGeneration else { return }
             guard result.clientRequestId == id, result.dataVersion == dataVersion else { throw CompassFailure.message("The reply belongs to an earlier map snapshot. Please retry.") }
-            if result.status == "resolved" { try await applyActions(result.actions) }
+            if result.status == "resolved", !(try await applyActions(result.actions)) { return }
+            guard generation == chatGeneration else { return }
             conversation.append(ConversationMessage(role: "assistant", text: result.clarification?.question ?? result.message))
             if chatDraft.trimmingCharacters(in: .whitespacesAndNewlines) == text { chatDraft = "" }
             lastFailedMessage = nil
@@ -298,7 +311,8 @@ final class CompassStore: ObservableObject {
             chatError = describeFailure(error)
         }
     }
-    func applyActions(_ actions: [MapAction]) async throws {
+    func applyActions(_ actions: [MapAction]) async throws -> Bool {
+        let generation = chatGeneration
         // Validate the entire action batch before committing a selection or route.
         var targetBuilding: String?, targetFloor: String?, targetPlace: String?, newRoute: Route?
         var references: [(String, String?, String?)] = []
@@ -310,6 +324,10 @@ final class CompassStore: ObservableObject {
             case .showRoute(let a): try validateRoute(a.route); newRoute = a.route
             case .unknown: throw CompassFailure.message("Compass returned an unsupported map action. Your map was kept.")
             }
+        }
+        if let step = newRoute?.steps.first, let id = step.buildingId {
+            targetBuilding = id; targetFloor = step.floorId; targetPlace = nil
+            references.append((id, step.floorId, nil))
         }
         var validated: [String: CompassStore] = [:]
         for (id, floor, place) in references {
@@ -324,6 +342,7 @@ final class CompassStore: ObservableObject {
             if let floor, !staged.floorIDs.contains(floor) { throw CompassFailure.message("Compass referenced an unknown floor. Your map was kept.") }
             if let place, !staged.places.contains(where: { $0.id == place && $0.floorId == floor }) { throw CompassFailure.message("Compass referenced an unknown room. Your map was kept.") }
         }
+        guard generation == chatGeneration, !Task.isCancelled else { return false }
         if let id = targetBuilding {
             // Stage using a separate store so a bad place ID cannot replace the map.
             guard let staged = validated[id] else { throw CompassFailure.message("No validated scene is available.") }
@@ -331,10 +350,11 @@ final class CompassStore: ObservableObject {
             selectedPlace = staged.places.first { $0.id == targetPlace }
         }
         invalidateRoute(); route = newRoute; picking = nil
-        if newRoute != nil { await goToStep(0) }
+        return true
     }
 
     func connect() async {
+        cancelPendingChat()
         do {
             guard let url = URL(string: apiURL.trimmingCharacters(in: .whitespacesAndNewlines)), url.path.trimmingCharacters(in: CharacterSet(charactersIn: "/")).hasSuffix("api"), url.user == nil, url.password == nil,
                   url.scheme == "https" || (url.scheme == "http" && ["localhost", "127.0.0.1"].contains(url.host ?? ""))
@@ -362,7 +382,7 @@ final class CompassStore: ObservableObject {
                     guard let p = places.first(where: { $0.id == place }) else { throw CompassFailure.message("That room is unavailable in this snapshot.") }
                     selectedPlace = p; floorId = p.floorId
                 }
-            case .route(let from, let to, let mode):
+            case .route(let from, let to, let mode, let via, let stepFree):
                 guard source == .live, let client else { throw CompassFailure.message("Shared routes need the connected backend. Preview does not calculate navigation routes.") }
                 func resolve(_ id: String) async throws -> MapPlace {
                     let result = try await client.get(CollectionResponse<PlaceSearchResult>.self, path: ["places"], query: [URLQueryItem(name: "q", value: id), URLQueryItem(name: "dataVersion", value: dataVersion)])
@@ -370,17 +390,24 @@ final class CompassStore: ObservableObject {
                     return MapPlace(p.place)
                 }
                 let a = try await resolve(from), b = try await resolve(to)
+                var stop: PlaceLocation?
+                if let via {
+                    let place = try await resolve(via)
+                    stop = PlaceLocation(buildingId: place.buildingId, placeId: place.id)
+                }
                 try await openBuilding(a.buildingId, floor: a.floorId)
                 setEndpoint(SelectedLocation(place: a, source: .live), field: .origin)
                 setEndpoint(SelectedLocation(place: b, source: .live), field: .destination)
-                routeMode = mode; tool = .directions; await calculateRoute()
+                routeMode = mode; self.stepFree = stepFree; tool = .directions; await calculateRoute(via: stop)
             }
         } catch { notice = describeFailure(error) }
     }
     var shareURL: URL {
         var c = URLComponents(); c.scheme = "trojancompass"; c.host = "map"
         if let route, let a = route.origin.placeId, let b = route.destination.placeId {
-            c.queryItems = [URLQueryItem(name: "from", value: a), URLQueryItem(name: "to", value: b), URLQueryItem(name: "mode", value: routeMode)]
+            c.queryItems = [URLQueryItem(name: "from", value: a), URLQueryItem(name: "to", value: b), URLQueryItem(name: "mode", value: route.mode)]
+            if route.stepFreeRequested { c.queryItems?.append(URLQueryItem(name: "stepFree", value: "true")) }
+            if let via = route.via?.placeId { c.queryItems?.append(URLQueryItem(name: "via", value: via)) }
         } else {
             c.queryItems = [URLQueryItem(name: "building", value: buildingId ?? "LAW"), URLQueryItem(name: "floor", value: allFloors ? "all" : floorId)]
             if let p = selectedPlace { c.queryItems?.append(URLQueryItem(name: "room", value: p.id)) }

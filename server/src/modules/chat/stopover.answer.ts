@@ -1,3 +1,4 @@
+import { joinRoutesThroughStop } from "../routing/route-stop.js";
 import type {
   Candidate,
   ChatResponse,
@@ -12,7 +13,6 @@ import type {
 } from "../../ports/service-ports.js";
 import { AppError } from "../../lib/errors.js";
 import {
-  joinRoutesThroughStop,
   placeRef,
   StopoverService,
 } from "./stopover.service.js";

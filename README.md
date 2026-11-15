@@ -1,62 +1,134 @@
 # Trojan Compass
 
-USC building exploration with one Express/TypeScript backend for Next.js web and an embedded Swift iPhone client. The existing Three.js viewer, camera controls, floor selection, guide animation, campus demo and saved room links are retained.
+**Find the building. Find the floor. Find your room.**
 
-## Run
+Trojan Compass brings USC's campus and building interiors into one interactive map. Explore campus, search for a room, and follow indoor directions in 3D, on the web or through the iPhone app.
 
-Use Node.js 22.9 or later and npm. The optional saved campus demo also needs Python 3.
+[See the app](#see-the-app) · [What it does](#what-it-does) · [Try it locally](#try-it-locally) · [What's next](#whats-next)
+
+## Why we built it
+
+Getting to the right building is only part of finding a classroom. Once you're inside, you still need to work out the floor, the room, and which stairs or elevator will get you there.
+
+Trojan Compass connects those steps. It gives students and campus visitors a way to explore a building before walking through the door, with searchable rooms and a floor plan they can move around.
+
+## See the app
+
+### Campus to classroom
+
+Browse the campus map, find a building, and open its interior. Floor-plan entry is currently available for **Musick Law Building (LAW)** and **Dr. Joseph Medicine Crow Center (DMC)**. Other buildings show **“Floor Plan unavailable”** in their hover popup.
+
+![Desktop USC campus map with building footprints and campus controls](docs/screenshots/campus-desktop.png)
+
+Inside LAW, explore rooms across floors and locate entrances, restrooms, stairs, and elevators.
+
+![LAW floor plan in the desktop 3D viewer](docs/screenshots/interior-desktop.png)
+
+### Built for a phone, too
+
+The mobile campus has a 2D/3D toggle. Inside a building, Search, Chat, Directions, Floors, and Layers stay within reach in the bottom toolbar.
+
+<p>
+  <img src="docs/screenshots/campus-mobile.png" width="300" alt="Mobile campus map with 3D building footprints and campus search" />
+  <img src="docs/screenshots/interior-mobile.png" width="300" alt="Mobile LAW floor plan with the bottom navigation toolbar" />
+</p>
+
+*Phone screenshots show the shared UI in a 393 × 852 browser preview.*
+
+## What it does
+
+| Feature | Experience |
+| --- | --- |
+| Campus exploration | Search buildings, inspect their footprints, and see which floor plans are available. |
+| Interactive interiors | Orbit and zoom around a building, switch floors, or view the floors together. |
+| Room search | Enter a room such as `LAW 101` and find it on the map. |
+| Indoor directions | Choose a starting point and destination, select stairs or elevators, and follow the displayed route and instructions. |
+| Map layers | Show the rooms and facilities you need, including restrooms and entrances. |
+| AI chat | Ask for a room or directions in plain language when the AI provider is configured. |
+| Trojan guide | Move the guide to set your current location. Double-click it for a dance. |
+
+### A quick walkthrough
+
+1. Open the campus map and enter **LAW**.
+2. Open **Search & tools** on desktop, or **Search** on a phone, and find `LAW 101`.
+3. Request directions from `LAW 101` to `LAW 107`.
+4. Explore another floor, toggle map layers, then use **All buildings** to return to campus.
+
+## How we built it
+
+| Layer | Technology |
+| --- | --- |
+| Web app | Next.js, React, TypeScript, Tailwind CSS |
+| 3D interiors | Three.js |
+| iPhone app | SwiftUI and WKWebView |
+| Backend | Express and TypeScript |
+| Shared API | OpenAPI contracts and generated TypeScript models |
+| Optional AI | OpenAI for structured intent interpretation |
+| Campus geography | OpenStreetMap data and the supplied USC campus map assets |
+
+The web and iPhone clients share one backend for building data, search, routes, and chat. The iPhone app bundles the web interface and uses native transport to reach the API.
+
+Chat turns a request into a structured action; the backend resolves the actual room and calculates the route. Building geometry and routes use the same versioned dataset, keeping the location shown on screen aligned with the directions returned by the server.
+
+### The hard parts
+
+Connecting campus footprints to indoor rooms meant handling building names, floor identifiers, and local coordinates consistently. DMC, for example, still uses the legacy code `VKC` internally.
+
+The same 3D interior also needs to work with a desktop mouse and a small touchscreen. The phone layout moves tools into compact sheets and a bottom toolbar so the map remains usable.
+
+## What's next
+
+The current project demonstrates campus exploration and indoor wayfinding. These are the next additions needed to make it useful across USC:
+
+- [ ] **More verified floor plans.** Expand beyond LAW and DMC using reviewed building plans, measured dimensions, and confirmed room locations.
+- [ ] **Connected outdoor and indoor directions.** Link campus walkways to building entrances so one route can take you between buildings and into the right room.
+- [ ] **Verified accessible routes.** Add confirmed ramp access, doorway clearances, elevator availability, and step-free connections. Selecting elevators alone cannot establish accessibility.
+- [ ] **Official class and event locations.** Connect current USC schedules to rooms, replacing synthetic examples with authorized data sources.
+- [ ] **A tested iPhone release.** Complete native simulator and device testing, including touch gestures, keyboard behavior, safe areas, and VoiceOver, then prepare a TestFlight build.
+- [ ] **A hosted public demo.** Deploy the API and web app with reviewed map data so visitors can try the project without local setup.
+
+## Try it locally
+
+You need **Node.js 22.9+**, **npm**, and **Python 3**.
 
 ```sh
-npm install
-npm run dev           # web :3000 and API :4000
-npm run dev:demo      # web campus :3001, iOS campus preview :3101, interiors :3000, API :4000
+npm ci
+npm run dev:demo
 ```
 
-Open http://localhost:3001 for the original saved official campus map or http://localhost:3101 for the custom iOS campus preview (use browser device mode). Both open building interiors on port 3000; All buildings returns to the originating campus. Native iOS uses bundled campus/interior pages. Search `LAW 101`, calculate directions from `LAW 101` to `LAW 107`, or configure AI below and ask chat `Show LAW 101` and `Route from LAW 101 to LAW 107`.
+| Service | Address |
+| --- | --- |
+| Desktop campus | http://localhost:3001 |
+| iPhone campus preview | http://localhost:3101 |
+| Building interiors | http://localhost:3000 |
+| API | http://localhost:4000 |
 
-Copy `server/.env.example` to `server/.env` and `web/.env.example` to `web/.env.local` when changing addresses. Restart after changes. Public API and viewer URLs must be reachable from the consuming device. The web proxy uses `API_BASE_URL`; iPhone uses `COMPASS_VIEWER_URL` in Xcode. Never publish provider credentials in a frontend environment variable.
+Use browser device mode for the iPhone preview. To run only the interior viewer and API, use `npm run dev` instead.
 
-## Implemented behavior
+### Enable AI chat
 
-The backend serves directory, building, floor, place and procedural scene reads; normalized building/place search; versioned indoor routes with geometry and instructions; and chat clarification and structured actions. HTTP input and output are validated against the agreed OpenAPI schema. Dataset responses include their snapshot, pagination and stable ETags. Errors use the shared envelope.
+Search and directions work without an AI key. For chat, copy `server/.env.example` to `server/.env` and configure:
 
-The web loads prepared geometry from that backend and executes the same actions as the mobile viewer. It does not perform search ranking or pathfinding. Scene changes are staged before committing; failed requests preserve the previous map and drafts. The legacy generated browser datasets and search/pathfinding copies have been removed.
-
-The Seaweed UI integration restores the updated Trojan guide, drag/double-click interactions, three dances, shared stair icons and zoom-dependent room labels. Drag the guide to move it, or double-click it (or focus its label and press `D`) to dance. See [feature reconciliation](docs/seaweed-integration.md) for source provenance and ownership without duplicate implementations.
-
-Chat is disabled until `AI_PROVIDER=openai`, `OPENAI_API_KEY` and `OPENAI_MODEL` are configured in the server environment. The provider uses a strict intent schema; our search and routing services resolve all records and paths. With AI disabled, the API returns an explicit `FEATURE_DISABLED` error and the chat draft is preserved. Provider behavior is tested with injected responses; live model quality requires a configured provider. See [backend setup](docs/backend-guide.md).
-
-## Data and scope
-
-`server/data/snapshots/current.json` selects the active snapshot, currently `usc-interiors-2026-11-14`. The original `usc-demo-2026-11-14` baseline is retained. Both contain nine buildings: LAW is traced from the existing Gould plan, while the new snapshot adds inferred reconstructions for the other interiors. Horizontal scales are estimated (LAW 2.4 meters per old scene unit; other interiors 2), and floor spacing is assumed to be 3.4 meters. Geometry, place coordinates and route points use building-local meters with Y up.
-
-These are unverified illustrative routes. Accessibility remains unknown; step-free requests fail explicitly rather than falling back to stairs. Cross-building routes fail with `OUTDOOR_NETWORK_UNAVAILABLE` because no authoritative outdoor network is supplied. Events and image input are disabled; graph inspection is off by default. There are no accounts or public editing. [Integration review](docs/integration-review.md) lists the five known LAW destination/mode gaps and the regression coverage.
-
-## Repository
-
-- `web/`: Next.js client, existing renderer and feature panels.
-- `mobile/`: SwiftUI/WKWebView iPhone project, shared fixture decoders and Mac verification instructions.
-- `server/`: HTTP modules, snapshot repository, search, graph construction, routing and chat.
-- `shared/contracts/`: authoritative OpenAPI YAML and generated equivalent JSON.
-- `shared/typescript/`: generated compile-time wire models; runtime validation stays on the server.
-- `shared/fixtures/`: synthetic contract examples, separate from published demo snapshots.
-- `docs/`: architecture, ownership, decisions, migration and verification.
-- `demos/usc-map/`: retained saved USC campus map.
-- `scripts/`: contract generation and existing asset tooling.
-
-Package names remain `@trojan-compass/web`, `@trojan-compass/api` and `@trojan-compass/shared`. Mobile is not an npm workspace.
-
-## Checks
-
-```sh
-npm test
-npm run typecheck
-npm run build
-npm run smoke             # after building, with the default proxy port 4000 free
-npm run contract:generate  # after intentional OpenAPI changes
-npm run data:extract       # explicit prototype extraction; do not overwrite published versions after release
+```dotenv
+AI_PROVIDER=openai
+OPENAI_API_KEY=your-key
+OPENAI_MODEL=your-model
 ```
 
-For production, set `NODE_ENV=production`, a stable `CURSOR_SECRET`, reviewed `DATASET_ROOT`, public viewer/API origins and any AI settings before running `npm run start --workspace=@trojan-compass/api` and `npm run start --workspace=@trojan-compass/web`. The bundled unverified dataset is intentionally rejected by production admission. Include `server/data/` and `shared/contracts/` in the deployment alongside server build output. Dataset resolution does not depend on the shell working directory.
+Use a model available to your account that supports structured outputs, then restart the API. Keep the key on the server. See the [backend guide](docs/backend-guide.md) for configuration.
 
-See [ownership](docs/ownership.md), [decisions](docs/decisions.md), [API status](docs/api.md), and [verification](docs/verification.md). iOS compilation/device testing requires macOS and Xcode; it cannot be established by the Windows web build.
+### Open the iPhone project
+
+On a Mac with Xcode, start the API and open `mobile/TrojanCompass.xcodeproj`. Choose an iPhone simulator and run the Debug configuration.
+
+The simulator defaults to `COMPASS_API_BASE_URL=http://127.0.0.1:4000/api`. A physical iPhone needs an API address reachable from the device. See [iOS setup](mobile/README.md) for the full instructions.
+
+## Current scope
+
+The bundled maps and routes are **illustrative and unverified**. Some geometry is inferred, and dimensions include estimates. They should not be used as verified campus navigation. The Accessibility option selects elevators; it does not certify a step-free route. Cross-building routing requires a validated outdoor network, and any bundled class or event examples are synthetic.
+
+## Sources and documentation
+
+The mobile campus uses © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright). The desktop map retains the supplied USC map and its source credits. See [map sources and attribution](demos/usc-map/MAP-SOURCES.md) for provenance and licensing.
+
+For implementation details, see [architecture](docs/architecture.md), the [API documentation](docs/api.md), and [iOS setup](mobile/README.md).

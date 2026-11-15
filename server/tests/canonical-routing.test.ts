@@ -66,6 +66,30 @@ test("multiple doors are chosen by complete route cost, and a same-place request
   assert.equal(same.distanceMeters, 0);
   assert.equal(same.steps.at(-1)?.kind, "arrive");
 });
+
+test("saved stopovers retain both legs and enforce access preferences on each", async () => {
+  const { routing } = makeServices();
+  const request = routeRequest({ destination: place("LAW-101"), via: place("LAW-301"), mode: "elevator", stepFree: true });
+  const route = await routing.calculateRoute(scope(), request);
+  assertContract("Route", route);
+  assert.equal(route.via?.placeId, "LAW-301");
+  assert.equal(route.origin.placeId, "LAW-101");
+  assert.equal(route.destination.placeId, "LAW-101");
+  assert.ok(route.distanceMeters > 0);
+  assert.equal(route.stepFreeRequested, true);
+  assert.equal(route.verifiedStepFree, true);
+  assert.equal(route.usesStairs, false);
+  assert.ok(route.steps.some((step) => step.text.startsWith("Stop at LAW-301")));
+  assert.equal(new Set(route.legs.map((leg) => leg.id)).size, route.legs.length);
+  await assert.rejects(routing.calculateRoute(scope(), { ...request, via: place("missing") }), { code: "RESOURCE_NOT_FOUND" });
+  await assert.rejects(routing.calculateRoute(scope(), { ...request, mode: "stairs" }), { code: "INVALID_REQUEST" });
+  const unverified = fixture();
+  unverified.navigation[0]!.connectors.find((c) => c.id === "lift")!.access.stepFree = "unknown";
+  await assert.rejects(makeServices(unverified).routing.calculateRoute(scope(), request), { code: "UNVERIFIED_ACCESSIBILITY" });
+  const restricted = fixture();
+  restricted.places.find((p) => p.id === "LAW-301")!.access.level = "restricted";
+  await assert.rejects(makeServices(restricted).routing.calculateRoute(scope(), request), { code: "NO_ROUTE" });
+});
 test("request-local edge splitting handles both picks on one edge without mutating shared graphs", async () => {
   const services = makeServices();
   const graph = await services.graphs.get(scope(), "LAW");

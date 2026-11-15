@@ -19,7 +19,7 @@ import {
 } from "@/lib/api-client";
 import { LatestRequest } from "@/lib/latest-request";
 import { ViewerSession } from "../api-viewer";
-import { parseMapLink } from "../map-link-input";
+import { parseMapLink, routeLinkParams } from "../map-link-input";
 import {
   cellCenter,
   cellTitle,
@@ -181,6 +181,7 @@ export default function Wayfinder({ bundled = false }: { bundled?: boolean }) {
               next.resolve(link.from),
               next.resolve(link.to),
             ]);
+            const via = link.via ? await next.resolve(link.via) : null;
             const response = await client.route({
               clientRequestId: clientRequestId(),
               dataVersion: directory.dataVersion,
@@ -195,7 +196,8 @@ export default function Wayfinder({ bundled = false }: { bundled?: boolean }) {
                 placeId: to.id,
               },
               mode: link.mode,
-              stepFree: false,
+              stepFree: link.stepFree,
+              ...(via ? { via: { kind: "place" as const, buildingId: via.buildingId, placeId: via.id } } : {}),
               accessProfile: "public",
             });
             actions = [{ type: "show_route", route: response.route }];
@@ -244,11 +246,8 @@ export default function Wayfinder({ bundled = false }: { bundled?: boolean }) {
       );
       if (selectedCell) q.set("room", selectedCell);
     }
-    if (apiRoute?.origin.placeId && apiRoute.destination.placeId) {
-      q.set("from", apiRoute.origin.placeId);
-      q.set("to", apiRoute.destination.placeId);
-      q.set("mode", apiRoute.mode);
-    }
+    if (apiRoute)
+      for (const [key, value] of routeLinkParams(apiRoute)) q.set(key, value);
     window.history.replaceState(null, "", window.location.pathname + "?" + q);
   }, [view, apiRoute, selectedCell, ready]);
 

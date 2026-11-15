@@ -1,4 +1,4 @@
-import type { RouteRequest } from "@trojan-compass/shared/api";
+import type { Route, RouteRequest } from "@trojan-compass/shared/api";
 import type {
   DatasetPort,
   RequestScope,
@@ -11,13 +11,14 @@ import { GraphStore } from "./graph-store.js";
 import { prepareEndpoints } from "./endpoints.js";
 import { findPath } from "./pathfinding.js";
 import { serializeRoute } from "./serialize-route.js";
+import { routeThroughStop } from "./route-stop.js";
 
 export class RoutingService implements RoutingPort {
   constructor(
     private readonly datasets: DatasetPort,
     private readonly graphs: GraphStore,
   ) {}
-  async calculateRoute(scope: RequestScope, request: RouteRequest) {
+  async calculateRoute(scope: RequestScope, request: RouteRequest): Promise<Route> {
     validateBody("RouteRequest", request);
     checkScope(scope);
     if (request.dataVersion !== scope.dataVersion)
@@ -28,6 +29,8 @@ export class RoutingService implements RoutingPort {
       );
     if (request.stepFree && request.mode === "stairs")
       throw invalid("Step-free routes cannot require stairs.", "mode");
+    const { via, ...direct } = request;
+    if (via) return routeThroughStop(this, scope, direct, via);
     await this.datasets.assertSnapshot(scope);
     for (const endpoint of [request.origin, request.destination]) {
       if (endpoint.kind === "place")

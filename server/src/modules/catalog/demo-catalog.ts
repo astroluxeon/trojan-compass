@@ -201,13 +201,23 @@ export class DemoCatalog {
   }
   static async forSnapshot(datasets: DatasetPort, scope: RequestScope) {
     const buildings = await datasets.listBuildings(scope);
-    if (!buildings.some((b) => b.id === "LAW" && b.provenance.dataKind === "demo"))
+    if (
+      !buildings.some(
+        (b) =>
+          b.id === "LAW" &&
+          (b.coverage === "demo" || b.provenance.dataKind === "demo"),
+      )
+    )
       return undefined;
     const places = await datasets.listPlaces(scope, "LAW");
-    const records = demoRecords.filter((r) => places.some(
-      (p) => p.id === r.location.placeId && p.floorId === r.location.floorId,
-    ));
-    return records.length ? new DemoCatalog(records, scope.dataVersion) : undefined;
+    const records = demoRecords.filter((r) =>
+      places.some(
+        (p) => p.id === r.location.placeId && p.floorId === r.location.floorId,
+      ),
+    );
+    return records.length
+      ? new DemoCatalog(records, scope.dataVersion)
+      : undefined;
   }
   async validateLocations(datasets: DatasetPort, scope: RequestScope) {
     this.assertVersion(scope.dataVersion);
@@ -250,6 +260,7 @@ export class DemoCatalog {
         );
         const words = new Set(names.join(" ").split(" "));
         const overlap = tokens.filter((t) => words.has(t)).length;
+        const nameMatch = tokens.some((t) => /[a-z]/.test(t) && words.has(t));
         // Never match a different course solely because its department matches.
         const numberMismatch =
           /\b\d{3}\b/.test(q) &&
@@ -265,7 +276,7 @@ export class DemoCatalog {
                 ? 100
                 : phrase
                   ? 80
-                  : overlap >= 2 || (tokens.length === 1 && overlap === 1)
+                  : nameMatch && (overlap >= 2 || (tokens.length === 1 && overlap === 1))
                     ? 40 + overlap
                     : 0,
         };
@@ -280,8 +291,17 @@ export class DemoCatalog {
       .map((x) => structuredClone(x.r));
   }
   describe(r: CatalogRecord) {
-    const date = new Intl.DateTimeFormat('en-US', { timeZone: r.timeZone, month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(r.startsAt));
-    const time = new Intl.DateTimeFormat('en-US', { timeZone: r.timeZone, hour: 'numeric', minute: '2-digit' });
+    const date = new Intl.DateTimeFormat("en-US", {
+      timeZone: r.timeZone,
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    }).format(new Date(r.startsAt));
+    const time = new Intl.DateTimeFormat("en-US", {
+      timeZone: r.timeZone,
+      hour: "numeric",
+      minute: "2-digit",
+    });
     return `[Demo] ${r.title}: ${date}, ${time.format(new Date(r.startsAt))}–${time.format(new Date(r.endsAt))} Pacific, ${r.location.label}.`;
   }
 }

@@ -5245,6 +5245,9 @@ components:
           $ref: '#/components/schemas/LocationRef'
         destination:
           $ref: '#/components/schemas/LocationRef'
+        via:
+          $ref: '#/components/schemas/PlaceLocation'
+          description: Optional intermediate stop. Both legs must satisfy the same routing preferences.
         mode:
           $ref: '#/components/schemas/RouteMode'
         stepFree:
@@ -5452,6 +5455,9 @@ components:
           $ref: '#/components/schemas/ResolvedEndpoint'
         destination:
           $ref: '#/components/schemas/ResolvedEndpoint'
+        via:
+          $ref: '#/components/schemas/ResolvedEndpoint'
+          description: Intermediate stop preserved for reopening or sharing this trip.
         mode:
           $ref: '#/components/schemas/RouteMode'
         accessProfile:

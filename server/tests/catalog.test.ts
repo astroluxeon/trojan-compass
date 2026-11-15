@@ -9,12 +9,34 @@ import { prototypeStore } from "../src/infrastructure/datasets/prototype-adapter
 import { createServices } from "../src/bootstrap/services.js";
 import { ChatService } from "../src/modules/chat/chat.service.js";
 import { PreviewRoutingService } from "../src/modules/routing/preview/preview-routing.service.js";
-import {
-  OpenAIIntentAdapter,
-} from "../src/integrations/ai/provider-adapter.js";
+import { OpenAIIntentAdapter } from "../src/integrations/ai/provider-adapter.js";
 import { chatRequest, intent } from "./support/fixture.js";
 import type { IntentAdapter } from "../src/integrations/ai/intent.js";
 import type OpenAI from "openai";
+import { SnapshotStore } from "../src/infrastructure/datasets/snapshot-store.js";
+import { fixture, scope as fixtureScope, version } from "./support/fixture.js";
+
+test("catalog binds only available demo locations to the active snapshot", async () => {
+  const data = fixture();
+  const datasets = new SnapshotStore([data], version);
+  const catalog = await DemoCatalog.forSnapshot(datasets, fixtureScope());
+  assert.ok(catalog);
+  assert.equal(catalog.dataVersion, version);
+  await catalog.validateLocations(datasets, fixtureScope());
+  assert.equal(catalog.search("CSCI 356")[0]?.location.placeId, "LAW-101");
+  assert.equal(catalog.search("Navratri").length, 0);
+  for (const building of data.buildings) {
+    building.provenance.dataKind = "surveyed";
+    building.coverage = "mapped";
+  }
+  assert.equal(
+    await DemoCatalog.forSnapshot(
+      new SnapshotStore([data], version),
+      fixtureScope(),
+    ),
+    undefined,
+  );
+});
 
 const scope = () => ({ requestId: randomUUID(), dataVersion: "prototype-v1" });
 const setup = (adapter: IntentAdapter) => {
@@ -69,9 +91,20 @@ test("retrieval handles aliases and rejects unsupported courses and unrelated or
   assert.deepEqual(c.search("CSCI 999"), []);
   assert.deepEqual(c.search("ISA basketball"), []);
   assert.deepEqual(c.search("ENGR 777"), []);
+  for (const room of ["LAW 340", "LAW356", "LAW-354", "LAW 298", "340"])
+    assert.deepEqual(c.search(room), [], room);
   assert.throws(() => c.assertVersion("other"), {
     code: "DATA_VERSION_MISMATCH",
   });
+});
+
+test("literal room requests never resolve to a class sharing that number", async () => {
+  for (const query of ["LAW 340", "LAW 356", "LAW 354", "LAW 298"]) {
+    const { chat } = setup({ interpret: async () => intent({ kind: "find_place", query }) });
+    const response = await chat.respond(scope(), chatRequest({ dataVersion: "prototype-v1", message: `Show ${query}` }));
+    assert.equal(response.status, "not_found", query);
+    assert.deepEqual(response.actions, []);
+  }
 });
 test("retrieved data reaches the model; validated records produce attributed highlights", async () => {
   let evidence: unknown;
@@ -154,15 +187,35 @@ test("multiple course occurrences produce clarification instead of first-match s
   assert.match(r.message, /demo-writ-second/);
 });
 test("context-selected catalog destinations route from the actual origin with current preferences", async () => {
-  const { chat } = setup({ interpret: async () => intent({kind:'route', query:null, reference:'selected_place'}) });
-  const response = await chat.respond(scope(), chatRequest({ dataVersion:'prototype-v1', message:'Take me there', context:{buildingId:'LAW',floorId:'2',selectedPlace:{kind:'place',buildingId:'LAW',placeId:'LAW-201'},origin:{kind:'place',buildingId:'LAW',placeId:'LAW-101'}}, preferences:{mode:'elevator',stepFree:true,accessProfile:'public'} }));
-  const action=response.actions[0];
-  assert.equal(action?.type,'show_route');
-  if(action?.type !== 'show_route') throw new Error('Missing route');
-  assert.equal(action.route.origin.placeId,'LAW-101');
-  assert.equal(action.route.destination.placeId,'LAW-201');
-  assert.equal(action.route.usesElevator,true);
-  assert.equal(action.route.stepFreeRequested,true);
+  const { chat } = setup({
+    interpret: async () =>
+      intent({ kind: "route", query: null, reference: "selected_place" }),
+  });
+  const response = await chat.respond(
+    scope(),
+    chatRequest({
+      dataVersion: "prototype-v1",
+      message: "Take me there",
+      context: {
+        buildingId: "LAW",
+        floorId: "2",
+        selectedPlace: { kind: "place", buildingId: "LAW", placeId: "LAW-201" },
+        origin: { kind: "place", buildingId: "LAW", placeId: "LAW-101" },
+      },
+      preferences: {
+        mode: "elevator",
+        stepFree: true,
+        accessProfile: "public",
+      },
+    }),
+  );
+  const action = response.actions[0];
+  assert.equal(action?.type, "show_route");
+  if (action?.type !== "show_route") throw new Error("Missing route");
+  assert.equal(action.route.origin.placeId, "LAW-101");
+  assert.equal(action.route.destination.placeId, "LAW-201");
+  assert.equal(action.route.usesElevator, true);
+  assert.equal(action.route.stepFreeRequested, true);
 });
 
 test("provider receives bounded retrieved records as reference data", async () => {

@@ -7508,6 +7508,10 @@
           "destination": {
             "$ref": "#/components/schemas/LocationRef"
           },
+          "via": {
+            "$ref": "#/components/schemas/PlaceLocation",
+            "description": "Optional intermediate stop. Both legs must satisfy the same routing preferences."
+          },
           "mode": {
             "$ref": "#/components/schemas/RouteMode"
           },
@@ -7798,6 +7802,10 @@
           },
           "destination": {
             "$ref": "#/components/schemas/ResolvedEndpoint"
+          },
+          "via": {
+            "$ref": "#/components/schemas/ResolvedEndpoint",
+            "description": "Intermediate stop preserved for reopening or sharing this trip."
           },
           "mode": {
             "$ref": "#/components/schemas/RouteMode"
