@@ -12,6 +12,9 @@
     "node": ">=22.9.0"
   },
   "scripts": {
+    "start": "node scripts/start.mjs",
+    "build:campus": "node scripts/build-campus.mjs",
+    "predev:web": "npm run build:campus",
     "dev": "concurrently -k -n web,api \"npm run dev:web\" \"npm run dev:api\"",
     "dev:web": "npm run dev --workspace=@trojan-compass/web",
     "dev:campus": "npm run dev --workspace=@trojan-compass/campus-demo",
@@ -21,9 +24,10 @@
     "contract:generate": "node scripts/contract.mjs --generate",
     "contract:check": "node scripts/contract.mjs",
     "smoke": "node scripts/smoke.mjs",
+    "smoke:deployment": "node scripts/smoke-deployment.mjs",
     "data:extract": "npm run build --workspace=@trojan-compass/api && node server/dist/infrastructure/datasets/export-snapshot.js",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "build": "npm run build --workspace=@trojan-compass/shared && npm run build --workspace=@trojan-compass/api && npm run build --workspace=@trojan-compass/web",
+    "build": "npm run build:campus && npm run build --workspace=@trojan-compass/shared && npm run build --workspace=@trojan-compass/api && npm run build --workspace=@trojan-compass/web",
     "dev:server": "npm run dev --workspace=@trojan-compass/api",
     "build:mobile-viewer": "node mobile/Viewer/build.mjs",
     "build:mobile-replica": "node mobile/Replica/build.mjs",

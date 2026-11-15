@@ -1,5 +1,5 @@
 {
-  "sourceSHA256": "24be456199c9a69e9dd4bcab4531737413c8d2db32192a9dc094fc233677f013",
-  "campusHTMLSHA256": "17f0a96443b8a3d395a44a4003b2626759d439d1c36b982a9b124d9005d9257e",
+  "sourceSHA256": "b92df2d880eecb3f081a7c98d61604d2fb212da252d7b3a88fa8b2eeb8fe3c1e",
+  "campusHTMLSHA256": "28c805465c65f1aa114cba5ff67490558fbef7d7e884e93f5d8d2f9d93030a4e",
   "description": "Current API-backed web features hosted by Swift; native URLSession supplies transport for /api requests."
 }

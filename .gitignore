@@ -21,6 +21,7 @@ out/
 coverage/
 *.tsbuildinfo
 *.log
+/web/public/campus/
 
 ### Local environment ###
 .env

@@ -132,3 +132,7 @@ The bundled maps and routes are **illustrative and unverified**. Some geometry i
 The mobile campus uses © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright). The desktop map retains the supplied USC map and its source credits. See [map sources and attribution](demos/usc-map/MAP-SOURCES.md) for provenance and licensing.
 
 For implementation details, see [architecture](docs/architecture.md), the [API documentation](docs/api.md), and [iOS setup](mobile/README.md).
+## Replit hosting
+
+See [Replit setup and deployment](docs/replit.md) for production commands, Secrets,
+and verification. The campus and interiors share one public URL.

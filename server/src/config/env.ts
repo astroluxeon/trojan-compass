@@ -67,6 +67,7 @@ export function readConfig(input: NodeJS.ProcessEnv = process.env) {
   }
   return {
     production,
+    allowDemoData: flag("ALLOW_DEMO_DATA"),
     port: integer("PORT", 4000, 1, 65535),
     host: input.HOST ?? "127.0.0.1",
     datasetMode,

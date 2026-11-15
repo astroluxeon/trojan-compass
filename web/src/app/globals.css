@@ -45,7 +45,7 @@
    also refits its camera, keeping the building clear of every open tool panel. */
 @media (max-width: 767px) {
   .compass-header > a { height: 44px; padding: 0 16px; gap: 12px; }
-  .compass-header img { width: 36px; height: 36px; }
+  .compass-header img { width: 42px; height: auto; }
   .compass-header > a > span[aria-hidden] { height: 19px; }
   .compass-header > a > span:last-child { font-size: 16px; }
   .compass-main { flex-direction: column; overflow: hidden; }

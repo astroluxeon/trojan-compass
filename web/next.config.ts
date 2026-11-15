@@ -4,6 +4,16 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ["192.168.0.1"],
   devIndicators: false,
   transpilePackages: ["@trojan-compass/shared"],
+  async redirects() {
+    return [
+      {
+        source: "/",
+        missing: [{ type: "query" as const, key: "building" }],
+        destination: "/campus/index.html",
+        permanent: false,
+      },
+    ];
+  },
   async rewrites() {
     const apiBaseUrl = process.env.API_BASE_URL ?? "http://127.0.0.1:4000";
     return [{ source: "/api/:path*", destination: `${apiBaseUrl}/api/:path*` }];

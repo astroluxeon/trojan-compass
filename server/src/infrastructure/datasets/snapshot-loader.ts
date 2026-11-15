@@ -14,7 +14,11 @@ import { publicationNavigation } from "./publication-navigation.js";
 /** Load a complete publication at startup. No request-controlled filenames or partial hot reloads. */
 export async function loadSnapshots(
   directory: string,
-  options: { chatEnabled?: boolean; production?: boolean } = {},
+  options: {
+    chatEnabled?: boolean;
+    production?: boolean;
+    allowDemoData?: boolean;
+  } = {},
 ): Promise<SnapshotStore> {
   const root = await realpath(directory);
   const read = async (path: string, maxBytes: number) => {

@@ -17,6 +17,7 @@ const datasets =
   config.datasetMode === "files"
     ? await loadSnapshots(config.datasetRoot!, {
         production: config.production,
+        allowDemoData: config.allowDemoData,
         chatEnabled: config.aiProvider !== "disabled",
       })
     : prototypeStore(config.aiProvider !== "disabled");
@@ -24,12 +25,13 @@ const intent =
   config.aiProvider === "openai"
     ? createOpenAIAdapter(config.apiKey!, config.model!, config.aiConcurrency)
     : new DisabledIntentAdapter();
-const catalog = config.production
-  ? undefined
-  : await DemoCatalog.forSnapshot(datasets, {
-      requestId: "chat-catalog-startup",
-      dataVersion: datasets.currentVersion,
-    });
+const catalog =
+  config.production && !config.allowDemoData
+    ? undefined
+    : await DemoCatalog.forSnapshot(datasets, {
+        requestId: "chat-catalog-startup",
+        dataVersion: datasets.currentVersion,
+      });
 const services = createServices(
   datasets,
   () => datasets.currentVersion,

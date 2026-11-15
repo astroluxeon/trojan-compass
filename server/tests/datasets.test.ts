@@ -57,14 +57,22 @@ test("file publications load independent of cwd and cannot reference outside the
   );
   await assert.rejects(loadSnapshots(publication), /manifest/);
   await writeFile(
-    join(root, "outside.json"),
+    join(publication, "current.json"),
     JSON.stringify({
       currentVersion: "test-v1",
       availableVersions: ["test-v1"],
     }),
   );
-  await rm(join(publication, "current.json"));
-  await symlink(join(root, "outside.json"), join(publication, "current.json"));
+  const outside = join(root, "outside");
+  await mkdir(outside);
+  await writeFile(join(outside, "dataset.json"), JSON.stringify(fixture()));
+  await rm(join(publication, "test-v1"), { recursive: true });
+  // Directory junctions exercise the same escape check without Windows symlink privileges.
+  await symlink(
+    outside,
+    join(publication, "test-v1"),
+    process.platform === "win32" ? "junction" : "dir",
+  );
   await assert.rejects(loadSnapshots(publication), /escapes/);
 });
 test("production requires explicit configuration and reviewed publications; missing navigation remains optional", async () => {
@@ -107,5 +115,23 @@ test("graph validators reject missing evidence and implicit doorway crossings", 
   await assert.rejects(
     prepareServices(makeServices(shortcut), [shortcut.dataVersion]),
     /explicit door edge/,
+  );
+});
+
+test("production demo opt-in preserves structural validation and provenance", async () => {
+  assert.equal(readConfig({}).allowDemoData, false);
+  assert.equal(readConfig({ ALLOW_DEMO_DATA: "true" }).allowDemoData, true);
+  assert.throws(() => readConfig({ ALLOW_DEMO_DATA: "yes" }), /true or false/);
+  const data = fixture();
+  const options = { production: true, allowDemoData: true };
+  const store = new SnapshotStore([data], data.dataVersion, options);
+  assert.equal(
+    (await store.getBuilding(scope(), "LAW")).provenance.verificationStatus,
+    "unverified",
+  );
+  data.places[0]!.floorId = "missing";
+  assert.throws(
+    () => new SnapshotStore([data], data.dataVersion, options),
+    /unknown floor/,
   );
 });

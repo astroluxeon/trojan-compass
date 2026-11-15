@@ -65,7 +65,11 @@ export class SnapshotStore implements DatasetPort {
   constructor(
     snapshots: DatasetSnapshot[],
     readonly currentVersion: string,
-    options: { chatEnabled?: boolean; production?: boolean } = {},
+    options: {
+      chatEnabled?: boolean;
+      production?: boolean;
+      allowDemoData?: boolean;
+    } = {},
   ) {
     for (const input of snapshots) {
       const s = structuredClone(input);
@@ -108,6 +112,7 @@ export class SnapshotStore implements DatasetPort {
         if (options.chatEnabled === false) b.capabilities.chatText = false;
         if (
           options.production &&
+          !options.allowDemoData &&
           (b.provenance.dataKind === "demo" ||
             b.provenance.verificationStatus === "unverified" ||
             b.coverage === "demo")
@@ -193,6 +198,7 @@ export class SnapshotStore implements DatasetPort {
           throw dataError("navigation snapshot mismatch");
         if (
           options.production &&
+          !options.allowDemoData &&
           (n.provenance.dataKind === "demo" ||
             n.provenance.verificationStatus === "unverified")
         )

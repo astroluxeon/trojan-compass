@@ -64,6 +64,11 @@ try {
     return response;
   }
   const html = await (await get("/?building=LAW&floor=1")).text();
+  const campus = await get("/");
+  assert.ok(campus.url.endsWith("/campus/index.html"));
+  await get("/campus/demo.js");
+  await get("/campus/locations.json");
+  await get("/campus/assets/favicon.png");
   const resources = [
     ...html.matchAll(/(?:src|href)="(\/_next\/[^"?]+(?:\?[^"\s]*)?)"/g),
   ].map((m) => m[1].replaceAll("&amp;", "&"));

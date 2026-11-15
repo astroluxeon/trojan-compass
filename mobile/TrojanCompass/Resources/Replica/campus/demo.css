@@ -64,7 +64,7 @@ body.demo-sidebar-open #hamburger-portal-root #hamburger { position: fixed !impo
     background: #990000; color: white;
   }
   .campus-mobile-header > a { display: flex; align-items: center; justify-content: flex-start; gap: 12px; min-height: 44px; text-decoration: none; color: white; }
-  .campus-mobile-header img { display: block; width: 36px; height: 36px; border-radius: 6px; }
+  .campus-mobile-header img { display: block; width: 42px; height: auto; filter: brightness(0) invert(1); }
   .campus-switcher { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .campus-switcher button { min-height: 44px; border: 1px solid var(--campus-line); border-radius: 12px; color: #525252; background: #fafafa; font: 600 15px var(--campus-font); }
   .campus-switcher button[aria-current] { background: #fbefed; border-color: #990000; color: #990000; }

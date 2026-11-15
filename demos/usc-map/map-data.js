@@ -11,6 +11,7 @@ export function buildingCode(place) {
 export function compassUrl(code) {
   if (!SUPPORTED_CODES.includes(code)) return null
   if (globalThis.location?.protocol === 'compass-web:') return `/interior/index.html?building=${code}&floor=1`
+  if (globalThis.location?.pathname?.startsWith('/campus/')) return `/?building=${code}&floor=1`
   const campusPort = globalThis.location?.port === '3101' ? '3101' : '3001'
   return `http://localhost:3000/?building=${code}&floor=1&campusPort=${campusPort}`
 }

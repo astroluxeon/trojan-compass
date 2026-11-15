@@ -62,6 +62,8 @@ test('campus previews preserve their return port and native iOS stays bundled', 
     }
     Object.defineProperty(globalThis, 'location', { configurable: true, value: { protocol: 'compass-web:' } })
     assert.equal(compassUrl('LAW'), '/interior/index.html?building=LAW&floor=1')
+    Object.defineProperty(globalThis, 'location', { configurable: true, value: { protocol: 'https:', pathname: '/campus/index.html', port: '' } })
+    assert.equal(compassUrl('LAW'), '/?building=LAW&floor=1')
   } finally {
     if (previous) Object.defineProperty(globalThis, 'location', previous)
     else delete globalThis.location
