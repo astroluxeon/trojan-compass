@@ -2,6 +2,13 @@ import { setupMobileCampus } from './mobile.js'
 import { createCleanMap, onCleanCampus } from './clean-map.js'
 import { buildingCode, compassUrl } from './map-data.js'
 
+const brand = document.querySelector('#header .logo a')
+brand.className = 'compass-brand'
+brand.href = './'
+brand.removeAttribute('target')
+brand.setAttribute('aria-label', 'Trojan Compass campus map')
+brand.innerHTML = '<img src="./assets/usc_monogram_white_210x76.png" alt="USC"><span class="campus-brand-divider" aria-hidden="true"></span><span class="compass-wordmark">Trojan <span>Compass</span></span>'
+
 const sidebar = document.querySelector('#sidebar')
 const menu = document.querySelector('#hamburger')
 const map = document.querySelector('#map')

@@ -56,6 +56,8 @@ for (const original of BUILDINGS) {
   const code = original.code;
   const reconstruction = INTERIORS[code];
   const scale = metersPerUnit(code);
+  // Preserve the prototype's cutaway wall proportions after horizontal calibration.
+  const wallHeight = 0.85 * scale;
   // Horizontal calibration is estimated; physical floor elevation is explicitly 3.4 m.
   const point = (x: number, f: number, z: number): Vector3 => ({
     x: x * scale,
@@ -217,7 +219,7 @@ for (const original of BUILDINGS) {
       sceneObjectKey: `${code}:floor:${f}`,
       bounds: {
         min: { x: Math.min(...xs), y: y - 0.24, z: Math.min(...zs) },
-        max: { x: Math.max(...xs), y: y + 1.5, z: Math.max(...zs) },
+        max: { x: Math.max(...xs), y: y + Math.max(1.5, wallHeight), z: Math.max(...zs) },
       },
       provenance: withEvidence(layout.evidence),
     };
@@ -287,10 +289,10 @@ for (const original of BUILDINGS) {
               `${c.id}:wall:${i}:${k}`,
               "wall",
               reconstruction ? (minX + maxX) / 2 : (x0 + x1) / 2,
-              0.425,
+              wallHeight / 2,
               reconstruction ? (minZ + maxZ) / 2 : (z0 + z1) / 2,
               reconstruction ? maxX - minX : Math.abs(x1 - x0) + 0.12,
-              0.85,
+              wallHeight,
               reconstruction ? maxZ - minZ : Math.abs(z1 - z0) + 0.12,
             );
           };
@@ -332,7 +334,7 @@ for (const original of BUILDINGS) {
         sceneObjectKey: key,
         bounds: {
           min: point(c.x0, f, c.z0),
-          max: { ...point(c.x1, f, c.z1), y: y + 0.85 },
+          max: { ...point(c.x1, f, c.z1), y: y + wallHeight },
         },
         accessPoints: [
           {

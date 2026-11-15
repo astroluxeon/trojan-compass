@@ -7,7 +7,7 @@ export function setupMobileCampus({ search, categories, panel, resetMap, showRes
   const brand = document.createElement('a')
   brand.href = '#map'
   brand.setAttribute('aria-label', 'Trojan Compass campus map')
-  brand.innerHTML = '<img src="./assets/trojan-compass.png" alt=""><span class="campus-brand-divider" aria-hidden="true"></span><span class="campus-brand-name">Trojan Compass</span>'
+  brand.innerHTML = '<img src="./assets/usc_monogram_white_210x76.png" alt="USC"><span class="campus-brand-divider" aria-hidden="true"></span><span class="campus-brand-name">Trojan <span>Compass</span></span>'
   brand.onclick = e => { e.preventDefault(); resetMap(); close() }
   const campuses = document.createElement('nav')
   campuses.setAttribute('aria-label', 'Campus')
