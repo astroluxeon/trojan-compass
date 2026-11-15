@@ -148,7 +148,7 @@ export default function Wayfinder() {
           } : undefined}
           onSelectBuilding={(code) => {
             clearDirections()
-            setView({ type: 'building', code, floor: 1 })
+            setView({ type: 'building', code, floor: 1, allFloors: true })
             setSelectedCell(undefined)
           }}
           onSelectCell={(cell) => {

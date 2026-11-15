@@ -44,5 +44,5 @@ export function prototypeMapAction(action: MapAction, dataVersion: string): { vi
   const floor = action.type === 'focus_building' ? 1 : Number(action.floorId)
   if (!getLevels(building.code).includes(floor)) throw new Error('This floor is not available in the current viewer.')
   if (action.type === 'focus_place' && !getFloorCells(building.code, floor).some(cell => cell.id === action.placeId) && !entrancePlaces(building.code).some(p => p.id === action.placeId && p.floor === floor)) throw new Error('This location is not available in the current viewer.')
-  return { view: { type: 'building', code: building.code, floor }, selectedCell: action.type === 'focus_place' ? action.placeId : undefined }
+  return { view: { type: 'building', code: building.code, floor, ...(action.type === 'focus_building' ? { allFloors: true } : {}) }, selectedCell: action.type === 'focus_place' ? action.placeId : undefined }
 }

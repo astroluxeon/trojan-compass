@@ -11,7 +11,7 @@ test('official building records link to every supported interior, with no false 
     const url = new URL(compassUrl(code))
     assert.equal(url.port, '3100')
     assert.equal(url.searchParams.get('building'), code)
-    assert.equal(url.searchParams.get('floor'), '1')
+    assert.equal(url.searchParams.get('floor'), 'all')
   }
   assert.equal(buildingCode({ name: 'Bovard Administration Building (ADM)', code: 'ADM' }), null)
   assert.equal(compassUrl('ADM'), null)

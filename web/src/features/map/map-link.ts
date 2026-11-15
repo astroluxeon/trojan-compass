@@ -22,6 +22,6 @@ export function readDeepLink(q: URLSearchParams) {
     const first = route.steps[0]
     if (first?.building) view = { type: 'building', code: first.building, floor: first.floor ?? 1 }
   } else if (room) view = { type: 'building', code: room.building, floor: room.floor, allFloors: q.get('floor') === 'all' }
-  else if (b) view = { type: 'building', code: b.code, floor, allFloors: q.get('floor') === 'all' }
+  else if (b) view = { type: 'building', code: b.code, floor, allFloors: !q.has('floor') || q.get('floor') === 'all' }
   return { view, room, from: from ?? null, to: to ?? null, mode, route }
 }

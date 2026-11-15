@@ -10,7 +10,7 @@ export function buildingCode(place) {
 
 export function compassUrl(code) {
   if (!SUPPORTED_CODES.includes(code)) return null
-  return `http://localhost:3100/?building=${code}&floor=1`
+  return `http://localhost:3100/?building=${code}&floor=all`
 }
 
 // Saved Google map uses Web Mercator at zoom 16, centered on these coordinates.
