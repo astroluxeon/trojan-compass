@@ -26,9 +26,25 @@ import {
 } from "./prototype/floorplan.js";
 import { repositoryRoot } from "../contract.js";
 import type { PublishedNavigation as NavigationSource } from "./publication-format.js";
+import { prototypeFloorId, prototypeFloorLevel } from "./prototype/floor-id.js";
 
-const version = "usc-interiors-2026-11-14";
+const version = process.argv[2];
+if (!version || !/^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$/.test(version))
+  throw new Error(
+    "Pass a new dataVersion: npm run data:extract -- <dataVersion>",
+  );
 const snapshot = new URL(`server/data/snapshots/${version}/`, repositoryRoot);
+// Reserve a fresh version before writing anything. Never overwrite a released
+// publication (or silently reuse a failed partial extraction).
+try {
+  await mkdir(snapshot);
+} catch (error) {
+  if ((error as NodeJS.ErrnoException).code === "EEXIST")
+    throw new Error(
+      "Publication already exists; choose a new dataVersion. Released snapshots are immutable.",
+    );
+  throw error;
+}
 async function save(path: string, value: unknown) {
   const url = new URL(path, snapshot);
   await mkdir(new URL("./", url), { recursive: true });
@@ -102,7 +118,7 @@ for (const original of BUILDINGS) {
     const n: GraphNode = {
       id: id.replace(/[^A-Za-z0-9._:-]/g, "_"),
       buildingId: code,
-      floorId: String(f),
+      floorId: prototypeFloorId(f),
       position: p,
       kind,
     };
@@ -163,7 +179,7 @@ for (const original of BUILDINGS) {
       objects.push(object);
       if (role === "wall")
         navigation.barriers.push({
-          floorId: String(f),
+          floorId: prototypeFloorId(f),
           min: {
             x: object.center.x - object.size.x / 2,
             y,
@@ -191,7 +207,7 @@ for (const original of BUILDINGS) {
     const xs = layout.slabs.flatMap((s) => [s[0] * scale, s[2] * scale]);
     const zs = layout.slabs.flatMap((s) => [s[1] * scale, s[3] * scale]);
     const floor: Floor = {
-      id: String(f),
+      id: prototypeFloorId(f),
       buildingId: code,
       label:
         reconstruction?.floors.find((s) => s.level === f)?.name ??
@@ -301,7 +317,7 @@ for (const original of BUILDINGS) {
       places.push({
         id: c.id,
         buildingId: code,
-        floorId: String(f),
+        floorId: prototypeFloorId(f),
         name: c.name,
         displayLabel: cellTitle(c),
         roomNumber: c.kind === "room" ? c.number || null : null,
@@ -347,7 +363,7 @@ for (const original of BUILDINGS) {
           old?.id ??
           `${code}-EXIT-${f}-${e.id.split(":").at(-1)?.toUpperCase()}`,
         buildingId: code,
-        floorId: String(f),
+        floorId: prototypeFloorId(f),
         name: e.label,
         displayLabel: `${code} ${e.label}`,
         roomNumber: null,
@@ -391,7 +407,7 @@ for (const original of BUILDINGS) {
     );
     geometries.push({
       buildingId: code,
-      floorId: String(f),
+      floorId: prototypeFloorId(f),
       coordinateSystem: {
         id: `${code}:meters`,
         units: "meters",
@@ -402,7 +418,7 @@ for (const original of BUILDINGS) {
       bounds: floor.bounds,
       objects,
       labels: places
-        .filter((p) => p.floorId === String(f))
+        .filter((p) => p.floorId === prototypeFloorId(f))
         .map((p) => ({
           placeId: p.id,
           text: p.displayLabel,
@@ -412,7 +428,9 @@ for (const original of BUILDINGS) {
     });
   }
   for (const [id, core] of coreNodes) {
-    core.nodes.sort((a, b) => Number(a.floorId) - Number(b.floorId));
+    core.nodes.sort(
+      (a, b) => prototypeFloorLevel(a.floorId) - prototypeFloorLevel(b.floorId),
+    );
     navigation.connectors.push({
       id: `${code}:${id}`,
       nodeIds: core.nodes.map((n) => n.id),

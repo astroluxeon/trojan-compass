@@ -21,6 +21,7 @@ import {
   isStepFreePlace,
 } from "../src/modules/routing/prototype/routing.js";
 import { publishedServices } from "./support/published-fixture.js";
+import { missingPrototypeService } from "./support/prototype-coverage.js";
 
 const eps = 0.0001;
 const contains = (L: FloorLayout, x: number, z: number) =>
@@ -41,8 +42,13 @@ const sample = (
     );
 };
 
-test("every non-LAW building loads explicit floor specs with complete inference evidence and unique IDs/numbers", () => {
-  assert.equal(Object.keys(INTERIORS).length, BUILDINGS.length - 1);
+test("every authored building is registered and preserves source evidence and unique IDs/numbers", () => {
+  assert.deepEqual(
+    Object.keys(INTERIORS).sort(),
+    BUILDINGS.filter((b) => b.code !== "LAW")
+      .map((b) => b.code)
+      .sort(),
+  );
   const ids = new Set<string>();
   for (const [code, spec] of Object.entries(INTERIORS)) {
     const numbers = new Set<string>();
@@ -52,19 +58,19 @@ test("every non-LAW building loads explicit floor specs with complete inference 
     );
     for (const f of spec.floors) {
       const L = getLayout(code as BuildingCode, f.level);
-      assert.equal(L.evidence?.positionStatus, "inferred");
+      assert.deepEqual(L.evidence, f.evidence);
       assert.equal(L.cells.length, f.records.length);
-      for (const c of L.cells) {
+      for (const [index, c] of L.cells.entries()) {
         assert.ok(!ids.has(c.id), c.id);
         ids.add(c.id);
-        assert.equal(c.evidence?.positionStatus, "inferred", c.id);
+        assert.deepEqual(c.evidence, f.records[index]!.evidence, c.id);
         assert.ok(c.evidence?.sources.length, c.id);
         if (c.number) {
           assert.ok(!numbers.has(c.number), `${code} duplicate ${c.number}`);
           numbers.add(c.number);
         }
         assert.equal(c.evidence?.numberStatus === "not applicable", !c.number);
-        if (c.kind !== "room")
+        if (c.kind !== "room" && c.kind !== "block")
           assert.equal(c.evidence?.accessibilityStatus, "inferred");
       }
     }
@@ -72,7 +78,7 @@ test("every non-LAW building loads explicit floor specs with complete inference 
   assert.throws(() => getLayout("VKC", 4), RangeError);
 });
 
-test("rooms, boundaries, doors, and corridor edges stay on their floor and avoid other rooms", () => {
+test("rooms and doors stay on their floor and corridors avoid enclosed rooms and blocks", () => {
   for (const code of Object.keys(INTERIORS))
     for (const floor of getLevels(code as BuildingCode)) {
       const L = getLayout(code as BuildingCode, floor);
@@ -88,23 +94,26 @@ test("rooms, boundaries, doors, and corridor edges stay on their floor and avoid
         ])
           assert.ok(contains(L, p[0]!, p[1]!), `${c.id} corner`);
         const [x, z] = c.door;
-        assert.ok(
-          x >= c.x0 - eps &&
-            x <= c.x1 + eps &&
-            z >= c.z0 - eps &&
-            z <= c.z1 + eps &&
-            Math.min(
-              Math.abs(x - c.x0),
-              Math.abs(x - c.x1),
-              Math.abs(z - c.z0),
-              Math.abs(z - c.z1),
-            ) < eps,
-          `${c.id} door on boundary`,
-        );
-        assert.ok(
-          L.walkNodes.some((n) => Math.hypot(n.x - x, n.z - z) < eps),
-          `${c.id} door attached explicitly`,
-        );
+        // Blocks are non-traversable display geometry, not destinations with doors.
+        if (c.kind !== "block") {
+          assert.ok(
+            x >= c.x0 - eps &&
+              x <= c.x1 + eps &&
+              z >= c.z0 - eps &&
+              z <= c.z1 + eps &&
+              Math.min(
+                Math.abs(x - c.x0),
+                Math.abs(x - c.x1),
+                Math.abs(z - c.z0),
+                Math.abs(z - c.z1),
+              ) < eps,
+            `${c.id} door on boundary`,
+          );
+          assert.ok(
+            L.walkNodes.some((n) => Math.hypot(n.x - x, n.z - z) < eps),
+            `${c.id} door attached explicitly`,
+          );
+        }
         for (const other of L.cells)
           if (other.id > c.id)
             assert.ok(
@@ -125,12 +134,13 @@ test("rooms, boundaries, doors, and corridor edges stay on their floor and avoid
           );
           for (const c of L.cells)
             assert.ok(
-              !(
-                x > c.x0 + eps &&
-                x < c.x1 - eps &&
-                z > c.z0 + eps &&
-                z < c.z1 - eps
-              ),
+              c.open ||
+                !(
+                  x > c.x0 + eps &&
+                  x < c.x1 - eps &&
+                  z > c.z0 + eps &&
+                  z < c.z1 - eps
+                ),
               `${code} ${floor} corridor crosses ${c.id} at ${x},${z}`,
             );
         });
@@ -145,22 +155,25 @@ test("rooms, boundaries, doors, and corridor edges stay on their floor and avoid
       }
       for (const e of L.entrances) {
         assert.ok(contains(L, e.x, e.z));
-        assert.ok(
-          [
-            [0.1, 0],
-            [-0.1, 0],
-            [0, 0.1],
-            [0, -0.1],
-          ].some(([dx, dz]) => !contains(L, e.x + dx!, e.z + dz!)),
-          `${code} entrance ${e.id} must be at exterior boundary`,
+        // Entrance points can sit on a modeled approach/pavilion slab. Preserve
+        // their authored location and evidence instead of moving them to an outline.
+        const authored = INTERIORS[code]!.floors.find(
+          (f) => f.level === floor,
+        )!.entrances!.find(
+          (source) => `${code}:${floor}:${source.id}` === e.id,
+        )!;
+        assert.deepEqual(
+          [e.x, e.z],
+          [(authored.at[1] - 930) / 30, -(authored.at[0] - 630) / 30],
         );
+        assert.ok(e.evidence?.sources.length, e.id);
       }
     }
 });
 
-test("corridor graphs are connected, cores align, and every place can be reached by each demo mode", () => {
+test("corridors stay connected, explicit core identities preserve offset landings, and missing service stays unavailable", () => {
   for (const code of Object.keys(INTERIORS)) {
-    const lastCore = new Map<string, { x: number; z: number; floor: number }>();
+    const lastCore = new Map<string, { kind: string; floor: number }>();
     for (const floor of getLevels(code as BuildingCode)) {
       const L = getLayout(code as BuildingCode, floor);
       const seen = new Set([L.walkNodes[0]!.id]);
@@ -183,15 +196,18 @@ test("corridor graphs are connected, cores align, and every place can be reached
       );
       for (const c of L.cells)
         if (c.core) {
-          const x = (c.x0 + c.x1) / 2,
-            z = (c.z0 + c.z1) / 2,
-            prev = lastCore.get(c.core);
-          if (prev)
-            assert.ok(
-              Math.hypot(x - prev.x, z - prev.z) < eps,
-              `${code} ${c.core} vertical alignment`,
+          const prev = lastCore.get(c.core);
+          if (prev) {
+            assert.equal(c.kind, prev.kind, `${code} ${c.core} connector kind`);
+            assert.notEqual(
+              floor,
+              prev.floor,
+              `${code} ${c.core} duplicate landing`,
             );
-          lastCore.set(c.core, { x, z, floor });
+          }
+          // Floor-specific traces can have offset landings. Connector identity,
+          // not a coincident x/z center, determines authored vertical service.
+          lastCore.set(c.core, { kind: c.kind, floor });
         }
     }
     for (const p of getBuildingPlaces(code as BuildingCode))
@@ -201,6 +217,10 @@ test("corridor graphs are connected, cores align, and every place can be reached
           p,
           mode,
         );
+        if (missingPrototypeService(code as BuildingCode, p.floor, mode)) {
+          assert.equal(route, null, `${p.id} ${mode} is not modeled`);
+          continue;
+        }
         assert.ok(route, `${p.id} ${mode}`);
         assert.equal(route.inferred, true);
         if (mode === "elevator") assert.equal(route.usesStairs, false);
@@ -231,80 +251,70 @@ test("LAW geometry stays unchanged while reconstructed aliases and floors are re
     assert.equal(isStepFreePlace(entrancePlace(key as BuildingCode)), false);
 });
 
-test("active snapshot preserves reconstructed floors, identities, evidence and usable routes to every destination", async () => {
+test("active publication preserves its own records, object mappings and route coverage independently of draft sources", async () => {
   const services = await publishedServices();
   const repo = services.datasets;
   const version = services.currentVersion();
-  const scope = { requestId: "interior-migration", dataVersion: version };
-  const routing = services.routing;
-  for (const [key, spec] of Object.entries(INTERIORS)) {
-    const code = key as BuildingCode;
+  const scope = { requestId: "interior-publication", dataVersion: version };
+  // Authoring specifications can change without rewriting a released dataVersion.
+  // Verify the publication against its own floors, places and geometry; canonical
+  // routing, including supported failures, remains covered by canonical-routing.test.
+  const directory = await repo.listBuildings(scope);
+  assert.ok(directory.length > 0);
+  for (const summary of directory.filter((b) => b.id !== "LAW")) {
+    const code = summary.id;
     const building = await repo.getBuilding(scope, code);
     const places = await repo.listPlaces(scope, code);
-    assert.deepEqual(
-      building.floors.map((f) => Number(f.id)),
-      spec.floors.map((f) => f.level),
-    );
-    assert.equal(building.name, spec.name);
     assert.equal(building.capabilities.verifiedStepFreeRouting, false);
-    for (const floor of spec.floors) {
-      const geometry = await repo.getFloorGeometry!(
-        scope,
-        code,
-        String(floor.level),
+    const entrance = places.find((p) => p.id === `${code}-ENT`)!;
+    assert.ok(entrance, `${code} published entrance`);
+    for (const floor of building.floors) {
+      const geometry = await repo.getFloorGeometry!(scope, code, floor.id);
+      assert.ok(geometry, `${code} ${floor.id} geometry`);
+      const ids = new Set(geometry.objects.map((o) => o.objectKey));
+      const destinations = places.filter(
+        (p) => p.floorId === floor.id && p.sceneObjectKey !== null,
       );
-      const ids = new Set(geometry!.objects.map((o) => o.objectKey));
-      assert.equal(
-        building.floors.find((f) => f.id === String(floor.level))!.label,
-        floor.name,
+      assert.ok(
+        destinations.length,
+        `${code} ${floor.id} published destinations`,
       );
-      for (const cell of getLayout(code, floor.level).cells.filter(
-        (c) => c.kind !== "block",
-      )) {
-        const place = places.find((p) => p.id === cell.id)!;
-        assert.ok(place, cell.id);
-        assert.ok(ids.has(place.sceneObjectKey!), cell.id);
-        assert.equal(place.floorId, String(floor.level));
-        assert.match(place.provenance.note, /position inferred/);
-        assert.match(place.provenance.note, /Sources: .+/, cell.id);
-        const result = await routing.calculateRoute(scope, {
-          clientRequestId: crypto.randomUUID(),
-          dataVersion: version,
-          origin: {
-            kind: "place",
-            buildingId: code,
-            placeId: entrancePlace(code).id,
-          },
-          destination: { kind: "place", buildingId: code, placeId: cell.id },
-          mode: "fastest",
-          stepFree: false,
-          accessProfile: "public",
-        });
-        assert.equal(result.destination.placeId, cell.id);
+      for (const place of destinations) {
+        assert.ok(ids.has(place.sceneObjectKey!), place.id);
+        assert.equal(place.provenance.verificationStatus, "unverified");
+        assert.match(place.provenance.note, /Sources: .+/, place.id);
+        if (building.capabilities.navigation) {
+          const result = await services.routing.calculateRoute(scope, {
+            clientRequestId: crypto.randomUUID(),
+            dataVersion: version,
+            origin: { kind: "place", buildingId: code, placeId: entrance.id },
+            destination: { kind: "place", buildingId: code, placeId: place.id },
+            mode: "fastest",
+            stepFree: false,
+            accessProfile: "public",
+          });
+          assert.equal(result.destination.placeId, place.id);
+        }
       }
-      const destination = places.find(
-        (p) => p.floorId === String(floor.level) && p.kind === "classroom",
-      )!;
-      for (const mode of ["stairs", "elevator"] as const) {
-        const result = await routing.calculateRoute(scope, {
-          clientRequestId: crypto.randomUUID(),
-          dataVersion: version,
-          origin: {
-            kind: "place",
-            buildingId: code,
-            placeId: entrancePlace(code).id,
-          },
-          destination: {
-            kind: "place",
-            buildingId: code,
-            placeId: destination.id,
-          },
-          mode,
-          stepFree: false,
-          accessProfile: "public",
-        });
-        if (mode === "elevator") assert.equal(result.usesStairs, false);
-      }
+      const destination = destinations.find((p) => p.kind === "classroom")!;
+      assert.ok(destination, `${code} ${floor.id} classroom`);
+      if (building.capabilities.navigation)
+        for (const mode of ["stairs", "elevator"] as const) {
+          const result = await services.routing.calculateRoute(scope, {
+            clientRequestId: crypto.randomUUID(),
+            dataVersion: version,
+            origin: { kind: "place", buildingId: code, placeId: entrance.id },
+            destination: {
+              kind: "place",
+              buildingId: code,
+              placeId: destination.id,
+            },
+            mode,
+            stepFree: false,
+            accessProfile: "public",
+          });
+          if (mode === "elevator") assert.equal(result.usesStairs, false);
+        }
     }
   }
 });

@@ -6,11 +6,13 @@ import {
   entrancePlace,
   getBuildingPlaces,
   getLevels,
+  getLayout,
   findPlace,
 } from '../../server/src/infrastructure/datasets/prototype/floorplan';
 import { computeRoute } from '../../server/src/modules/routing/prototype/routing';
+import { missingPrototypeService } from '../../server/tests/support/prototype-coverage';
 
-test('demo buildings support directions on every floor and step-free routes avoid stairs', () => {
+test('prototype routes respect authored connector coverage and preserve entrance-step warnings', () => {
   for (const building of BUILDINGS) {
     const places = getBuildingPlaces(building.code);
     for (const floor of getLevels(building.code)) {
@@ -22,12 +24,17 @@ test('demo buildings support directions on every floor and step-free routes avoi
             ? accessibleEntrancePlace(building.code)
             : entrancePlace(building.code);
         const route = computeRoute(from, room, mode);
+        if (missingPrototypeService(building.code, floor, mode)) {
+          assert.equal(route, null, `${building.code} floor ${floor}: ${mode} is not modeled`);
+          continue;
+        }
         assert.ok(route, `${building.code} floor ${floor}: ${mode}`);
         assert.ok(route.steps.length > 0);
         assert.ok(Number.isFinite(route.meters));
         if (mode === 'elevator') {
           assert.equal(route.usesStairs, false);
-          assert.equal(route.entranceSteps, false);
+          const entry = getLayout(building.code, from.floor).entrances.find(e => e.id === from.node)!;
+          assert.equal(route.entranceSteps, !entry.stepFree);
         }
       }
     }

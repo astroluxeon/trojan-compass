@@ -11,6 +11,7 @@ import {
   metersPerUnit,
 } from "./prototype/floorplan.js";
 import { SnapshotStore } from "./snapshot-store.js";
+import { prototypeFloorId } from "./prototype/floor-id.js";
 
 /** Development bridge: preserves existing IDs; never promotes guessed topology to canonical routes. */
 export function prototypeStore(chatEnabled = false): SnapshotStore {
@@ -45,7 +46,7 @@ export function prototypeStore(chatEnabled = false): SnapshotStore {
         places.push({
           id: c.id,
           buildingId: b.code,
-          floorId: String(level),
+          floorId: prototypeFloorId(level),
           name: c.name,
           displayLabel: cellTitle(c),
           roomNumber: c.kind === "room" ? c.number || null : null,
@@ -82,7 +83,7 @@ export function prototypeStore(chatEnabled = false): SnapshotStore {
         places.push({
           id: p.id,
           buildingId: b.code,
-          floorId: String(level),
+          floorId: prototypeFloorId(level),
           name: e.label,
           displayLabel: p.label,
           roomNumber: null,
@@ -105,7 +106,7 @@ export function prototypeStore(chatEnabled = false): SnapshotStore {
         });
       }
       return {
-        id: String(level),
+        id: prototypeFloorId(level),
         buildingId: b.code,
         label: floorName(level, b.code),
         sortOrder: level,

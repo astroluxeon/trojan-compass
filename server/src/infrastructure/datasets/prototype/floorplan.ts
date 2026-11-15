@@ -103,8 +103,9 @@ function specLayout(building: BuildingCode, floor: number): FloorLayout {
     const [x0, z0, x1, z1] = rectToScene(rect)
     const cx = (x0 + x1) / 2
     const cz = (z0 + z1) / 2
-    const door: [number, number] =
-      side === 'N' ? [x0, cz] : side === 'S' ? [x1, cz] : side === 'W' ? [cx, z1] : [cx, z0]
+    const door: [number, number] = record?.door
+      ? toScene(...record.door)
+      : side === 'N' ? [x0, cz] : side === 'S' ? [x1, cz] : side === 'W' ? [cx, z1] : [cx, z0]
     const [k, core] = kindCode.split(':')
     const kind: CellKind = k === 's' ? 'stairs' : k === 'e' ? 'elevator' : k === 'w' ? 'restroom' : k === 'b' ? 'block' : 'room'
     const slug =
