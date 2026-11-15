@@ -16,7 +16,7 @@ export function RouteLine({ points, width = 5 }: { points: [number, number, numb
   return (
     <group>
       <Line points={points} color="#ffffff" lineWidth={width + 4} />
-      <Line points={points} color={COLORS.cardinal} lineWidth={width} />
+      <Line points={points} color={COLORS.gold} lineWidth={width} />
       <Line ref={ref} points={points} color="#ffffff" lineWidth={Math.max(1.5, width * 0.35)} dashed dashSize={0.35} gapSize={0.6} />
     </group>
   )

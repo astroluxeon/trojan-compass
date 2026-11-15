@@ -149,6 +149,36 @@ test('room-picked positions use known arrivals and retain the requested origin',
   assert.deepEqual(r.origin.requested, origin);
   assert.equal(r.origin.placeId, 'LAW-101');
 });
+test('LAW open-space origins outside corridor snap bands keep the selected position and draw the approach', async () => {
+  for (const [x, z] of [
+    [-30, 17],
+    [-26, -13],
+    [0, 0],
+    [8, 18],
+  ]) {
+    const origin = { kind: 'position', buildingId: 'LAW', floorId: '1', position: { x, y: 0, z } };
+    // Repeated requests must not leave derived approach nodes in the graph cache.
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const { route: r } = await post('/routes', route({ origin }));
+      assert.equal(r.origin.placeId, null);
+      assert.deepEqual(r.origin.requested, origin);
+      assert.deepEqual(r.origin.position, origin.position);
+      assert.equal(r.origin.snapDistanceMeters, 0);
+      assert.deepEqual(r.legs[0].points[0], origin.position);
+      assert.ok(r.distanceMeters > 0);
+      const source = await new SnapshotRepository().getNavigationSource(
+        { requestId: 'test', dataVersion: version },
+        'LAW'
+      );
+      for (const leg of r.legs.filter((l: any) => l.kind === 'indoor'))
+        for (let i = 1; i < leg.points.length; i++)
+          assert.equal(
+            obstructed(leg.points[i - 1], leg.points[i], leg.floorId, source.barriers),
+            false
+          );
+    }
+  }
+});
 test('two picked positions on one corridor segment route directly without mutating the graph cache', async () => {
   const repo = new SnapshotRepository();
   const scope = { requestId: 'picked-fixture', dataVersion: version };

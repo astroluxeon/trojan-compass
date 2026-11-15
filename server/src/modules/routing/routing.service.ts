@@ -19,11 +19,13 @@ import type {
 import { Failure, invalid } from '../../middleware/failure.js';
 import { validate } from '../../infrastructure/contract.js';
 import { distance, obstructed, project, walkable } from './geometry.js';
+import { OpenFloor } from './open-floor.js';
 
 type Arc = { to: string; edge: GraphEdge };
 type Graph = { source: NavigationSource; nodes: Map<string, GraphNode>; adj: Map<string, Arc[]> };
 export class RoutingService implements RoutingPort {
   private graphs = new Map<string, Promise<Graph>>();
+  private openFloors = new Map<string, Promise<OpenFloor | null>>();
   constructor(private datasets: DatasetPort) {}
   private graph(scope: RequestScope, id: string) {
     const key = JSON.stringify([scope.dataVersion, id]);
@@ -161,8 +163,9 @@ export class RoutingService implements RoutingPort {
     );
     if (room) return anchor(room.id, ref);
     if (
-      !walkable(ref.position, ref.floorId, graph.source) ||
-      obstructed(ref.position, ref.position, ref.floorId, graph.source.barriers)
+      ref.buildingId !== 'LAW' &&
+      (!walkable(ref.position, ref.floorId, graph.source) ||
+        obstructed(ref.position, ref.position, ref.floorId, graph.source.barriers))
     )
       throw new Failure('INVALID_POSITION', 422, 'Choose a room or a walkable floor position.');
     const candidates = [...graph.adj.entries()]
@@ -173,21 +176,44 @@ export class RoutingService implements RoutingPort {
           graph.nodes.get(arc.to)!.floorId === ref.floorId &&
           arc.edge.accessLevel === 'public'
       );
-    const best = candidates
-      .map((c) => ({
-        ...c,
-        position: project(
-          ref.position,
-          graph.nodes.get(c.from)!.position,
-          graph.nodes.get(c.arc.to)!.position
-        ),
-      }))
-      .filter(
-        (c) =>
-          distance(ref.position, c.position) <= 2 &&
-          !obstructed(ref.position, c.position, ref.floorId, graph.source.barriers)
-      )
-      .sort((a, b) => distance(ref.position, a.position) - distance(ref.position, b.position))[0];
+    const projected = candidates.map((c) => ({
+      ...c,
+      position: project(
+        ref.position,
+        graph.nodes.get(c.from)!.position,
+        graph.nodes.get(c.arc.to)!.position
+      ),
+    }));
+    let attachment: Vector3[] | undefined;
+    let best: (typeof projected)[number] | undefined;
+    if (ref.buildingId === 'LAW') {
+      const key = JSON.stringify([scope.dataVersion, ref.buildingId, ref.floorId]);
+      let pending = this.openFloors.get(key);
+      if (!pending) {
+        pending = this.datasets
+          .getFloorGeometry(scope, ref.buildingId, ref.floorId)
+          .then((geometry) => (geometry ? new OpenFloor(geometry, places) : null));
+        this.openFloors.set(key, pending);
+        pending.catch(() => this.openFloors.delete(key));
+      }
+      const space = await pending;
+      const connection = space?.connect({ ...ref.position, y: floor.elevationMeters }, projected);
+      if (!connection)
+        throw new Failure(
+          'INVALID_POSITION',
+          422,
+          'Choose an open floor position connected to a corridor.'
+        );
+      best = connection.target;
+      attachment = connection.points;
+    } else
+      best = projected
+        .filter(
+          (c) =>
+            distance(ref.position, c.position) <= 2 &&
+            !obstructed(ref.position, c.position, ref.floorId, graph.source.barriers)
+        )
+        .sort((a, b) => distance(ref.position, a.position) - distance(ref.position, b.position))[0];
     if (!best)
       throw new Failure(
         'INVALID_POSITION',
@@ -228,14 +254,45 @@ export class RoutingService implements RoutingPort {
     };
     connect(a, id);
     connect(id, b);
+    // LAW open-space picks remain at the chosen position. Add their validated
+    // approach (including any bends around rooms) to this request's graph.
+    let originId = id;
+    if (attachment) {
+      for (let index = attachment.length - 2; index >= 0; index--) {
+        const position = attachment[index]!;
+        if (distance(position, graph.nodes.get(originId)!.position) < 1e-9) continue;
+        const nodeId = `picked:${randomUUID()}`;
+        graph.nodes.set(nodeId, {
+          id: nodeId,
+          buildingId: ref.buildingId,
+          floorId: ref.floorId,
+          position,
+          kind: 'position',
+        });
+        const edge: GraphEdge = {
+          id: `approach:${randomUUID()}`,
+          fromNodeId: nodeId,
+          toNodeId: originId,
+          lengthMeters: distance(position, graph.nodes.get(originId)!.position),
+          kind: 'walkway',
+          bidirectional: true,
+          stepFree: 'unknown',
+          accessLevel: 'public',
+        };
+        graph.adj.set(nodeId, [{ to: originId, edge }]);
+        graph.adj.get(originId)!.push({ to: nodeId, edge });
+        originId = nodeId;
+      }
+    }
+    const position = graph.nodes.get(originId)!.position;
     return {
       requested: ref,
       buildingId: ref.buildingId,
       floorId: ref.floorId,
       placeId: null,
-      nodeId: id,
-      position: best.position,
-      snapDistanceMeters: distance(ref.position, best.position),
+      nodeId: originId,
+      position,
+      snapDistanceMeters: distance(ref.position, position),
     };
   }
   async calculateRoute(scope: RequestScope, request: RouteRequest): Promise<Route> {
