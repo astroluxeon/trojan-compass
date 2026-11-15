@@ -1,9 +1,17 @@
 # Building interiors
 
-All nine supported buildings are migrated into the current structure. LAW keeps
+The active `usc-interiors-2026-11-14` publication contains nine buildings. LAW keeps
 its five traced floors. The eight reconstructed interiors contain 41 floors and
 672 room/amenity cells, including 137 confirmed and 361 inferred room numbers.
-Every non-LAW position, boundary, door and corridor remains inferred.
+Every non-LAW position, boundary, door and corridor in that publication remains inferred.
+
+The authoring catalog also contains SCA and newer DML, LVL and KAP traces. These
+draft sources do not replace a released publication automatically. The shared
+loader preserves their explicit door coordinates and evidence, including the
+distinction between drawing-derived geometry and verified physical access.
+SCA's three authored floors are partial coverage, not a claim about its total height.
+Negative authoring levels use path-safe opaque floor IDs at the API boundary:
+KAP level `-1` is `B1`, with its source label, sort order and elevation retained.
 
 ## Where to edit
 
@@ -71,8 +79,9 @@ Run from the repository root:
 ```sh
 # Optional: reauthor the eight explicit source specifications.
 python scripts/build-interior-specs.py
-# Rebuild runtime snapshots and schematic campus decoration.
-npm run data:extract
+# Extract a deliberately chosen, new publication version and campus decoration.
+# Existing versions are rejected before any released files are changed.
+npm run data:extract -- usc-interiors-2026-11-15-r1
 # Rebuild the evidence tables without downloading source documents.
 python scripts/inventory-interior-sources.py
 npx tsx scripts/export-interior-assumptions.ts
@@ -82,12 +91,21 @@ npm run typecheck
 npm run build
 ```
 
-Choose a new dataVersion in export-snapshot.ts for future published revisions.
-Do not edit released snapshots or add derived routing caches to their source
-navigation directories.
+Choose a new dataVersion for future published revisions. Validate the candidate
+and refresh affected web/mobile assets before releasing it. Do not edit released
+snapshots or add derived routing caches to their source navigation directories.
 
-The migrated tests check explicit floors and identities, evidence, containment,
-non-overlap, corridor connectivity, aligned cores, courtyard exclusion, routes
-to every reconstructed destination, stair/elevator routes on each floor, and all
-five original LAW layout hashes. Static QA images are historical geometry plots;
-they do not establish current browser verification.
+Tests separately check the authoring catalog and the active publication. Source
+checks retain containment, non-overlap, doors, corridor connectivity, courtyard
+exclusion and all five original LAW layout hashes. Core identities retain their
+floor-specific landing positions; they need not share identical x/z centers.
+Open reading areas can contain circulation; solid blocks are not destinations
+requiring doors. Entrances can sit on a modeled approach or pavilion slab.
+
+Route checks preserve known source limitations: TCC floor 4 has no modeled stair
+service, and KAP's subbasement has no modeled elevator service. Those journeys
+must remain unavailable for the corresponding preference. Elevator preference
+does not verify an entrance's accessibility or remove its steps. Canonical
+step-free routing continues to require positive evidence throughout the path.
+Published record/scene/route checks use the pinned publication, independently
+of later authoring edits. Static QA images remain historical geometry plots.

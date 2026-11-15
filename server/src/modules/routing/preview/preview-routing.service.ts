@@ -27,6 +27,10 @@ import {
   type FloorLayout,
 } from "../../../infrastructure/datasets/prototype/floorplan.js";
 import { AsyncCache } from "../../../lib/cache.js";
+import {
+  prototypeFloorId,
+  prototypeFloorLevel,
+} from "../../../infrastructure/datasets/prototype/floor-id.js";
 import { AppError, invalid, missing } from "../../../lib/errors.js";
 import { checkpoint, checkScope, withinScope } from "../../../lib/scope.js";
 import { MinHeap } from "../heap.js";
@@ -279,7 +283,7 @@ export class PreviewRoutingService implements RoutingPort {
         index = graph.places.get(ref.placeId);
         if (index === undefined) throw missing("Route location");
       } else {
-        const floor = Number(ref.floorId),
+        const floor = prototypeFloorLevel(ref.floorId),
           layout = graph.layouts.get(floor),
           p = planar(code, ref.position);
         if (
@@ -327,7 +331,7 @@ export class PreviewRoutingService implements RoutingPort {
         resolved: {
           requested: ref,
           buildingId: code,
-          floorId: String(n.floor),
+          floorId: prototypeFloorId(n.floor),
           placeId: ref.kind === "place" ? ref.placeId : null,
           nodeId: n.id,
           position: n.position,
@@ -427,7 +431,7 @@ export class PreviewRoutingService implements RoutingPort {
       if (
         edge.kind === "walk" &&
         last?.kind === "indoor" &&
-        last.floorId === String(f.floor)
+        last.floorId === prototypeFloorId(f.floor)
       )
         leg = last;
       else if (
@@ -436,7 +440,7 @@ export class PreviewRoutingService implements RoutingPort {
         last.connectorId === edge.core
       ) {
         leg = last;
-        leg.toFloorId = String(t.floor);
+        leg.toFloorId = prototypeFloorId(t.floor);
       } else {
         leg =
           edge.kind === "walk"
@@ -444,7 +448,7 @@ export class PreviewRoutingService implements RoutingPort {
                 kind: "indoor",
                 id: `leg-${legs.length}`,
                 buildingId: code,
-                floorId: String(f.floor),
+                floorId: prototypeFloorId(f.floor),
                 points: [edge.points[0]!],
                 distanceMeters: 0,
                 durationSeconds: 0,
@@ -453,8 +457,8 @@ export class PreviewRoutingService implements RoutingPort {
                 kind: "vertical",
                 id: `leg-${legs.length}`,
                 buildingId: code,
-                fromFloorId: String(f.floor),
-                toFloorId: String(t.floor),
+                fromFloorId: prototypeFloorId(f.floor),
+                toFloorId: prototypeFloorId(t.floor),
                 connectorKind: edge.kind,
                 connectorId: edge.core!,
                 points: [edge.points[0]!],
@@ -505,13 +509,13 @@ export class PreviewRoutingService implements RoutingPort {
       if (leg.kind === "indoor" && leg.distanceMeters > 0.01)
         step(
           "walk",
-          `Follow the green line on ${floorName(Number(leg.floorId)).toLowerCase()}.`,
+          `Follow the green line on ${floorName(prototypeFloorLevel(leg.floorId), code).toLowerCase()}.`,
           leg,
         );
       else if (leg.kind === "vertical")
         step(
           leg.connectorKind,
-          `Take the ${leg.connectorKind} to ${floorName(Number(leg.toFloorId)).toLowerCase()}.`,
+          `Take the ${leg.connectorKind} to ${floorName(prototypeFloorLevel(leg.toFloorId), code).toLowerCase()}.`,
           leg,
         );
     step(

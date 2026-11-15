@@ -1,7 +1,7 @@
 // Preserved prototype source; canonical runtime data is exported to server/data/snapshots/.
 import { INTERIORS } from './interiors/index.js'
 
-export type BuildingCode = 'DML' | 'LVL' | 'THH' | 'VKC' | 'TCC' | 'SGM' | 'SAL' | 'KAP' | 'LAW'
+export type BuildingCode = 'DML' | 'LVL' | 'THH' | 'VKC' | 'TCC' | 'SGM' | 'SAL' | 'KAP' | 'SCA' | 'LAW'
 
 export interface Building {
   code: BuildingCode
@@ -31,6 +31,16 @@ const rect = (w: number, d: number): [number, number][] => [
 ]
 
 export const BUILDINGS: Building[] = [
+  {
+    code: 'SCA',
+    name: 'School of Cinematic Arts',
+    blurb: 'Cinema classrooms, theaters and production spaces. Source coverage is partial.',
+    // Schematic overview decoration; never used by canonical indoor navigation.
+    position: [-29, -25],
+    footprint: INTERIORS.SCA!.footprint,
+    floors: 3,
+    tags: ['Cinema', 'Classrooms'],
+  },
   {
     code: 'DML',
     name: 'Doheny Memorial Library',
