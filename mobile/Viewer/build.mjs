@@ -6,6 +6,7 @@ const root = fileURLToPath(new URL('../../', import.meta.url))
 const out = new URL('../TrojanCompass/Resources/Viewer/', import.meta.url)
 execFileSync(process.execPath, ['--import', 'tsx', 'mobile/Viewer/export-catalog.ts'], {cwd: root, stdio: 'inherit'})
 const model = 'data:model/gltf-binary;base64,' + readFileSync(new URL('../../apps/web/public/models/tommy-trojan.glb', import.meta.url)).toString('base64')
+const dances = readFileSync(new URL('../../apps/web/public/models/trojan-dances.json', import.meta.url), 'utf8')
 await build({
   absWorkingDir: root, entryPoints: ['mobile/Viewer/viewer.tsx'], bundle: true,
   outfile: fileURLToPath(new URL('viewer.js', out)), minify: true,
@@ -13,6 +14,7 @@ await build({
   plugins: [{name:'bundled-trojan', setup(b) {
     b.onLoad({filter: /TommyTrojanModel\.tsx$/}, async ({path}) => ({
       contents: readFileSync(path,'utf8').replace(/'\/models\/tommy-trojan\.glb\?[^']*'/, JSON.stringify(model))
+        .replace(/fetch\('\/models\/trojan-dances\.json\?[^']*'\)/, `Promise.resolve({ok:true,json:async()=>(${dances})})`)
         .replace("if (!carried || !action)", "if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !carried || !action)"), loader:'tsx'
     }))
     b.onLoad({filter: /RouteLine\.tsx$/}, async ({path}) => ({

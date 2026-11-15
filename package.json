@@ -13,7 +13,8 @@
     "test": "npm run test --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "build": "npm run build --workspace=@trojan-compass/shared && npm run build --workspace=@trojan-compass/api && npm run build --workspace=@trojan-compass/web",
-    "build:mobile-viewer": "node mobile/Viewer/build.mjs"
+    "build:mobile-viewer": "node mobile/Viewer/build.mjs",
+    "build:mobile-replica": "node mobile/Replica/build.mjs"
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.3.5",

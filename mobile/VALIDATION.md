@@ -1,61 +1,58 @@
 # Validation — November 14, 2026
 
-The development machine has Swift 6.2.3 Command Line Tools and macOS SDKs, but no
-Xcode application, iOS SDK, or simulator runtime. No iPhone simulator/device build
-or signing result is claimed.
+## Current default: original website replica
 
-## Passed
+The original web UI from the supplied `trojan-compass-main (1).zip` is now the
+Swift app's default. The earlier native integration shell remains opt-in.
 
-- Compiled the complete shared SwiftUI app, models, state, transport, and WebKit
-  adapter into a native macOS preview executable using Swift 5 language mode.
-- Decoded all **46 positive handoff fixtures**, including unknown-action handling
-  and explicit-null chat-context encoding.
-- Passed **21 standalone state/transport checks**: all nine interiors; LAW room
-  query variants; Medicine Crow/VKC alias; Michelson exclusion; floor selection;
-  endpoint retention/cancel/edit; explicit preview service failures; accessibility
-  filtering/preference behavior; missing interior preservation; unverified-route
-  rejection; basement links; layer defaults; ETag/304 reuse; structured HTTP errors;
-  invalid path rejection; route retention when Directions closes.
-- Bundled the offline viewer and embedded Trojan GLB successfully.
-- Type-checked the embedded viewer TypeScript and its imported web components.
-- Ran the existing web regression suite: **26 passed, 0 failed**.
-- Parsed/linted the iOS Info.plist and Xcode project with `plutil`.
+Passed checks:
 
-## Native interactive checks
+- Compiled the complete Swift app, including the new WKWebView resource handler,
+  navigation delegate, clipboard bridge, and responsive web host, into a macOS app.
+- Built the standalone campus and interior bundles with the actual logo, fonts,
+  map tiles, guide GLB, and all three dance clips.
+- Verified the campus HTML is identical to the supplied source apart from its
+  bundled script tag; checked original logo/CSS bytes, local asset/font presence,
+  interior controls/model embedding, and source hash/provenance.
+- Ran the supplied/current web regression suite: **28 passed, 0 failed**.
+- Ran campus directory/projection checks: **2 passed, 0 failed**.
+- Type-checked the embedded viewer and imported components with TypeScript.
+- Linted the Xcode project and Info.plist; confirmed all app Swift sources are
+  referenced and the shared scheme parses.
 
-Launched the macOS preview built from the same SwiftUI sources and verified:
+Native interactive checks using the bundle origin (not localhost):
 
-- Campus map opens with tools closed and markers for all nine supported interiors.
-- Search for `LAW 101` returns the right room, keeps Search open after selection,
-  and highlights room 101 gold in the embedded viewer.
-- Selecting a room in the web scene updates the native room detail card.
-- Clicking another floor updates the native floor control and clears the stale
-  room selection. Returning to the first floor works.
-- Native Layers matches the handoff's ordering/defaults. With Classrooms off,
-  the selected room's gold highlight and label remain visible.
-- The file-bundled scene loads in WKWebView without a web server or remote model
-  fetch. A browser check also loaded the generated viewer and its room labels.
+- Opened the original campus map in the 393 × 852 Mac preview and compared it with
+  the web reference, including the USC image logo, header, tiles, map controls,
+  credits, and sidebar.
+- Opened the original campus sidebar; searched `LAW`; followed the result into
+  the bundled LAW interior. The app's document URL changed to
+  `compass-web://bundle/interior/index.html?building=LAW&floor=1`.
+- Opened the original Search & tools menu and Search panel, entered `LAW 101`,
+  verified original autocomplete, submitted Search rooms, and observed the
+  canonical room ID in the bundled map URL while Search remained open.
 
-## Local toolchain workaround
+## Shared foundation checks retained from the preceding implementation
 
-The installed Command Line Tools include two conflicting `SwiftBridging` module
-maps. For direct Swift compiler verification, a temporary VFS overlay in the chat's
-`work/` directory hides the obsolete duplicate **for those compiler invocations
-only**. No system file or toolchain setting was changed. SwiftPM additionally hits
-a local PackageDescription module/runtime mismatch, so `swift test` was not used
-as evidence; the independent fixture/state runners and direct full-app compilation
-were used instead. The overlay is a local verification aid and is not needed by
-the checked-in Xcode project on a normal Xcode installation.
+All **46 positive handoff fixtures** decoded, including unknown-action and
+explicit-null context checks. **21 standalone state/transport checks** passed for
+search normalization/aliases, endpoint retention, floor/route state, accessibility
+rejection, service failures, ETag/304 handling, HTTP errors, and path validation.
+Those Foundation models and native integration components are retained.
 
-## Still requires Xcode/backend/device verification
+## Local environment limits
 
-- iOS compilation, simulator launch, phone/iPad layout and signing.
-- Physical-device frame rate/memory, carry/drop touch gestures, keyboard/sheet
-  behavior, VoiceOver, Dynamic Type, reduced motion, and background transitions.
-- End-to-end live scene/search/routing/chat against a backend implementing
-  `contract.openapi.json`. The repository's health-only backend cannot prove these.
-- Accessibility claims and actual campus data accuracy; preview/fixture data
-  remain unverified.
+The Mac has Swift 6.2.3 Command Line Tools and macOS SDKs, but no Xcode, iOS SDK,
+or simulator runtime. An iPhone simulator/device build or signing result is not
+claimed. UI touch/keyboard behavior, VoiceOver, safe areas, Dynamic Type, reduced
+motion, and performance must be verified on the selected minimum iPhone/iPad.
 
-The Xcode project and guide are ready for the first iOS run; these remaining checks
-must not be represented as completed acceptance tests.
+For compiler verification, a temporary VFS overlay under the chat's `work/`
+directory hides a duplicate SwiftBridging module map for those invocations only.
+No system toolchain file or setting was changed. SwiftPM also encounters a local
+PackageDescription runtime mismatch; direct compiler/standalone checks are the
+verification evidence rather than an uncompleted `swift test` run.
+
+Campus source/fixture data remain unverified, and the website's routing/chat
+previews remain previews. Live routing, AI, or navigation accuracy is not established
+by copying the website or by these tests.

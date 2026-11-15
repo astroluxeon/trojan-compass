@@ -5,7 +5,13 @@ struct TrojanCompassApp: App {
     @StateObject private var store = CompassStore()
     var body: some Scene {
         WindowGroup {
-            CompassRoot(store: store)
+            Group {
+                if ProcessInfo.processInfo.arguments.contains("--native-integration") {
+                    CompassRoot(store: store)
+                } else {
+                    WebsiteReplica()
+                }
+            }
                 .tint(CompassTheme.cardinal)
                 .preferredColorScheme(.light)
                 #if os(macOS)
