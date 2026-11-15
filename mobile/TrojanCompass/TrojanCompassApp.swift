@@ -4,7 +4,18 @@ import SwiftUI
 struct TrojanCompassApp: App {
     @StateObject private var store = CompassStore()
     var body: some Scene {
-        WindowGroup { CompassRoot(store: store).tint(CompassTheme.cardinal).preferredColorScheme(.light) }
+        WindowGroup {
+            CompassRoot(store: store)
+                .tint(CompassTheme.cardinal)
+                .preferredColorScheme(.light)
+                #if os(macOS)
+                .frame(width: 393, height: 852)
+                #endif
+        }
+        #if os(macOS)
+        .defaultSize(width: 393, height: 852)
+        .windowResizability(.contentSize)
+        #endif
     }
 }
 
