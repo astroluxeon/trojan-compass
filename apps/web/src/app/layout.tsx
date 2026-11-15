@@ -1,26 +1,25 @@
-import type { Metadata } from "next";
-import Link from "next/link";
-import "./globals.css";
+import type { Metadata, Viewport } from 'next'
+import { Source_Sans_3, Source_Serif_4 } from 'next/font/google'
+import './globals.css'
+
+const sans = Source_Sans_3({ subsets: ['latin'], variable: '--font-source-sans', display: 'swap' })
+const serif = Source_Serif_4({ subsets: ['latin'], variable: '--font-source-serif', weight: ['600', '700'], display: 'swap' })
 
 export const metadata: Metadata = {
-  title: "Trojan Compass",
-  description: "Find your way to classrooms, clubs, and events at USC.",
-};
+  title: 'Trojan Compass · USC Campus Maps',
+  description: 'Explore USC classrooms, events, and demo routes in 3D floor plans.',
+  icons: { icon: '/favicon.png' },
+}
+
+export const viewport: Viewport = { themeColor: '#990000' }
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${sans.variable} ${serif.variable}`}>
       <body>
-        <a className="skip-link" href="#main">Skip to content</a>
-        <header>
-          <Link href="/" className="brand">Trojan Compass</Link>
-          <nav aria-label="Main navigation">
-            <Link href="/map">Building map</Link>
-            <Link href="/events">Events</Link>
-          </nav>
-        </header>
-        <main id="main">{children}</main>
+        <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:z-50 focus:bg-white focus:p-3">Skip to content</a>
+        {children}
       </body>
     </html>
-  );
+  )
 }

@@ -1,16 +1,13 @@
-import Link from "next/link";
+import { Suspense } from 'react'
+import { AppShellFallback } from '@/components/AppShellFallback'
+import Wayfinder from '@/components/Wayfinder'
 
-export default function HomePage() {
+// Server Component: the static shell renders at build time, and the interactive
+// wayfinder (which reads deep-link query params) hydrates inside the Suspense boundary.
+export default function Page() {
   return (
-    <>
-      <p className="eyebrow">USC indoor navigation</p>
-      <h1>Find the room. Make the connection.</h1>
-      <p>A starting point for helping first years and transfer students find classrooms, club meetings, and campus events.</p>
-      <p className="status">Project scaffold — building models and navigation features are awaiting implementation.</p>
-      <div className="links">
-        <Link href="/map">Open the map workspace →</Link>
-        <Link href="/events">Open the events workspace →</Link>
-      </div>
-    </>
-  );
+    <Suspense fallback={<AppShellFallback />}>
+      <Wayfinder />
+    </Suspense>
+  )
 }

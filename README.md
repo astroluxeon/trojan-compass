@@ -83,11 +83,28 @@ trojan-compass/
 └── docs/                              # architecture and endpoint plan
 ```
 
-## Scaffold status
+## UI development
 
-The app shell and `/api/health` run. The map, search, route, event, and chat screens
-are explicitly labeled placeholders. Feature files contain TODOs and minimal
-skeletons; no real building, route, event feed, or AI integration is supplied.
+The Figma mockup is integrated into the existing Next.js web workspace. `/` and
+`/map` open the full-width interactive viewer. `/events` currently opens the same viewer.
+Run `npm run dev` from the root and edit files in `apps/web/src` for live reload.
+If port 3000 is occupied, run `npm run dev --workspace=@trojan-compass/web -- --port 3001`.
 
-Start with one real building and one floor. See [architecture](docs/architecture.md),
-[API plan](docs/api.md), and [building data conventions](data/buildings/README.md).
+- `components/Wayfinder.tsx`: page state, navigation, and panel composition.
+- `components/ui/`: USC header, toast, floor controls, and map overlays.
+- `components/map/`: Three.js campus and floor scenes.
+- `data/campus.ts`, `data/floorplan.ts`, `data/law.ts`: mockup data and floor geometry.
+- `app/globals.css`: Tailwind theme, colors, and global styles.
+
+The imported viewer uses local sample events, generated classroom layouts, and a
+LAW plan traced by the mockup author. Routes and accessibility details are demo
+behavior, not verified campus directions. The Express API and shared contracts
+remain in place; the viewer does not yet fetch them. AI chat is still a placeholder.
+
+Run the routing smoke tests with:
+
+```sh
+node --import tsx --test apps/web/tests/routing.test.ts
+```
+
+The header monogram asset comes from [USC Brand and Identity](https://identity.usc.edu/identity/logos-marks/) ([original PNG](https://identity.usc.edu/wp-content/uploads/2022/08/TheMonogram.png)).
