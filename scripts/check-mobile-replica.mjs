@@ -58,6 +58,16 @@ assert.ok(
 );
 const source = JSON.parse(readFileSync(bundle + "source.json", "utf8"));
 assert.equal(
+  JSON.parse(
+    readFileSync(
+      root + "mobile/TrojanCompass/Resources/Viewer/source.json",
+      "utf8",
+    ),
+  ).sourceSHA256,
+  sourceDigest(),
+  "Rebuild the native viewer after source changes",
+);
+assert.equal(
   source.campusHTMLSHA256,
   createHash("sha256").update(original).digest("hex"),
 );

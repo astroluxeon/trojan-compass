@@ -3,9 +3,12 @@ import Foundation
 enum AppResources {
     static var root: URL {
         #if SWIFT_PACKAGE
-        Bundle.module.resourceURL!.appendingPathComponent("Resources")
+        // On macOS Bundle already resolves the copied Resources directory.
+        let bundleRoot = Bundle.module.resourceURL!
+        return FileManager.default.fileExists(atPath: bundleRoot.appendingPathComponent("preview-catalog.json").path)
+            ? bundleRoot : bundleRoot.appendingPathComponent("Resources")
         #else
-        Bundle.main.resourceURL!.appendingPathComponent("Resources")
+        return Bundle.main.resourceURL!.appendingPathComponent("Resources")
         #endif
     }
     static func decode<T: Decodable>(_ type: T.Type, _ file: String) throws -> T {
@@ -72,7 +75,7 @@ struct SelectedLocation: Codable, Sendable {
     init(place: MapPlace, source: DataSource) {
         buildingId = place.buildingId; floorId = place.floorId; placeId = place.id
         label = place.label; position = place.position
-        coordinateSpace = source == .live ? "canonical-meters" : "preview-scene-units"
+        coordinateSpace = source == .live ? "canonical-meters" : "preview-meters"
     }
     init(buildingId: String, floorId: String, label: String, placeId: String?, position: Vector3, coordinateSpace: String) {
         self.buildingId = buildingId; self.floorId = floorId; self.label = label

@@ -4,6 +4,7 @@ import { Canvas, useThree } from "@react-three/fiber";
 import { CameraControls, Line } from "@react-three/drei";
 import { DoubleSide, Vector3 } from "three";
 import { MapCanvas } from "../../web/src/features/map/renderer/MapCanvas";
+import { clientRequestId } from "../../web/src/lib/api-client";
 import { MapHtml } from "../../web/src/features/map/renderer/MapHtml";
 import { FloorTransitionBeacon } from "../../web/src/features/map/renderer/FloorTransitionBeacon";
 import { sceneRoute } from "../../web/src/features/routing/route-scene";
@@ -18,6 +19,7 @@ for (const entry of snapshot.scenes)
   installBuilding(entry.building as Building, entry.floors as FloorResponse[]);
 import {
   cellCenter,
+  floorY,
   cellTitle,
   getLayout,
   getLevels,
@@ -66,7 +68,7 @@ let version = "web-preview-v1";
 function emit(kind: string, payload: any, replyTo?: string) {
   window.webkit?.messageHandlers.compass.postMessage({
     protocolVersion: 1,
-    messageId: crypto.randomUUID(),
+    messageId: clientRequestId(),
     kind,
     dataVersion: version,
     payload: { ...payload, replyTo },
@@ -166,8 +168,9 @@ function Viewer() {
     });
     emit("position_picked", {
       ...l,
-      placeId: cell?.id,
-      coordinateSpace: "preview-scene-units",
+      placeId: l.placeId ?? cell?.id,
+      position: { x: l.x, y: floorY(l.floor, l.building), z: l.z },
+      coordinateSpace: "preview-meters",
     });
   };
   if (s.source === "live") return <LiveViewer s={s} />;

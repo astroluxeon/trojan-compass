@@ -55,7 +55,7 @@ final class ViewerCoordinator: NSObject, WKScriptMessageHandler, WKNavigationDel
             let building = (payload["buildingId"] ?? payload["building"]) as? String
             let floor = payload["floorId"] as? String ?? (payload["floor"] as? Int).map(String.init)
             guard building == store.buildingId, floor == store.floorId,
-                  payload["coordinateSpace"] as? String == (isPreview ? "preview-scene-units" : "canonical-meters") else { return }
+                  payload["coordinateSpace"] as? String == (isPreview ? "preview-meters" : "canonical-meters") else { return }
             let point = payload["position"] as? [String: Double]
             guard let x = point?["x"] ?? payload["x"] as? Double,
                   let z = point?["z"] ?? payload["z"] as? Double, x.isFinite, z.isFinite else { return }
@@ -63,7 +63,7 @@ final class ViewerCoordinator: NSObject, WKScriptMessageHandler, WKNavigationDel
             if let placeId, !store.places.contains(where: { $0.id == placeId && $0.floorId == floor }) { return }
             let y = point?["y"] ?? (Double(floor ?? "1")! - 1) * 3.4
             store.setEndpoint(SelectedLocation(buildingId: building!, floorId: floor!, label: payload["label"] as? String ?? "Selected floor area", placeId: placeId,
-                position: Vector3(x: x, y: y, z: z), coordinateSpace: isPreview ? "preview-scene-units" : "canonical-meters"), field: field)
+                position: Vector3(x: x, y: y, z: z), coordinateSpace: isPreview ? "preview-meters" : "canonical-meters"), field: field)
         }
     }
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) { store.viewerError = error.localizedDescription }

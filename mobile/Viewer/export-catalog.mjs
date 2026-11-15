@@ -32,7 +32,7 @@ const interiors = scenes.map(({ building, floors }) => ({
       detail: p.description || "",
       kind: p.kind === "classroom" ? "room" : p.kind,
       ...p.position,
-      isRamp: p.kind === "ramp",
+      isRamp: p.access.isRamp === true,
       stepFreeAccess: p.access.stepFreeAccess,
     })),
   ),

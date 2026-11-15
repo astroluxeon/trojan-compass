@@ -15,6 +15,10 @@ export function sourceDigest() {
     "mobile/Replica/interior.tsx",
     "mobile/Replica/api-bridge.mjs",
     "mobile/Replica/replica.css",
+    "mobile/Viewer/build.mjs",
+    "mobile/Viewer/export-catalog.mjs",
+    "mobile/Viewer/viewer.tsx",
+    "mobile/Viewer/viewer.css",
     "web/public/models/tommy-trojan.glb",
     "web/public/models/trojan-dances.json",
   ];
