@@ -1,4 +1,4 @@
-import { Accessibility, ArrowUpDown, Footprints, MapPin } from 'lucide-react'
+import { Accessibility, ArrowUpDown, Footprints, LoaderCircle, MapPin } from 'lucide-react'
 import type { RefObject } from 'react'
 import { LocationAutocomplete } from '@/features/search/components/LocationAutocomplete'
 import { INPUT, ACTION } from '@/components/ui/form-styles'
@@ -6,7 +6,7 @@ import type { RouteMode } from '../legacy/routing.generated'
 import type { LocationField } from '../types'
 
 export function RoutePlanner({ locations, onLocationChange, picking, onPick, accessibleOnly, setAccessibleOnly,
-  travelMode, setTravelMode, lastPick, setNotice }: {
+  travelMode, setTravelMode, lastPick, setNotice, onSubmit, loading }: {
   locations: Record<LocationField, string>
   onLocationChange: (field: LocationField, value: string) => void
   picking: LocationField | null
@@ -17,9 +17,11 @@ export function RoutePlanner({ locations, onLocationChange, picking, onPick, acc
   setTravelMode: (value: RouteMode) => void
   lastPick: RefObject<LocationField | null>
   setNotice: (message: string) => void
+  onSubmit: () => void
+  loading: boolean
 }) {
   return (
-    <form className="space-y-4" onSubmit={(event) => { event.preventDefault(); setNotice('Route planning is coming soon. Your locations are ready to try.') }}>
+    <form className="space-y-4" onSubmit={(event) => { event.preventDefault(); setNotice(''); onSubmit() }}>
       <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-neutral-200 p-3">
         <input type="checkbox" checked={accessibleOnly} onChange={(event) => {
           setAccessibleOnly(event.target.checked)
@@ -73,7 +75,7 @@ export function RoutePlanner({ locations, onLocationChange, picking, onPick, acc
           ))}
         </div>
       </fieldset>
-      <button className={ACTION}><MapPin className="h-4 w-4" /> Get directions</button>
+      <button id="directions-submit" type="submit" className={`${ACTION} disabled:opacity-60`} disabled={loading || !!picking} aria-busy={loading}>{loading ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />} {loading ? 'Finding your route…' : 'Get directions'}</button>
     </form>
   )
 }

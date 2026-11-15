@@ -1,24 +1,31 @@
-// Proposed in-process integration seam. No new HTTP endpoints.
+// In-process service interfaces shared by manual controls and AI orchestration.
 import type {
-  Building, BuildingSummary, Floor, Place, Scene, PlaceSearchResult,
-  PlaceKind, GraphNode, GraphEdge, Provenance, RouteRequest, Route,
-  ChatTextRequest, ChatResponse, FieldError,
+  Building,
+  BuildingSummary,
+  Floor,
+  Place,
+  Scene,
+  PlaceSearchResult,
+  PlaceKind,
+  GraphNode,
+  GraphEdge,
+  Provenance,
+  RouteRequest,
+  Route,
+  ChatTextRequest,
+  ChatResponse,
+  FieldError,
+  FloorGeometry,
 } from "@trojan-compass/shared/api";
+export type { NavigationSource } from "./navigation-source.js";
+import type { NavigationSource } from "./navigation-source.js";
 
 export interface RequestScope {
   requestId: string;
   dataVersion: string;
   signal?: AbortSignal;
-}
-
-// Normalized topology supplied alongside the scene dataset.
-// Eddie validates this input and constructs the runtime routing graph.
-export interface NavigationSource {
-  buildingId: string;
-  dataVersion: string;
-  nodes: GraphNode[];
-  edges: GraphEdge[];
-  provenance: Provenance;
+  /** Monotonic deadline; never compare this value with Date.now(). */
+  deadline?: number;
 }
 
 // Teammate implements these methods over the canonical pinned dataset.
@@ -26,11 +33,27 @@ export interface DatasetPort {
   assertSnapshot(scope: RequestScope): Promise<void>;
   listBuildings(scope: RequestScope): Promise<BuildingSummary[]>;
   getBuilding(scope: RequestScope, buildingId: string): Promise<Building>;
-  getFloor(scope: RequestScope, buildingId: string, floorId: string): Promise<Floor>;
+  getFloor(
+    scope: RequestScope,
+    buildingId: string,
+    floorId: string,
+  ): Promise<Floor>;
   listPlaces(scope: RequestScope, buildingId?: string): Promise<Place[]>;
-  getPlace(scope: RequestScope, buildingId: string, placeId: string): Promise<Place>;
+  getPlace(
+    scope: RequestScope,
+    buildingId: string,
+    placeId: string,
+  ): Promise<Place>;
   getScene(scope: RequestScope, buildingId: string): Promise<Scene>;
-  getNavigationSource(scope: RequestScope, buildingId: string): Promise<NavigationSource>;
+  getFloorGeometry?(
+    scope: RequestScope,
+    buildingId: string,
+    floorId: string,
+  ): Promise<FloorGeometry | null>;
+  getNavigationSource(
+    scope: RequestScope,
+    buildingId: string,
+  ): Promise<NavigationSource>;
 }
 
 export interface PlaceSearchInput {

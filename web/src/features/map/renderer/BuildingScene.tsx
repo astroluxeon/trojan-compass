@@ -5,6 +5,7 @@ import { useState, type ReactNode } from 'react'
 import type { BuildingCode } from '../data/generated/campus'
 import {
   cellCenter,
+  cellTitle,
   floorName,
   floorY,
   getLayout,
@@ -14,11 +15,14 @@ import {
   type FloorLayout,
 } from '../data/generated/floorplan'
 import type { IndoorLeg } from '../../routing/legacy/routing.generated'
+import type { Route as ApiRoute } from '@trojan-compass/shared/api'
+import { scenePosition, sceneRoute } from '@/features/routing/route-scene'
 import { COLORS, type LayerKey, type MapLocation } from '../types'
 import { MapBadge } from './Badge'
 import { RestroomIcon } from './RestroomIcon'
 import { WheelchairIcon } from './WheelchairIcon'
 import { EndPin, RouteLine, StartDot } from './RouteLine'
+import { FloorTransitionBeacon } from './FloorTransitionBeacon'
 import { CurrentLocationPin, TommyTrojanMarker, TommyTrojanPlacement } from './TommyTrojan'
 
 interface Props {
@@ -33,6 +37,8 @@ interface Props {
   onMoveCurrentLocation: () => void
   onSelectLocation?: (location: MapLocation) => void
   leg?: IndoorLeg
+  apiRoute?: ApiRoute | null
+  activeLegId?: string | null
   isFinalLeg: boolean
   onSelectCell: (cell: Cell) => void
   onSelectFloor: (floor: number) => void
@@ -46,6 +52,7 @@ export function BuildingScene(props: Props) {
   const levels = getLevels(code)
   const routePts = leg?.points.map((p) => [p.x, p.y + 0.35, p.z] as [number, number, number])
   const last = routePts?.at(-1)
+  const apiSegments = props.apiRoute ? sceneRoute(props.apiRoute, code) : []
   return (
     <group>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, floorY(levels[0] ?? 1) - 0.3, 0]} receiveShadow>
@@ -88,6 +95,11 @@ export function BuildingScene(props: Props) {
           )}
         </>
       )}
+      {apiSegments.map(segment => segment.kind === 'vertical'
+        ? <FloorTransitionBeacon key={`${props.apiRoute!.id}-${segment.id}`} transition={segment} active={!props.activeLegId || props.activeLegId === segment.id} onSelectFloor={props.onSelectFloor} />
+        : <RouteLine key={`${props.apiRoute!.id}-${segment.id}`} points={segment.points} active={!props.activeLegId || props.activeLegId === segment.id} overlay />)}
+      {props.apiRoute && props.apiRoute.origin.buildingId === code && <StartDot position={scenePosition(code, props.apiRoute.origin.position, .03)} />}
+      {props.apiRoute && props.apiRoute.destination.buildingId === code && <EndPin position={scenePosition(code, props.apiRoute.destination.position, .03)} />}
     </group>
   )
 }
@@ -374,7 +386,7 @@ function FloorMarkers({
       if (layers.has('stairs')) badges.push(<MapBadge key="s" color="#3f3f46" title={c.name}><Footprints className={icon} /></MapBadge>)
       if (layers.has('exits') && c.core !== 'SC') badges.push(<MapBadge key="x" color={COLORS.exit} title="Emergency exit stair"><DoorOpen className={icon} /></MapBadge>)
     }
-    if (badges.length) markers.push({ key: c.id, pos: [cx, 1.5, cz], node: <span className="flex gap-1">{badges}</span> })
+    if (badges.length) markers.push({ key: c.id, pos: [cx, 1.5, cz], node: <button type="button" aria-label={`Select ${cellTitle(c)} (${c.id})`} onClick={() => onSelectCell(c)} className="flex gap-1 rounded-full outline-offset-2 focus-visible:outline-2 focus-visible:outline-cardinal">{badges}</button> })
   }
   for (const e of layout.entrances) {
     const b: ReactNode[] = []

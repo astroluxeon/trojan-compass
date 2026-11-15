@@ -3,8 +3,10 @@ import { useEffect, useRef, useState } from 'react'
 import type { RouteMode } from '../../routing/legacy/routing.generated'
 import { SearchPanel } from '@/features/search/components/SearchPanel'
 import { RoutePlanner } from '@/features/routing/components/RoutePlanner'
+import { RouteInstructions } from '@/features/routing/components/RouteInstructions'
 import { ChatPanel, type ChatMessage } from '@/features/chat/components/ChatPanel'
 import type { LocationField } from '@/features/routing/types'
+import type { ChatContext, MapAction, Route as ApiRoute } from '@trojan-compass/shared/api'
 export type { LocationField } from '@/features/routing/types'
 
 const TOOLS = [
@@ -15,12 +17,14 @@ const TOOLS = [
 
 type Tool = typeof TOOLS[number]['id']
 
-export function FloorTools({ locations, onLocationChange, picking, onPick, onSearch }: {
+export function FloorTools({ locations, onLocationChange, picking, onPick, chatContext, onChatActions, directions }: {
   locations: Record<LocationField, string>
   onLocationChange: (field: LocationField, value: string) => void
   picking: LocationField | null
   onPick: (field: LocationField | null) => void
-  onSearch: (query: string) => boolean
+  chatContext: ChatContext
+  onChatActions: (actions: MapAction[], dataVersion: string) => void
+  directions: { route: ApiRoute | null; loading: boolean; error: string | null; activeStep: number; onStep: (index: number) => void; onCalculate: (mode: RouteMode, stepFree: boolean) => void; onClear: () => void }
 }) {
   const [active, setActive] = useState<Tool | null>(null)
   const [width, setWidth] = useState(336)
@@ -45,7 +49,7 @@ export function FloorTools({ locations, onLocationChange, picking, onPick, onSea
 
   useEffect(() => {
     if (active && !picking) {
-      sidebar.current?.querySelector<HTMLInputElement | HTMLTextAreaElement>(lastPick.current ? `#directions-${lastPick.current}` : 'input, textarea')?.focus()
+      sidebar.current?.querySelector<HTMLElement>(lastPick.current ? '#directions-submit' : 'input, textarea')?.focus()
       lastPick.current = null
     }
   }, [active, picking])
@@ -62,7 +66,6 @@ export function FloorTools({ locations, onLocationChange, picking, onPick, onSea
   }, [messages, active])
 
   function selectTool(next: Tool | null) {
-    if (active === 'directions' && next !== 'directions') onLocationChange('from', '')
     onPick(null)
     lastPick.current = null
     setActive(next)
@@ -133,14 +136,17 @@ export function FloorTools({ locations, onLocationChange, picking, onPick, onSea
             <button onClick={close} aria-label="Close tools sidebar" className="rounded-lg p-2 text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-900"><X className="h-4 w-4" /></button>
           </div>
           <div className={active === 'chat' ? 'flex min-h-0 flex-1 flex-col px-5 pb-3 pt-5' : 'min-h-0 flex-1 overflow-y-auto p-5'}>
-            {active === 'search' && <SearchPanel query={query} setQuery={setQuery} onSearch={onSearch} setNotice={setNotice} />}
+            {active === 'search' && <SearchPanel query={query} setQuery={setQuery} buildingId={chatContext.buildingId!} onActions={onChatActions} setNotice={setNotice} />}
             {active === 'directions' && <RoutePlanner locations={locations} onLocationChange={onLocationChange}
-              picking={picking} onPick={onPick} accessibleOnly={accessibleOnly} setAccessibleOnly={setAccessibleOnly}
-              travelMode={travelMode} setTravelMode={setTravelMode} lastPick={lastPick} setNotice={setNotice} />}
-            {active === 'chat' && <ChatPanel conversation={conversation} messages={messages} setMessages={setMessages} draft={draft} setDraft={setDraft} />}
+              picking={picking} onPick={onPick} accessibleOnly={accessibleOnly} setAccessibleOnly={(value) => { setAccessibleOnly(value); directions.onClear() }}
+              travelMode={travelMode} setTravelMode={(value) => { setTravelMode(value); directions.onClear() }} lastPick={lastPick} setNotice={setNotice}
+              onSubmit={() => directions.onCalculate(travelMode, accessibleOnly)} loading={directions.loading} />}
+            {active === 'directions' && directions.error && <p role="alert" className="mt-4 rounded-lg bg-cardinal-50 p-3 text-[12px] leading-relaxed text-cardinal">{directions.error}</p>}
+            {active === 'directions' && directions.route && <RouteInstructions route={directions.route} activeStep={directions.activeStep} onStep={directions.onStep} onClear={directions.onClear} />}
+            {active === 'chat' && <ChatPanel conversation={conversation} messages={messages} setMessages={setMessages} draft={draft} setDraft={setDraft} context={chatContext} onActions={onChatActions} />}
             {notice && <p role="status" className="mt-4 rounded-lg bg-cardinal-50 p-3 text-[12px] leading-relaxed text-cardinal">{notice}</p>}
           </div>
-          {active !== 'chat' && <p className="px-5 pb-4 pt-3 text-[11px] text-neutral-400">Preview · AI and routes aren’t connected yet.</p>}
+          {active !== 'chat' && <p className="px-5 pb-4 pt-3 text-[11px] text-neutral-400">Illustrative map · Routes are previews of this floor plan.</p>}
         </aside>
       )}
     </div>

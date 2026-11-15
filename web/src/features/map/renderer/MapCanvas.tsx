@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react'
 import type { BuildingCode } from '../data/generated/campus'
 import type { Cell } from '../data/generated/floorplan'
 import type { Route } from '../../routing/legacy/routing.generated'
+import type { Route as ApiRoute } from '@trojan-compass/shared/api'
 import { buildingFrame, roomFacingAngle } from '../camera'
 import type { LayerKey, MapLocation, View } from '../types'
 import { BuildingScene } from './BuildingScene'
@@ -14,6 +15,8 @@ interface Props {
   view: View
   layers: Set<LayerKey>
   route: Route | null
+  apiRoute?: ApiRoute | null
+  activeLegId?: string | null
   highlights: Map<string, string>
   selectedCell?: string
   currentLocation: MapLocation | null
@@ -51,7 +54,7 @@ export function MapCanvas(props: Props) {
   const emphasized: BuildingCode[] = route ? [...new Set([route.from.building, route.to.building])] : []
 
   return (
-    <div data-floor-map className="relative h-full w-full" style={{ cursor: props.placingCurrentLocation ? 'grabbing' : undefined }}>
+    <div data-floor-map data-route-id={props.apiRoute?.id} data-route-color={props.apiRoute ? '#15803D' : undefined} className="relative h-full w-full" style={{ cursor: props.placingCurrentLocation ? 'grabbing' : undefined }}>
       <LabelLayerContext.Provider value={labelLayer}>
       <Canvas
         shadows="percentage"
@@ -94,6 +97,8 @@ export function MapCanvas(props: Props) {
             onMoveCurrentLocation={props.onMoveCurrentLocation}
             onSelectLocation={props.onSelectLocation}
             leg={leg?.kind === 'indoor' ? leg : undefined}
+            apiRoute={props.apiRoute}
+            activeLegId={props.activeLegId}
             isFinalLeg={isFinalLeg}
             onSelectCell={props.onSelectCell}
             onSelectFloor={props.onSelectFloor}

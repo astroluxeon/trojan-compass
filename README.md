@@ -1,6 +1,6 @@
 # Trojan Compass
 
-USC building exploration with a working web demo and a shared backend under development. The repository is organized for parallel web, backend, and mobile work.
+USC building exploration with a working web demo and an implemented shared backend. The repository is organized for parallel web, backend, and mobile work.
 
 ## Layout
 
@@ -15,23 +15,23 @@ trojan-compass/
 │       │   ├── map/              # Renderer, camera, picking and map state
 │       │   ├── search/           # Search UI + temporary generated demo logic
 │       │   ├── routing/          # Directions UI + temporary generated demo logic
-│       │   ├── chat/             # Existing demo conversation UI
+│       │   ├── chat/             # API-backed assistant and action bridge
 │       │   └── events/           # Deferred feature
-│       └── lib/                  # API helper scaffold
+│       └── lib/                  # Cancellable, versioned API client
 ├── mobile/                       # Placeholder for teammate's Swift app
 ├── server/
 │   ├── src/
 │   │   ├── modules/              # buildings, scenes, places, search, routing, chat, events
-│   │   ├── infrastructure/       # Extracted prototype datasets + future snapshot loader
-│   │   ├── integrations/ai/      # Provider scaffold
+│   │   ├── infrastructure/       # Prototype adapter + immutable snapshot loader
+│   │   ├── integrations/ai/      # Structured intent provider adapter
 │   │   ├── ports/                # Agreed in-process interfaces
-│   │   ├── bootstrap/            # Composition handoff
+│   │   ├── bootstrap/            # Dependency-injected service composition
 │   │   ├── config/               # Environment settings
-│   │   ├── middleware/           # HTTP integration scaffold
-│   │   ├── app.ts                # Health endpoint; feature routers pending
+│   │   ├── middleware/           # HTTP error boundary
+│   │   ├── app.ts                # Mounted validated API routes
 │   │   └── server.ts             # Process entry point
-│   ├── data/                     # Canonical snapshot/event placeholders
-│   └── tests/                    # Extracted search/routing regressions
+│   ├── data/                     # Teammate publication/event inputs
+│   └── tests/                    # Contract, HTTP, routing, chat and data tests
 ├── shared/
 │   ├── contracts/                # Agreed OpenAPI, not implementation status
 │   ├── typescript/               # Compile-time API types
@@ -66,7 +66,7 @@ Defaults work without environment files. Copy `web/.env.example` to `web/.env.lo
 
 ```sh
 npm run sync:legacy    # refresh generated browser copies after editing prototype server sources
-npm test              # drift check + web, backend prototype, and campus-demo regressions
+npm test              # compatibility drift + web, backend, and campus-demo tests
 npm run typecheck
 npm run build
 ```
@@ -77,11 +77,11 @@ After building, run `npm run start --workspace=@trojan-compass/api` and `npm run
 
 The viewer renders buildings/floors, searches local room codes, highlights rooms, places an animated guide, and draws routes from saved links. Working panels are now separated by feature.
 
-Existing search, routing, and floorplan logic have server-owned source files. The web demo temporarily uses generated copies while APIs are built. Only `GET /api/health` is implemented. Directions submit remains a preview; chat still uses canned responses. Mobile contains only a handoff README. No canonical snapshot, AI provider, accounts, or public editing module has been added.
+The shared backend implements directory/place/scene reads, ranked search, optional canonical routing, AI intent orchestration, validated actions, versioned snapshots, cancellation, limits, and structured errors. Web Search and Chat now use the API. Enable the real assistant through `AI_PROVIDER=openai`, `OPENAI_API_KEY`, and `OPENAI_MODEL`; otherwise chat explicitly reports that it is unavailable. The existing renderer accepts prototype highlights and draws green Directions routes from the explicit development-only preview API. The sidebar supports map picks, stair/elevator preferences and following route steps. Saved-link routes retain their older compatibility path. Mobile remains a placeholder; no accounts or public editing were added.
 
-Routes, accessibility and most building interiors remain demo data. LAW is source-derived from a traced plan, not a verified navigation survey. The backend prototype is not ready to expose directly as the agreed route API.
+Routes, accessibility and most building interiors remain demo data. LAW is source-derived from a traced plan, not a verified navigation survey. The canonical route engine is implemented and tested against synthetic topology; it requires the teammate’s reviewed navigation publication before enabling real campus routes. It never exposes the old guessed graph as a verified API route.
 
-Read [architecture](docs/architecture.md), [team ownership](docs/ownership.md), [API status](docs/api.md), and [migration notes](docs/migration.md) before continuing parallel work. The older detailed backend/mobile handoffs remain background references; the current ownership and API documents resolve their outdated paths and scope.
+Read the [backend implementation and deployment guide](docs/backend-guide.md), [architecture](docs/architecture.md), [team ownership](docs/ownership.md), [API status](docs/api.md), and [migration notes](docs/migration.md) before continuing parallel work. The older detailed backend/mobile handoffs remain background references; the current ownership and API documents resolve their outdated paths and scope.
 
 ## Demo assets
 

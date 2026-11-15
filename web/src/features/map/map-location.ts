@@ -23,7 +23,7 @@ export function mapLocationAt(layout: FloorLayout, x: number, z: number): MapLoc
   if (cell?.kind === 'block') return null
   if (cell) {
     const [cx, cz] = cellCenter(cell)
-    return { ...base, label: cellTitle(cell), x: cx, z: cz }
+    return { ...base, label: cellTitle(cell), x: cx, z: cz, placeId: cell.id }
   }
   if (!layout.slabs.some(([x0, z0, x1, z1]) => x >= x0 && x <= x1 && z >= z0 && z <= z1)) return null
   return { ...base, label: `${layout.building} ${floorName(layout.floor)} · open area`, x, z }

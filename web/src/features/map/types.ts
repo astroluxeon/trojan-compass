@@ -5,6 +5,7 @@ export type LayerKey = 'classrooms' | 'events' | 'mensRestrooms' | 'womensRestro
 export type View = { type: 'campus' } | { type: 'building'; code: BuildingCode; floor: number; allFloors?: boolean }
 
 export interface MapLocation {
+  placeId?: string
   label: string
   building: BuildingCode
   floor: number
@@ -17,6 +18,7 @@ export const ALL_LAYERS: LayerKey[] = ['classrooms', 'events', 'mensRestrooms', 
 export const COLORS = {
   cardinal: '#990000',
   cardinalDark: '#7a0000',
+  route: '#15803D',
   gold: '#FFCC00',
   accessible: '#1F5BA8',
   exit: '#DC2626',

@@ -18,7 +18,7 @@ The top-level directory migration is applied. Use these paths instead of the old
 
 The data/rendering teammate provides source corridors, walkable areas, barriers, doors, entrances, and vertical connectors. Eddie converts these into routing graphs, validates them, and owns derived caches. Source `navigation/` files belong to the teammate. Cache files do not belong there.
 
-`DatasetPort`, `SearchPort`, `RoutingPort`, and `ChatPort` are copied from the agreed handoff. They are proposed interfaces, not implementations. `NavigationSource` currently covers nodes/edges only; agree on the walkable geometry query needed before accepting arbitrary position endpoints. No new public API is needed just to refine this internal input.
+`DatasetPort`, `SearchPort`, `RoutingPort`, and `ChatPort` are implemented integration interfaces. The expanded internal `NavigationSource` lives in `server/src/ports/navigation-source.ts` and now includes geometry, doors, connectors, access bindings, and evidence. Graph-only sources explicitly disable arbitrary picks. No public API change was required. The normalized file adapter and thin data-read controllers are ready for the teammate to replace or feed; authoring real source records remains their responsibility.
 
 Building listing uses teammate records plus Eddie's search matching. Building-scoped place search delegates ranking to Eddie. Dataset reads must not depend on routing; service calls within this process use interfaces, not HTTP self-calls.
 
@@ -26,11 +26,11 @@ Building listing uses teammate records plus Eddie's search matching. Building-sc
 
 The moved prototype files preserve existing demo behavior. Edit the server sources and run `npm run sync:legacy`; commit the generated browser compatibility copies with the change. The allowlist is `scripts/legacy-browser-manifest.json`. These copies are temporary and must not become independent implementations.
 
-The web panels are separated under `features/search`, `features/routing`, and `features/chat`; `features/map/components/FloorTools.tsx` coordinates their state. Wire each panel to its backend service when ready. Until then search and saved-link routes use the compatibility code; chat is canned and Directions submit is a preview.
+The web panels are separated under `features/search`, `features/routing`, and `features/chat`; `features/map/components/FloorTools.tsx` coordinates their state. Search and Chat are connected to the backend. The temporary action adapter applies prototype highlights by stable IDs. Saved-link routes and Directions preview retain compatibility behavior until canonical scene/route rendering is merged. `useRoute` provides the canonical transport hook.
 
-## Still to implement
+## Implementation and remaining integration
 
-Eddie: canonical search and route adapters, request/response validation, explicit access policies, AI orchestration/provider, controllers, router mounting, and async client integration.
+Eddie: search, routing, AI orchestration/provider, validation, typed errors, HTTP integration, publication loading, operational controls, web search/chat integration, route hook, and behavioral tests are implemented. See `backend-guide.md` for exact limits and launch checks. Live AI requires configured credentials/model; real routing requires reviewed source data.
 
 Teammate: calibrated and validated dataset snapshots, DatasetPort implementation, scene/geometry delivery, stable scene object mappings, and API-backed rendering.
 

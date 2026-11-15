@@ -1,25 +1,19 @@
-# Canonical dataset snapshots — teammate-owned, pending
+# Canonical dataset snapshots — teammate-owned
 
-The existing prototype is in `server/src/infrastructure/datasets/prototype/`. No canonical snapshot has been published by this reorganization.
+No verified USC publication is bundled. The existing development records are adapted from `server/src/infrastructure/datasets/prototype/`; they are explicitly illustrative and do not enable canonical routes.
 
-The teammate will prepare validated files under:
+The reference loader accepts a normalized export:
 
 ```text
-{dataVersion}/
-  manifest.json
-  buildings/{buildingId}/
-    building.json
-    floors.json
-    places.json
-    scene.json
-    geometry/
-    navigation/
-      topology.json
-      walkable-areas.json
-      barriers.json
-      connectors.json
+DATASET_ROOT/
+  current.json
+  version-a/dataset.json
 ```
 
-The teammate owns source geometry and topology. Eddie owns derived graphs and caches, which must not overwrite source navigation files. Do not create `current.json` pointing to an incomplete snapshot. The eventual loader must resolve paths relative to its module/configuration, not the process working directory.
+`current.json` contains `{"currentVersion":"version-a","availableVersions":["version-a"]}`. A bundle has `dataVersion`, `buildings`, `places`, `scenes`, `floorGeometry`, and `navigation` arrays, as defined in `snapshot-store.ts`.
 
-Preserve canonical IDs. Convert prototype scene units deliberately into building-local meters with Y up, retaining provenance and calibration. Fixture examples are not publishable datasets.
+The planned separate authoring files (building/floors/places, scene, geometry, and navigation topology/walkable areas/barriers/connectors) can remain in their current organization. Export them into this normalized bundle or supply another DatasetPort adapter. Runtime graphs/caches never overwrite source navigation data.
+
+Validate a completed export with `npm run validate:data --workspace=@trojan-compass/api -- /absolute/path/to/snapshots`. Production additionally requires reviewed, non-demo building/navigation provenance. Finish a new version before atomically updating the pointer; restart/roll replicas with a compatible retained-version set. Do not overwrite a published version.
+
+`server/tests/support/fixture.ts` is a complete synthetic topology example for development/testing only. Shared wire fixtures also remain synthetic. Neither is verified USC access data. See `docs/backend-guide.md` for field-level navigation ownership, calibration, publication limits, and mobile integration.

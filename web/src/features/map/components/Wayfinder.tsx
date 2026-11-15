@@ -3,8 +3,7 @@
 import dynamic from 'next/dynamic'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
-import { BUILDINGS } from '../data/generated/campus'
-import { cellCenter, cellTitle, findRoom, getLevels } from '../data/generated/floorplan'
+import { cellCenter, cellTitle, findCell, getLevels, metersPerUnit } from '../data/generated/floorplan'
 import { readDeepLink } from '../map-link'
 import { mapLocationFromQuery } from '../map-location'
 import type { Route } from '../../routing/legacy/routing.generated'
@@ -13,6 +12,11 @@ import { AppShellFallback, MapLoading } from '../../../components/layout/AppShel
 import { Header } from '../../../components/layout/Header'
 import { FloorTools, type LocationField } from './FloorTools'
 import { Breadcrumb, CampusHint, FloorSelector, LayerPanel, RouteBar } from './MapOverlays'
+import { prototypeMapAction } from '@/features/chat/map-action-adapter'
+import { useRoute } from '@/features/routing/hooks/useRoute'
+import { directionsInput, mapLocationRef } from '@/features/routing/directions-input'
+import type { RouteMode } from '@trojan-compass/shared/api'
+import type { BuildingCode } from '../data/generated/campus'
 
 const MapCanvas = dynamic(() => import('../renderer/MapCanvas').then((m) => m.MapCanvas), {
   ssr: false,
@@ -32,6 +36,31 @@ export default function Wayfinder() {
   const [locations, setLocations] = useState({ from: '', to: '' })
   const [picking, setPicking] = useState<LocationField | null>(null)
   const [currentLocation, setCurrentLocation] = useState<MapLocation | null>(null)
+  const [selections, setSelections] = useState<Record<LocationField, MapLocation | null>>({ from: null, to: null })
+  const directions = useRoute('prototype-v1', 'preview')
+  const [directionStep, setDirectionStep] = useState(0)
+  const [activeLegId, setActiveLegId] = useState<string | null>(null)
+
+  function clearDirections() { directions.clear(); setActiveLegId(null); setDirectionStep(0); setRoute(null) }
+  function calculateDirections(mode: RouteMode, stepFree: boolean) {
+    if (view.type !== 'building') return
+    setRoute(null); setPicking(null); setActiveLegId(null); setDirectionStep(0)
+    void directions.calculate(signal => directionsInput({ labels: locations, selections, building: view.code, mode, stepFree }, signal))
+  }
+  function followDirection(index: number) {
+    const step = directions.route?.steps[index]
+    if (!step || !step.buildingId || step.floorId === null) return
+    setDirectionStep(index); setActiveLegId(step.legId)
+    setView({ type: 'building', code: step.buildingId as BuildingCode, floor: Number(step.floorId) })
+  }
+  useEffect(() => {
+    if (!directions.route) return
+    const { origin, destination } = directions.route
+    const code = origin.buildingId as BuildingCode, scale = metersPerUnit(code)
+    setCurrentLocation({ building: code, floor: Number(origin.floorId), x: origin.position.x / scale, z: origin.position.z / scale, label: 'Current location' })
+    if (destination.placeId && findCell(destination.placeId)) setSelectedCell(destination.placeId)
+    setView({ type: 'building', code: destination.buildingId as BuildingCode, floor: Number(destination.floorId) })
+  }, [directions.route])
 
   useEffect(() => {
     if (link.view.type === 'campus' && !link.route) window.location.replace('http://localhost:3001')
@@ -65,18 +94,24 @@ export default function Wayfinder() {
     setView(step.building ? { type: 'building', code: step.building, floor: step.floor ?? 1 } : { type: 'campus' })
   }
 
-  const routeFloors = route && view.type === 'building'
+  const routeFloors = directions.route && view.type === 'building'
+    ? [...new Set(directions.route.legs.flatMap(leg => leg.kind === 'indoor' && leg.buildingId === view.code ? [Number(leg.floorId)] : leg.kind === 'vertical' && leg.buildingId === view.code ? getLevels(view.code).filter(f => f >= Math.min(Number(leg.fromFloorId), Number(leg.toFloorId)) && f <= Math.max(Number(leg.fromFloorId), Number(leg.toFloorId))) : []))]
+    : route && view.type === 'building'
     ? route.legs.flatMap((leg) => leg.kind === 'indoor' && leg.building === view.code ? leg.floors : [])
     : []
 
   function selectLocation(location: MapLocation) {
     if (!picking) return
+    clearDirections()
     setLocations((current) => ({ ...current, [picking]: location.label }))
+    setSelections((current) => ({ ...current, [picking]: location }))
     if (picking === 'from') setCurrentLocation(location)
+    if (picking === 'to') setSelectedCell(location.placeId)
     setPicking(null)
   }
 
   function startPicking(field: LocationField | null) {
+    if (field) clearDirections()
     if (field && view.type === 'building' && view.allFloors) setView({ ...view, allFloors: false })
     setPicking(field)
   }
@@ -85,18 +120,6 @@ export default function Wayfinder() {
     if (view.type !== 'building') return
     if (floor !== view.floor) setSelectedCell(undefined)
     setView({ ...view, floor, allFloors: false })
-  }
-
-  function searchLocation(query: string) {
-    const room = findRoom(query)
-    const building = BUILDINGS.find((item) => item.code === query.trim().toUpperCase())
-    const code = room?.building ?? building?.code
-    if (!code) return false
-    setRoute(null)
-    setPicking(null)
-    setSelectedCell(room?.id)
-    setView((current) => ({ type: 'building', code, floor: room?.floor ?? 1, allFloors: !!room && current.type === 'building' && current.allFloors }))
-    return true
   }
 
   if (link.view.type === 'campus' && !link.route) return <AppShellFallback />
@@ -110,6 +133,8 @@ export default function Wayfinder() {
           view={view}
           layers={layers}
           route={route}
+          apiRoute={directions.route}
+          activeLegId={activeLegId}
           highlights={highlights}
           selectedCell={selectedCell}
           currentLocation={currentLocation}
@@ -120,6 +145,7 @@ export default function Wayfinder() {
             selectLocation(location)
           } : undefined}
           onSelectBuilding={(code) => {
+            clearDirections()
             setView({ type: 'building', code, floor: 1 })
             setSelectedCell(undefined)
           }}
@@ -128,7 +154,7 @@ export default function Wayfinder() {
             setView({ type: 'building', code: cell.building, floor: cell.floor })
             if (picking) {
               const [x, z] = cellCenter(cell)
-              selectLocation({ label: cellTitle(cell), building: cell.building, floor: cell.floor, x, z })
+              selectLocation({ label: cellTitle(cell), building: cell.building, floor: cell.floor, x, z, placeId: cell.id })
             }
           }}
           onSelectFloor={selectFloor}
@@ -158,9 +184,20 @@ export default function Wayfinder() {
           return next
         })} />
         </div>
-        {view.type === 'building' && <FloorTools locations={locations} picking={picking} onPick={startPicking} onSearch={searchLocation}
+        {view.type === 'building' && <FloorTools locations={locations} picking={picking} onPick={startPicking}
+          directions={{ route: directions.route, loading: directions.loading, error: directions.error, activeStep: directionStep, onStep: followDirection, onCalculate: calculateDirections, onClear: clearDirections }}
+          chatContext={{ buildingId: view.code, floorId: String(view.floor), selectedPlace: selectedCell ? { kind: 'place', buildingId: view.code, placeId: selectedCell } : null, origin: selections.from ? mapLocationRef(selections.from) : null }}
+          onChatActions={(actions, dataVersion) => {
+            // Validate every action before mutating the viewer; never mix snapshot coordinates.
+            const updates = actions.map(action => prototypeMapAction(action, dataVersion))
+            if (!updates.length) return
+            const update = updates.at(-1)!
+            clearDirections(); setPicking(null); setView(update.view); setSelectedCell(update.selectedCell)
+          }}
           onLocationChange={(field, value) => {
+            clearDirections()
             setLocations((current) => ({ ...current, [field]: value }))
+            setSelections((current) => ({ ...current, [field]: mapLocationFromQuery(value) }))
             if (field === 'from') {
               const location = mapLocationFromQuery(value)
               setCurrentLocation(location)
