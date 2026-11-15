@@ -10,7 +10,18 @@ import {
   getLevels,
   planBounds,
 } from '../src/features/map/data/viewer-data';
-import { buildingFrame, roomFacingAngle } from '../src/features/map/camera';
+import { buildingFrame, roomFacingAngle, roomLabelsVisible } from '../src/features/map/camera';
+
+test('room labels hide at the dynamic zoom limit and restore without flickering', () => {
+  for (const max of [160, 300, 500]) {
+    assert.equal(roomLabelsVisible(max * 0.994, max, true), true);
+    assert.equal(roomLabelsVisible(max * 0.995, max, true), false);
+    assert.equal(roomLabelsVisible(max, max, false), false);
+    assert.equal(roomLabelsVisible(max * 0.992, max, false), false);
+    assert.equal(roomLabelsVisible(max * 0.989, max, false), true);
+    assert.equal(roomLabelsVisible(max / 2, max, false), true);
+  }
+});
 
 test('close framing keeps every floor in view on desktop and mobile, from either side', () => {
   for (const building of BUILDINGS)

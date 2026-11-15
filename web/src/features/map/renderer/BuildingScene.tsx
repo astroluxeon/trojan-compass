@@ -4,7 +4,6 @@ import {
   Accessibility,
   ArrowUpDown,
   DoorOpen,
-  Footprints,
   TriangleAlert,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
@@ -26,6 +25,7 @@ import { COLORS, type LayerKey, type MapLocation } from "../types";
 import { MapBadge } from "./Badge";
 import { RestroomIcon } from "./RestroomIcon";
 import { WheelchairIcon } from "./WheelchairIcon";
+import { StairsIcon } from "./StairsIcon";
 import { EndPin, RouteLine, StartDot } from "./RouteLine";
 import { FloorTransitionBeacon } from "./FloorTransitionBeacon";
 import { sceneRoute, scenePosition } from "@/features/routing/route-scene";
@@ -41,6 +41,7 @@ interface Props {
   floor: number;
   allFloors?: boolean;
   layers: Set<LayerKey>;
+  showRoomLabels: boolean;
   highlights: Map<string, string>;
   selectedCell?: string;
   currentLocation: MapLocation | null;
@@ -304,6 +305,7 @@ function ActiveFloor({
   code,
   floor,
   layers,
+  showRoomLabels,
   highlights,
   selectedCell,
   onSelectCell,
@@ -447,6 +449,7 @@ function ActiveFloor({
       <FloorMarkers
         layout={layout}
         layers={layers}
+        showRoomLabels={showRoomLabels}
         highlights={highlights}
         selectedCell={selectedCell}
         onSelectCell={onSelectCell}
@@ -494,6 +497,7 @@ function Stairs({ c }: { c: Cell }) {
 function FloorMarkers({
   layout,
   layers,
+  showRoomLabels,
   highlights,
   selectedCell,
   onSelectCell,
@@ -501,6 +505,7 @@ function FloorMarkers({
 }: {
   layout: FloorLayout;
   layers: Set<LayerKey>;
+  showRoomLabels: boolean;
   highlights: Map<string, string>;
   selectedCell?: string;
   onSelectCell: (c: Cell) => void;
@@ -519,7 +524,7 @@ function FloorMarkers({
     if (c.kind === "room") {
       const hl = highlights.get(c.id);
       const selected = selectedCell === c.id;
-      if (layers.has("classrooms") || hl || selected) {
+      if (showRoomLabels && (layers.has("classrooms") || hl || selected)) {
         markers.push({
           key: c.id,
           pos: [cx, 1.3, cz],
@@ -603,7 +608,7 @@ function FloorMarkers({
       if (layers.has("stairs"))
         badges.push(
           <MapBadge key="s" color="#3f3f46" title={c.name}>
-            <Footprints className={icon} />
+            <StairsIcon className={icon} />
           </MapBadge>,
         );
       if (

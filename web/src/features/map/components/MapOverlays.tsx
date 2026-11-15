@@ -19,11 +19,12 @@ import type { Route, StepIcon } from '../../routing/viewer-route';
 import { COLORS, type LayerKey, type View } from '../types';
 import { RestroomIcon } from '../renderer/RestroomIcon';
 import { WheelchairIcon } from '../renderer/WheelchairIcon';
+import { StairsIcon } from '../renderer/StairsIcon';
 
-const STEP_ICONS: Record<StepIcon, typeof DoorOpen> = {
+const STEP_ICONS: Record<StepIcon, ComponentType<{ className?: string }>> = {
   start: DoorOpen,
   walk: Footprints,
-  stairs: Footprints,
+  stairs: StairsIcon,
   elevator: ArrowUpDown,
   arrive: Flag,
   outdoor: TreePine,
@@ -51,7 +52,7 @@ const LAYER_META: {
   },
   { key: 'ramps', label: 'Wheelchair ramps', icon: WheelchairIcon, color: COLORS.accessible },
   { key: 'elevators', label: 'Elevators', icon: ArrowUpDown, color: COLORS.accessible },
-  { key: 'stairs', label: 'Stairs', icon: Footprints, color: '#3f3f46' },
+  { key: 'stairs', label: 'Stairs', icon: StairsIcon, color: '#3f3f46' },
   { key: 'entrances', label: 'Entrances', icon: DoorOpen, color: COLORS.entrance },
   { key: 'exits', label: 'Emergency exits', icon: DoorOpen, color: COLORS.exit },
 ];
