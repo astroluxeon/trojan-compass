@@ -1,62 +1,41 @@
 # Trojan Compass architecture
 
-## Current scope
+## Runtime applications
 
-Trojan Compass is a local campus-map demo. The campus directory runs on port
-3001; nine supported buildings open an interactive interior viewer on port 3000.
-The viewer uses generated floor geometry, a traced LAW plan, and an animated
-Trojan guide. Room data, routes, and accessibility details are demo data, not
-verified campus directions.
+- `web/`: Next.js/React with the existing Three.js viewer.
+- `server/`: Express/TypeScript shared by the web and future mobile clients.
+- `mobile/`: README placeholder until the mobile teammate merges their app.
+- `demos/usc-map/`: existing local campus-map demo on port 3001.
 
-## Responsibilities
+## Existing code now in its target location
 
-| Location | Responsibility |
-| --- | --- |
-| `apps/campus-demo` | Saved campus map, local directory, footprints, and links to interiors |
-| `apps/web/src/app` | Next.js pages and shared layout |
-| `apps/web/src/components/Wayfinder.tsx` | Building, floor, room, current-location, and route state |
-| `apps/web/src/components/ui/FloorTools.tsx` | Search, Directions inputs, accessibility preference, and demo chat |
-| `apps/web/src/components/ui/LocationAutocomplete.tsx` | Keyboard and pointer autocomplete |
-| `apps/web/src/components/ui/MapOverlays.tsx` | Map layers, floor selector, breadcrumbs, and route step controls |
-| `apps/web/src/components/map` | React Three Fiber scenes, labels, pins, guide placement, and animation |
-| `apps/web/src/data` | Building metadata, floor geometry, room IDs, entrances, and corridors |
-| `apps/web/src/lib/location-search.ts` | Building and room suggestions, including step-free filtering |
-| `apps/web/src/lib/map-location.ts` | Typed-code resolution and snapping map selections to locations |
-| `apps/web/src/lib/map-link.ts` | Saved-link parsing and initial map state |
-| `apps/web/src/lib/map-camera.ts` | Camera framing and room-facing angles |
-| `apps/web/src/lib/routing.ts` | Client-side demo graph, pathfinding, directions, and step-free checks |
-| `apps/web/public/models` | Generated guide model and preview |
-| `scripts/build-tommy.py` | Blender model generation |
-| `apps/api/src/app.ts` | Express health endpoint; other requests return 404 |
-| `packages/shared` | Type-only contracts reserved for the future API |
+The working renderer lives in `web/src/features/map/renderer/`. Camera math, map picking, saved-link state, floor tools, and view types remain client-side. Search, Directions, and Chat have separate components in their feature directories. UI composition stays in `Wayfinder` and `FloorTools`.
 
-`apps/web/src/features`, the API feature modules, and the top-level `data`
-directories remain scaffolds. They do not power the current viewer.
+Existing building metadata, LAW tracing, and procedural floorplan functions are preserved in `server/src/infrastructure/datasets/prototype/`. Existing route graph construction/pathfinding is in `server/src/modules/routing/prototype/`; existing autocomplete matching is in `server/src/modules/search/prototype/`. These pure modules compile and run in Node without React or Three.js.
 
-## Current flow
+The browser currently consumes generated compatibility copies of those five modules. `scripts/sync-legacy-browser.mjs` copies only an explicit allowlist and rewrites internal imports. No browser module imports arbitrary server code. `npm test` checks that the copies match; web dev/build refreshes them. Replace the copies with API responses when the corresponding backend features are ready.
 
-1. The campus directory links to a supported building code. The interior viewer
-   reads the building, floor, room, or route from the URL.
-2. Search resolves a local building or room code. The viewer highlights the room
-   and its walls; All floors mode preserves the floor stack.
-3. Directions accepts typed locations or map selections. A resolved current
-   location places the guide on its floor; another floor shows a pin instead.
-   Closing Directions or switching tabs clears the current location.
-4. Autocomplete reads the same local place data as the viewer. Accessibility
-   filters suggestions through a step-free entrance and an elevator-only route.
-   It selects Elevators and disables Stairs in the Directions panel.
-5. The route engine builds demo routes from saved route links. A route whose
-   endpoints are the same place opens that floor with an arrival step.
+## Backend layers
 
-The Directions submit button remains a preview and does not calculate a route
-from its inputs. Chat uses canned replies. Events have no connected feed.
+```text
+routes → controller → service → dataset repository / integration
+                       └────→ other in-process service interfaces
+```
 
-## API boundary
+Routes define HTTP bindings and validation. Controllers translate HTTP input/output. Services own search, routes, and AI decisions. Dataset repositories supply records and geometry; AI integration holds provider credentials. The frontend owns rendering, camera, gestures and animation.
 
-The frontend does not currently fetch building or route data from Express.
-Next.js rewrites `/api/*` to `API_BASE_URL`, which defaults to port 4000; only
-`GET /api/health` is implemented. There is no database, authentication, AI
-provider, or upload pipeline.
+Feature controllers/routes/services are intentionally unfinished scaffolds. `server/src/ports/service-ports.ts` contains the copied team agreement. `shared/contracts/openapi.yaml` governs the HTTP contract; shared TypeScript types provide compile-time assistance only.
 
-When adding API features, keep credentials on the server and validate requests
-at the endpoint. Shared contracts have no runtime exports; use `import type`.
+## What actually works
+
+The current demo still opens building links, switches floors, highlights searched rooms, filters suggestions, places the Trojan guide, and draws routes from saved links. Search and route algorithms can also be exercised directly in Node.
+
+Only `GET /api/health` is mounted. The viewer does not yet fetch building, search, scene or route data. Directions submit is a preview, chat is canned, and events have no connected feed. There is no database, provider integration, or published canonical snapshot.
+
+## Coordinate and access boundary
+
+The prototype uses scene units and schematic campus positions. LAW horizontal estimates use 2.4 meters per scene unit; generated layouts use 2; floor separation is 3.4 scene units. The desired API uses building-local meters with Y up and geographic coordinates for outdoor paths. Teammate-owned calibration must bridge these representations before publishing a snapshot.
+
+The old nearest-node connections, schematic cross-building route, and step-free assumptions are preserved demo behavior, not verified navigation. Do not mount the prototype output directly as the agreed route API. Eddie must add geometry/access validation and canonical response serialization. Unknown accessibility remains unknown.
+
+See `ownership.md` for parallel responsibilities and `migration.md` for the exact extraction boundary.

@@ -1,3 +1,5 @@
+> Repository migration applied: see [current ownership](docs/ownership.md), [API status](docs/api.md), and [migration](docs/migration.md). This earlier handoff is background; those documents and the agreed OpenAPI resolve scope/path differences.
+
 # Trojan Compass — Swift mobile app handoff
 
 Prepared November 14, 2026 from the current website repository.
@@ -223,12 +225,12 @@ placed guide to reposition it. Provide tap-to-place as an alternative to draggin
 
 | Resource | Purpose |
 | --- | --- |
-| [tommy-trojan.glb](apps/web/public/models/tommy-trojan.glb) | Current model; legacy filename retained |
-| [tommy-trojan.png](apps/web/public/models/tommy-trojan.png) | Appearance preview |
+| [tommy-trojan.glb](web/public/models/tommy-trojan.glb) | Current model; legacy filename retained |
+| [tommy-trojan.png](web/public/models/tommy-trojan.png) | Appearance preview |
 | [build-tommy.py](scripts/build-tommy.py) | Reproducible Blender geometry generation |
-| [mascot-motion.ts](apps/web/src/lib/mascot-motion.ts) | Authored poses and bounded carry-sway spring |
-| [TommyTrojanModel.tsx](apps/web/src/components/map/TommyTrojanModel.tsx) | Scale, nape anchor, asset loading, clip attachment |
-| [TommyTrojan.tsx](apps/web/src/components/map/TommyTrojan.tsx) | Picking, carrying, dropping, and off-floor marker behavior |
+| [mascot-motion.ts](web/src/features/map/renderer/mascot-motion.ts) | Authored poses and bounded carry-sway spring |
+| [TommyTrojanModel.tsx](web/src/features/map/renderer/TommyTrojanModel.tsx) | Scale, nape anchor, asset loading, clip attachment |
+| [TommyTrojan.tsx](web/src/features/map/renderer/TommyTrojan.tsx) | Picking, carrying, dropping, and off-floor marker behavior |
 
 At handoff the GLB is about 162 KB, with 5,080 triangles, six meshes, two materials,
 and seven render primitives. It has no texture downloads. Animation lives in the
@@ -296,7 +298,7 @@ from stable building, floor, place, node, and asset IDs.
 
 ### Existing contracts are reference material
 
-[packages/shared/src/types](packages/shared/src/types) contains planned Building,
+[shared/typescript/src/types](shared/typescript/src/types) contains planned Building,
 Place, Route, Event, and Chat interfaces. These are not a finished mobile API:
 
 - `RouteRequest` has an origin node, destination place, and step-free Boolean;
@@ -409,19 +411,19 @@ should be inferred from the demo’s implementation.
 
 | Reference | What to inspect |
 | --- | --- |
-| [Wayfinder.tsx](apps/web/src/components/Wayfinder.tsx) | State transitions, floor/room selection, current location, links |
-| [FloorTools.tsx](apps/web/src/components/ui/FloorTools.tsx) | Search, Directions, Compass, defaults, picking/cancel behavior |
-| [LocationAutocomplete.tsx](apps/web/src/components/ui/LocationAutocomplete.tsx) | Suggestion selection and keyboard behavior |
-| [MapOverlays.tsx](apps/web/src/components/ui/MapOverlays.tsx) | Layer metadata, floors, route steps |
-| [BuildingScene.tsx](apps/web/src/components/map/BuildingScene.tsx) | Floor geometry, selection, amenities, entrances, ramps |
-| [map-camera.ts](apps/web/src/lib/map-camera.ts) | Building fit and far-side selection rotation |
-| [map-location.ts](apps/web/src/lib/map-location.ts) | Typed location resolution and valid map drop targets |
-| [location-search.ts](apps/web/src/lib/location-search.ts) | Normalization, ranking, accessibility filtering |
-| [routing.ts](apps/web/src/lib/routing.ts) | Demo graph and route-display structures, not verified navigation data |
-| [map-link.ts](apps/web/src/lib/map-link.ts) | Existing link intents and fallback rules |
-| [floorplan.ts](apps/web/src/data/floorplan.ts), [law.ts](apps/web/src/data/law.ts), [campus.ts](apps/web/src/data/campus.ts) | Demo interior data, IDs, coordinates, amenities, sample events |
-| [campus demo](apps/campus-demo/demo.js), [map-data.js](apps/campus-demo/map-data.js), [locations.json](apps/campus-demo/locations.json) | Campus actions, supported-building aliases, directory data |
-| [web tests](apps/web/tests), [campus tests](apps/campus-demo/map-data.test.mjs) | Behavioral cases to translate into native tests |
+| [Wayfinder.tsx](web/src/features/map/components/Wayfinder.tsx) | State transitions, floor/room selection, current location, links |
+| [FloorTools.tsx](web/src/features/map/components/FloorTools.tsx) | Search, Directions, Compass, defaults, picking/cancel behavior |
+| [LocationAutocomplete.tsx](web/src/features/search/components/LocationAutocomplete.tsx) | Suggestion selection and keyboard behavior |
+| [MapOverlays.tsx](web/src/features/map/components/MapOverlays.tsx) | Layer metadata, floors, route steps |
+| [BuildingScene.tsx](web/src/features/map/renderer/BuildingScene.tsx) | Floor geometry, selection, amenities, entrances, ramps |
+| [map-camera.ts](web/src/features/map/camera.ts) | Building fit and far-side selection rotation |
+| [map-location.ts](web/src/features/map/map-location.ts) | Typed location resolution and valid map drop targets |
+| [location-search.ts](web/src/features/search/legacy/location-search.generated.ts) | Normalization, ranking, accessibility filtering |
+| [routing.ts](web/src/features/routing/legacy/routing.generated.ts) | Demo graph and route-display structures, not verified navigation data |
+| [map-link.ts](web/src/features/map/map-link.ts) | Existing link intents and fallback rules |
+| [floorplan.ts](web/src/features/map/data/generated/floorplan.ts), [law.ts](web/src/features/map/data/generated/law.ts), [campus.ts](web/src/features/map/data/generated/campus.ts) | Demo interior data, IDs, coordinates, amenities, sample events |
+| [campus demo](demos/usc-map/demo.js), [map-data.js](demos/usc-map/map-data.js), [locations.json](demos/usc-map/locations.json) | Campus actions, supported-building aliases, directory data |
+| [web tests](web/tests), [campus tests](demos/usc-map/map-data.test.mjs) | Behavioral cases to translate into native tests |
 | [architecture](docs/architecture.md), [API plan](docs/api.md) | Web implementation context and unimplemented services |
 
 To inspect the reference locally, run `npm install` then `npm run dev:demo` from

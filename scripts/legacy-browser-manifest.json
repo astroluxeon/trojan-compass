@@ -1,0 +1,22 @@
+[
+  {
+    "source": "server/src/infrastructure/datasets/prototype/campus.ts",
+    "target": "web/src/features/map/data/generated/campus.ts"
+  },
+  {
+    "source": "server/src/infrastructure/datasets/prototype/floorplan.ts",
+    "target": "web/src/features/map/data/generated/floorplan.ts"
+  },
+  {
+    "source": "server/src/infrastructure/datasets/prototype/law.ts",
+    "target": "web/src/features/map/data/generated/law.ts"
+  },
+  {
+    "source": "server/src/modules/routing/prototype/routing.ts",
+    "target": "web/src/features/routing/legacy/routing.generated.ts"
+  },
+  {
+    "source": "server/src/modules/search/prototype/location-search.ts",
+    "target": "web/src/features/search/legacy/location-search.generated.ts"
+  }
+]

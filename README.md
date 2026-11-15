@@ -1,141 +1,88 @@
 # Trojan Compass
 
-A hackathon project to help USC first years and transfer students find unfamiliar
-classrooms, club meetings, campus events, and exams through a 3D building map.
-Planned features include toilets, stairs, elevators, accessible paths, highlighted
-doors/entrances, emergency exit markers, and an AI navigation assistant.
+USC building exploration with a working web demo and a shared backend under development. The repository is organized for parallel web, backend, and mobile work.
 
-## Stack
-
-- **Web:** Next.js App Router, React, TypeScript.
-- **3D:** Three.js, React Three Fiber, and Drei installed for the future viewer.
-- **API:** Node.js, Express, TypeScript.
-- **Workspace:** npm workspaces with shared TypeScript contracts.
-
-Next.js provides the React build tooling, so this workspace does not need Vite.
-
-## Get started
-
-Use Node.js 22.9 or later, npm, and Python 3. From the repository root:
-
-```sh
-npm install
-npm run dev:demo
-```
-
-- Campus map: <http://localhost:3001>
-- Building interiors: <http://localhost:3000/?building=LAW&floor=1>
-
-The demo runs both frontend sites. The optional API starts separately with
-`npm run dev:api`; its health endpoint is <http://127.0.0.1:4000/api/health>.
-
-Defaults work without environment files. To customize, copy
-`apps/web/.env.example` to `apps/web/.env.local` and
-`apps/api/.env.example` to `apps/api/.env`. Restart the affected process after
-changing environment variables. Keep the web API address aligned with the API port.
-
-```sh
-npm run dev:web       # frontend only
-npm run dev:api       # backend only
-npm test              # frontend regression tests in both demo sites
-npm run typecheck     # all workspace TypeScript checks
-npm run build         # check shared types and build both apps
-```
-
-After building, start each service in its own terminal:
-
-```sh
-npm run start --workspace=@trojan-compass/api
-npm run start --workspace=@trojan-compass/web
-```
-
-## Structure
+## Layout
 
 ```text
 trojan-compass/
-├── apps/
-│   ├── web/
-│   │   ├── public/
-│   │   │   ├── models/                 # building GLB/GLTF assets
-│   │   │   └── images/
-│   │   └── src/
-│   │       ├── app/                    # home, /map, /events
-│   │       ├── components/ui/          # shared UI
-│   │       ├── features/
-│   │       │   ├── map/                # 3D viewer, floors, highlights
-│   │       │   ├── search/             # rooms and amenities
-│   │       │   ├── routing/            # route controls and accessibility
-│   │       │   ├── events/             # event discovery
-│   │       │   └── chat/               # AI navigation interface
-│   │       └── lib/                    # API helpers
-│   └── api/src/
-│       ├── config/                    # environment settings
-│       ├── modules/
-│       │   ├── buildings/             # metadata, room and amenity lookup
-│       │   ├── routing/               # graph paths and accessibility
-│       │   ├── events/                # events and classroom destinations
-│       │   └── chat/                  # natural language/image intent
-│       ├── lib/                       # AI adapter and data loader
-│       ├── middleware/
-│       ├── app.ts                     # Express app and health endpoint
-│       └── server.ts                  # process entry point
-├── packages/shared/src/types/         # building, place, route, event, chat
-├── data/
-│   ├── buildings/                     # floor metadata and routing graphs
-│   └── events/                        # demo event records
-└── docs/                              # architecture and endpoint plan
+├── web/                          # Next.js + React + Three.js
+│   ├── public/                   # Existing images and Trojan guide model
+│   └── src/
+│       ├── app/                  # Pages and layout
+│       ├── components/           # Shared layout and UI
+│       ├── features/
+│       │   ├── map/              # Renderer, camera, picking and map state
+│       │   ├── search/           # Search UI + temporary generated demo logic
+│       │   ├── routing/          # Directions UI + temporary generated demo logic
+│       │   ├── chat/             # Existing demo conversation UI
+│       │   └── events/           # Deferred feature
+│       └── lib/                  # API helper scaffold
+├── mobile/                       # Placeholder for teammate's Swift app
+├── server/
+│   ├── src/
+│   │   ├── modules/              # buildings, scenes, places, search, routing, chat, events
+│   │   ├── infrastructure/       # Extracted prototype datasets + future snapshot loader
+│   │   ├── integrations/ai/      # Provider scaffold
+│   │   ├── ports/                # Agreed in-process interfaces
+│   │   ├── bootstrap/            # Composition handoff
+│   │   ├── config/               # Environment settings
+│   │   ├── middleware/           # HTTP integration scaffold
+│   │   ├── app.ts                # Health endpoint; feature routers pending
+│   │   └── server.ts             # Process entry point
+│   ├── data/                     # Canonical snapshot/event placeholders
+│   └── tests/                    # Extracted search/routing regressions
+├── shared/
+│   ├── contracts/                # Agreed OpenAPI, not implementation status
+│   ├── typescript/               # Compile-time API types
+│   └── fixtures/                 # Synthetic API examples for both clients
+├── demos/usc-map/                # Existing saved campus-map demo
+├── docs/                         # Architecture, ownership, API status and migration
+└── scripts/                      # Compatibility sync and mascot model generation
 ```
 
-## UI development
+## Run locally
 
-### Two-site campus demo
-
-Run `npm run dev:demo` to start both frontend sites together, or run these in
-separate terminals:
+Use Node.js 22.9 or later, npm, and Python 3. Run these from the repository root:
 
 ```sh
-npm run dev:web       # Trojan Compass interiors, http://localhost:3000
-npm run dev:campus    # USC campus map replica, http://localhost:3001 (Python 3)
+npm install
+npm run dev:demo       # campus map (3001) and interior viewer (3000)
+npm run dev:server     # separate terminal: Express (4000)
 ```
 
-Start at <http://localhost:3001>. Click a building footprint or search for a building
-such as `LAW`. The nine supported buildings open their matching Trojan Compass
-interior on port 3000. "All buildings" returns to port 3001. Opening port 3000
-without a building also returns to the campus demo.
+Open <http://localhost:3001> or <http://localhost:3000/?building=LAW&floor=1>.
+Health: <http://127.0.0.1:4000/api/health>.
 
-`apps/campus-demo` reuses the supplied saved USC page and its map tiles, with a
-local copy of the public building directory and footprints from
-<https://maps.usc.edu/?id=1928>. It is a local demonstration, not the official site.
-The saved map covers University Park Campus; Health Sciences, extra categories,
-tours and Street View link to or point users to the official site. Unsupported
-buildings show an availability message instead of opening the wrong interior.
-No USC application scripts, analytics, or backend services run in the replica.
+Keep `npm run dev:demo` running while using the demo. Stop separately running
+`dev:web` or `dev:campus` processes first to avoid port conflicts. Opening port
+3000 without a building redirects to the campus map on port 3001, so both sites
+must be running. The campus server accepts IPv4 and IPv6 localhost connections;
+the interior server stays on port 3000.
 
-Edit `demo.js` and `demo.css`, then refresh port 3001 to see changes. Port 3000
-continues to support automatic updates. Run the demo checks with
-`npm test --workspace=@trojan-compass/campus-demo`.
+`npm run dev` starts web + server; `npm run dev:api` remains an alias for existing workflows. `npm run dev:web` starts only the viewer. `npm run dev:campus` starts only the saved map. The demo links still assume ports 3000/3001.
 
-The Figma mockup is integrated into the existing Next.js web workspace. Building
-links such as `/?building=LAW&floor=1` open the interactive interior viewer.
-Run `npm run dev:web` from the root and edit files in `apps/web/src` for live reload.
-Port 3001 is reserved for the campus demo; keep the interior viewer on port 3000
-so links between the two sites work.
-
-- `components/Wayfinder.tsx`: page state, navigation, and panel composition.
-- `components/ui/`: USC header, toast, floor controls, and map overlays.
-- `components/map/`: Three.js campus and floor scenes.
-- `data/campus.ts`, `data/floorplan.ts`, `data/law.ts`: mockup data and floor geometry.
-- `app/globals.css`: Tailwind theme, colors, and global styles.
-
-The imported viewer uses local sample events, generated classroom layouts, and a
-LAW plan traced by the mockup author. Routes and accessibility details are demo
-behavior, not verified campus directions. The Express API and shared contracts
-remain in place; the viewer does not yet fetch them. AI chat is still a placeholder.
-
-Run the routing smoke tests with:
+Defaults work without environment files. Copy `web/.env.example` to `web/.env.local` and `server/.env.example` to `server/.env` to customize the API proxy/server. Restart after changes. Mobile is not an npm workspace.
 
 ```sh
-node --import tsx --test apps/web/tests/routing.test.ts
+npm run sync:legacy    # refresh generated browser copies after editing prototype server sources
+npm test              # drift check + web, backend prototype, and campus-demo regressions
+npm run typecheck
+npm run build
 ```
 
-The header monogram asset comes from [USC Brand and Identity](https://identity.usc.edu/identity/logos-marks/) ([original PNG](https://identity.usc.edu/wp-content/uploads/2022/08/TheMonogram.png)).
+After building, run `npm run start --workspace=@trojan-compass/api` and `npm run start --workspace=@trojan-compass/web` in separate terminals. Package names remain stable despite the folder move.
+
+## Current implementation
+
+The viewer renders buildings/floors, searches local room codes, highlights rooms, places an animated guide, and draws routes from saved links. Working panels are now separated by feature.
+
+Existing search, routing, and floorplan logic have server-owned source files. The web demo temporarily uses generated copies while APIs are built. Only `GET /api/health` is implemented. Directions submit remains a preview; chat still uses canned responses. Mobile contains only a handoff README. No canonical snapshot, AI provider, accounts, or public editing module has been added.
+
+Routes, accessibility and most building interiors remain demo data. LAW is source-derived from a traced plan, not a verified navigation survey. The backend prototype is not ready to expose directly as the agreed route API.
+
+Read [architecture](docs/architecture.md), [team ownership](docs/ownership.md), [API status](docs/api.md), and [migration notes](docs/migration.md) before continuing parallel work. The older detailed backend/mobile handoffs remain background references; the current ownership and API documents resolve their outdated paths and scope.
+
+## Demo assets
+
+`demos/usc-map` reuses the saved USC page, tiles, public directory and footprints from <https://maps.usc.edu/?id=1928>. It is a local demonstration. The header monogram comes from [USC Brand and Identity](https://identity.usc.edu/identity/logos-marks/). The Trojan guide model remains in `web/public/models/`; `scripts/build-tommy.py` rebuilds it with Blender.
