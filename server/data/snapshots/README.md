@@ -1,19 +1,28 @@
-# Canonical dataset snapshots — teammate-owned
+# Versioned building snapshots — teammate-owned
 
-No verified USC publication is bundled. The existing development records are adapted from `server/src/infrastructure/datasets/prototype/`; they are explicitly illustrative and do not enable canonical routes.
+Development loads the bundled publication in `current.json` through `loadSnapshots()`. These are unverified building illustrations, not a reviewed campus navigation dataset. Production startup rejects unreviewed/demo provenance.
 
-The reference loader accepts a normalized export:
+The supported authoring layout is:
 
 ```text
-DATASET_ROOT/
-  current.json
-  version-a/dataset.json
+current.json                         # {"dataVersion":"usc-interiors-2026-11-14"}
+<dataVersion>/manifest.json          # version and buildingIds
+<dataVersion>/buildings/<id>/
+  building.json
+  floors.json
+  places.json
+  scene.json
+  geometry/<floorId>.json
+  navigation/topology.json
+  navigation/walkable-areas.json
+  navigation/barriers.json
+  navigation/connectors.json
 ```
 
-`current.json` contains `{"currentVersion":"version-a","availableVersions":["version-a"]}`. A bundle has `dataVersion`, `buildings`, `places`, `scenes`, `floorGeometry`, and `navigation` arrays, as defined in `snapshot-store.ts`.
+`publication-navigation.ts` converts this source into the internal `NavigationSource`: floor polygons, explicit doors, named connectors and place-access bindings. It rejects obstructed access-point/connector nodes, excludes invalid corridor nodes/edges, and may reconnect corridor components only through unobstructed published public floor space. It preserves all building/place IDs, floor elevations and original source files. It never upgrades unknown accessibility to verified. Runtime graphs and request-local picks are derived data, not authoring files.
 
-The planned separate authoring files (building/floors/places, scene, geometry, and navigation topology/walkable areas/barriers/connectors) can remain in their current organization. Export them into this normalized bundle or supply another DatasetPort adapter. Runtime graphs/caches never overwrite source navigation data.
+The loader also accepts `{currentVersion, availableVersions}` with a `dataset.json` for each retained version. Such a bundle contains `dataVersion`, `buildings`, `places`, `scenes`, `floorGeometry`, and `navigation`, as defined by `snapshot-store.ts`. This alternate format supports up to eight retained versions; the current authoring-file pointer serves one version.
 
-Validate a completed export with `npm run validate:data --workspace=@trojan-compass/api -- /absolute/path/to/snapshots`. Production additionally requires reviewed, non-demo building/navigation provenance. Finish a new version before atomically updating the pointer; restart/roll replicas with a compatible retained-version set. Do not overwrite a published version.
+Validate with `npm run validate:data --workspace=@trojan-compass/api -- /absolute/path/to/snapshots`. For production admission checks set `NODE_ENV=production`. Publish a new version completely before atomically updating its pointer and restarting replicas; never overwrite a published version. Configure public HTTPS `VIEWER_BASE_URL` and `PUBLIC_API_BASE_URL` for native clients. Local defaults point to the development servers.
 
-`server/tests/support/fixture.ts` is a complete synthetic topology example for development/testing only. Shared wire fixtures also remain synthetic. Neither is verified USC access data. See `docs/backend-guide.md` for field-level navigation ownership, calibration, publication limits, and mobile integration.
+See `docs/backend-guide.md` for field-level source requirements and `docs/integration-review.md` for the known gaps in the current LAW publication. The synthetic fixtures in tests and `shared/contracts/` are not verified USC access data.

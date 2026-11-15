@@ -1,41 +1,108 @@
-import { Line } from '@react-three/drei'
-import { useFrame } from '@react-three/fiber'
-import { useMemo, useRef } from 'react'
-import type { Group } from 'three'
-import type { Line2 } from 'three/examples/jsm/lines/Line2.js'
-import { COLORS } from '../types'
-import { routeChevrons } from '@/features/routing/route-scene'
-import { useReducedMotion } from './useReducedMotion'
+import { Line } from "@react-three/drei";
+import { useFrame } from "@react-three/fiber";
+import { useMemo, useRef } from "react";
+import type { Group } from "three";
+import type { Line2 } from "three/examples/jsm/lines/Line2.js";
+import { COLORS } from "../types";
+import { routeChevrons } from "@/features/routing/route-scene";
+import { useReducedMotion } from "./useReducedMotion";
 
 /** Animated "marching ants" route polyline. */
-export function RouteLine({ points, width = 5, color = COLORS.route, active = true, overlay = false }: { points: [number, number, number][]; width?: number; color?: string; active?: boolean; overlay?: boolean }) {
-  const ref = useRef<Line2>(null)
-  const arrows = useMemo(() => routeChevrons(points), [points])
-  const reducedMotion = useReducedMotion()
+export function RouteLine({
+  points,
+  width = 5,
+  color = COLORS.route,
+  active = true,
+  overlay = false,
+}: {
+  points: [number, number, number][];
+  width?: number;
+  color?: string;
+  active?: boolean;
+  overlay?: boolean;
+}) {
+  const ref = useRef<Line2>(null);
+  const arrows = useMemo(() => routeChevrons(points), [points]);
+  const reducedMotion = useReducedMotion();
   useFrame((_, dt) => {
-    const mat = ref.current?.material as { dashOffset: number } | undefined
-    if (mat && !reducedMotion) mat.dashOffset -= dt * 1.4
-  })
-  if (points.length < 2) return null
+    const mat = ref.current?.material as { dashOffset: number } | undefined;
+    if (mat && !reducedMotion) mat.dashOffset -= dt * 1.4;
+  });
+  if (points.length < 2) return null;
   return (
     <group>
-      <Line points={points} color="#ffffff" lineWidth={width + 3} depthTest={!overlay} depthWrite={!overlay} renderOrder={overlay ? 100 : 0} transparent opacity={active ? .92 : .5} />
-      <Line points={points} color={color} lineWidth={width} depthTest={!overlay} depthWrite={!overlay} renderOrder={overlay ? 101 : 0} transparent opacity={active ? 1 : .4} />
-      {active && <Line ref={ref} points={points} color="#dcfce7" lineWidth={Math.max(1.5, width * 0.35)} dashed dashSize={0.18} gapSize={0.8} depthTest={!overlay} depthWrite={!overlay} renderOrder={overlay ? 102 : 0} />}
-      {arrows.map((arrow, i) => <group key={i}>
-        <Line points={arrow} color="#ffffff" lineWidth={6.5} depthTest={!overlay} depthWrite={!overlay} renderOrder={overlay ? 104 : 1} transparent opacity={active ? .95 : .5} />
-        <Line points={arrow} color={color} lineWidth={3.5} depthTest={!overlay} depthWrite={!overlay} renderOrder={overlay ? 105 : 2} transparent opacity={active ? 1 : .45} />
-      </group>)}
+      <Line
+        points={points}
+        color="#ffffff"
+        lineWidth={width + 3}
+        depthTest={!overlay}
+        depthWrite={!overlay}
+        renderOrder={overlay ? 100 : 0}
+        transparent
+        opacity={active ? 0.92 : 0.5}
+      />
+      <Line
+        points={points}
+        color={color}
+        lineWidth={width}
+        depthTest={!overlay}
+        depthWrite={!overlay}
+        renderOrder={overlay ? 101 : 0}
+        transparent
+        opacity={active ? 1 : 0.4}
+      />
+      {active && (
+        <Line
+          ref={ref}
+          points={points}
+          color="#dcfce7"
+          lineWidth={Math.max(1.5, width * 0.35)}
+          dashed
+          dashSize={0.18}
+          gapSize={0.8}
+          depthTest={!overlay}
+          depthWrite={!overlay}
+          renderOrder={overlay ? 102 : 0}
+        />
+      )}
+      {arrows.map((arrow, i) => (
+        <group key={i}>
+          <Line
+            points={arrow}
+            color="#ffffff"
+            lineWidth={6.5}
+            depthTest={!overlay}
+            depthWrite={!overlay}
+            renderOrder={overlay ? 104 : 1}
+            transparent
+            opacity={active ? 0.95 : 0.5}
+          />
+          <Line
+            points={arrow}
+            color={color}
+            lineWidth={3.5}
+            depthTest={!overlay}
+            depthWrite={!overlay}
+            renderOrder={overlay ? 105 : 2}
+            transparent
+            opacity={active ? 1 : 0.45}
+          />
+        </group>
+      ))}
     </group>
-  )
+  );
 }
 
 export function EndPin({ position }: { position: [number, number, number] }) {
-  const ref = useRef<Group>(null)
-  const reducedMotion = useReducedMotion()
+  const ref = useRef<Group>(null);
+  const reducedMotion = useReducedMotion();
   useFrame(({ clock }) => {
-    if (ref.current) ref.current.position.y = position[1] + 0.25 + (reducedMotion ? 0 : Math.sin(clock.elapsedTime * 3) * 0.12)
-  })
+    if (ref.current)
+      ref.current.position.y =
+        position[1] +
+        0.25 +
+        (reducedMotion ? 0 : Math.sin(clock.elapsedTime * 3) * 0.12);
+  });
   return (
     <group>
       <group ref={ref} position={position}>
@@ -52,12 +119,15 @@ export function EndPin({ position }: { position: [number, number, number] }) {
           <meshStandardMaterial color="#ffffff" />
         </mesh>
       </group>
-      <mesh position={[position[0], position[1] + 0.03, position[2]]} rotation={[-Math.PI / 2, 0, 0]}>
+      <mesh
+        position={[position[0], position[1] + 0.03, position[2]]}
+        rotation={[-Math.PI / 2, 0, 0]}
+      >
         <ringGeometry args={[0.35, 0.6, 32]} />
         <meshBasicMaterial color={COLORS.route} transparent opacity={0.35} />
       </mesh>
     </group>
-  )
+  );
 }
 
 export function StartDot({ position }: { position: [number, number, number] }) {
@@ -72,6 +142,5 @@ export function StartDot({ position }: { position: [number, number, number] }) {
         <meshStandardMaterial color={COLORS.route} />
       </mesh>
     </group>
-  )
+  );
 }
-

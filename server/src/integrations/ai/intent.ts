@@ -71,6 +71,5 @@ export interface IntentAdapter {
   interpret(
     scope: RequestScope,
     request: ChatTextRequest,
-    retrievedRecords?: readonly import("../../modules/catalog/demo-catalog.js").CatalogRecord[],
   ): Promise<NavigationIntent>;
 }

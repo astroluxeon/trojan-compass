@@ -121,9 +121,8 @@ test("picked open positions retain their coordinates and concurrent requests do 
   }
   const expectedOrigin = structuredClone(before.origin.position);
   before.origin.position.x = 999999;
-  const firstPoint = before.legs[0]!.points[0]!;
-  assert.ok("x" in firstPoint);
-  firstPoint.x = -999999;
+  assert.equal(before.legs[0]!.kind, "indoor");
+  if (before.legs[0]!.kind === "indoor") before.legs[0]!.points[0]!.x = -999999;
   const after = await service.calculateRoute(scope(), request());
   assert.equal(before.distanceMeters, after.distanceMeters);
   assert.deepEqual(after.origin.position, expectedOrigin);

@@ -1,5 +1,7 @@
-// Preserved prototype logic; not the canonical HTTP contract. See docs/migration.md.
-export type BuildingCode = 'DML' | 'LVL' | 'THH' | 'VKC' | 'TCC' | 'SGM' | 'SAL' | 'KAP' | 'LAW'
+// Preserved prototype source; canonical runtime data is exported to server/data/snapshots/.
+import { INTERIORS } from './interiors/index.js'
+
+export type BuildingCode = 'DML' | 'LVL' | 'THH' | 'VKC' | 'TCC' | 'SGM' | 'SAL' | 'KAP' | 'SCA' | 'LAW'
 
 export interface Building {
   code: BuildingCode
@@ -29,6 +31,16 @@ const rect = (w: number, d: number): [number, number][] => [
 ]
 
 export const BUILDINGS: Building[] = [
+  {
+    code: 'SCA',
+    name: 'School of Cinematic Arts',
+    blurb: 'Cinema classrooms, theaters and production spaces. Source coverage is partial.',
+    // Schematic overview decoration; never used by canonical indoor navigation.
+    position: [-29, -25],
+    footprint: INTERIORS.SCA!.footprint,
+    floors: 3,
+    tags: ['Cinema', 'Classrooms'],
+  },
   {
     code: 'DML',
     name: 'Doheny Memorial Library',
@@ -150,6 +162,25 @@ export const BUILDINGS: Building[] = [
     featured: true,
   },
 ]
+
+// Reconstruction metadata supersedes the original generic floor counts.
+for (const building of BUILDINGS) {
+  const reconstruction = INTERIORS[building.code]
+  if (!reconstruction) continue
+  building.name = reconstruction.name
+  building.levels = reconstruction.floors.map(f => f.level)
+  building.floors = Math.max(...building.levels)
+  building.footprint = reconstruction.footprint
+  if (building.code === 'VKC') building.blurb = 'Medicine Crow Center (legacy code VKC): classrooms, offices and a lower-level library around an open courtyard.'
+  if (building.code === 'TCC') building.blurb = 'Student commons, meeting rooms and offices. Adjacent Sample Hall (SKS) is a separate building.'
+}
+
+/** Keep VKC URLs/room IDs stable while accepting the current USC code DMC. */
+export function resolveBuildingCode(value: string): BuildingCode | undefined {
+  const code = value.trim().toUpperCase()
+  if (code === 'DMC') return 'VKC'
+  return BUILDINGS.find(building => building.code === code)?.code
+}
 
 export const BUILDING_BY_CODE = Object.fromEntries(BUILDINGS.map((b) => [b.code, b])) as Record<
   BuildingCode,

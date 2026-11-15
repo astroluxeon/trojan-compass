@@ -1,41 +1,28 @@
-# Applied repository migration
+# Repository migration
 
-The structural migration started from `bfbab98`. The target repository is `astroluxeon/trojan-compass`; its demo startup fixes from `d1a0f72` are retained in the new paths. The pre-existing `next-env.d.ts` change is a Next-generated file; builds may regenerate it at its new path.
+The directory migration is already committed. Existing startup fixes, renderer assets and package names are preserved.
 
-| Original | Current |
-| --- | --- |
-| `apps/web/` | `web/` |
-| `apps/api/` | `server/` |
-| `packages/shared/` | `shared/typescript/` |
-| `apps/campus-demo/` | `demos/usc-map/` |
-| `web/src/components/map/` | `web/src/features/map/renderer/` |
-| `web/src/components/Wayfinder.tsx` | `web/src/features/map/components/Wayfinder.tsx` |
-| `web/src/components/ui/FloorTools.tsx` | Map composition plus real search/routing/chat feature panels |
-| `web/src/data/{campus,floorplan,law}.ts` | `server/src/infrastructure/datasets/prototype/` |
-| `web/src/lib/routing.ts` | `server/src/modules/routing/prototype/routing.ts` |
-| `web/src/lib/location-search.ts` | `server/src/modules/search/prototype/location-search.ts` |
-| `web/src/lib/map-camera.ts` | `web/src/features/map/camera.ts` |
-| `web/src/lib/map-location.ts` | `web/src/features/map/map-location.ts` |
-| `web/src/lib/map-link.ts` | `web/src/features/map/map-link.ts` |
-| `web/src/lib/mascot-motion.ts` | `web/src/features/map/renderer/mascot-motion.ts` |
-| `server/src/lib/ai-client.ts` | `server/src/integrations/ai/provider-adapter.ts` |
-| `server/src/lib/data-loader.ts` | `server/src/infrastructure/datasets/snapshot-loader.ts` |
-| Empty root data directories | `server/data/snapshots/`, `server/data/events/` placeholders |
+| Original                                          | Final                                                                                |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| apps/web/                                         | web/                                                                                 |
+| apps/api/                                         | server/                                                                              |
+| packages/shared/                                  | shared/typescript/                                                                   |
+| apps/campus-demo/                                 | demos/usc-map/                                                                       |
+| Web building/floorplan source data                | server/src/infrastructure/datasets/prototype/, extracted into server/data/snapshots/ |
+| Web search/pathfinding algorithms                 | server/src/modules/search/prototype/, server/src/modules/routing/prototype/          |
+| Renderer, camera, map picking and guide animation | web/src/features/map/                                                                |
+| API client scaffold                               | Implemented web/src/lib/api-client.ts                                                |
+| AI adapter scaffold                               | Implemented server/src/integrations/ai/provider-adapter.ts                           |
+| Shared API agreement                              | shared/contracts/openapi.yaml                                                        |
 
-Unused map/search feature placeholders were replaced by working implementations or removed. Existing assets, campus demo, tests, and package identities are retained. The mascot GLB stays in `web/public/models/` because the working viewer serves it there; there are no building GLB exports to move yet.
+The web no longer imports generated prototype datasets, local search ranking or local pathfinding. Compatibility copies, their sync script and the manifest have been removed after the API-backed scene/search/route/chat flow was exercised. Prototype modules remain server-side for reproducibility and regression tests. Tests distinguish old illustrative behavior from the canonical API's stricter access rules.
 
-## Transitional code
+The viewer now adapts API floor geometry and places into presentation state. Existing scene components, controls, labels, guide assets and saved room links remain. Saved routes are recalculated by the backend; unsupported outdoor routes return an explicit error instead of recreating the old schematic connector.
 
-The five extracted server modules retain their prototype types and algorithms. Their generated browser copies preserve the current demo until API integration. Do not treat these types as the agreed HTTP contract or their geometry as calibrated meters. Run `npm run sync:legacy` after changing an extracted source; `npm run check:legacy` checks for drift.
+The only remaining local overview geometry is schematic campus decoration, which is never used for indoor meters or backend path calculation. The separate saved USC map demo remains optional.
 
-The old prototype search uses routing for its accessibility filter. The canonical dataset repository must remain independent of both services. Visual picking stays client-side; backend position validation is still to implement.
+The building-model migration includes the old repository's nested `data/interiors/` directory. Its eight reconstructed buildings now live in `server/src/infrastructure/datasets/prototype/interiors/`, alongside the traced `law.ts` and shared `floorplan.ts` loader. `usc-interiors-2026-11-14` is the active runtime snapshot; the initial snapshot is retained. Campus footprints and floor counts are exported into `web/src/features/map/data/campus-models.json`, and the viewer keeps using API geometry. Authoring scripts and evidence moved to `scripts/` and `docs/interiors/`. See the [interior data guide](interiors/README.md). The `trojan-compass-old/` copy is reference material and is not a runtime dependency.
 
-Use the agreed API types from `@trojan-compass/shared`; initial hand-written drafts are isolated under `/legacy`. Canonical datasets, ports, HTTP validation, and API-backed clients remain assigned follow-up work. No deployed capabilities have been added beyond the existing health endpoint.
+No files were generated solely to fill a proposed tree. Empty feature controllers and redundant dataset-service scaffolds were removed; dataset reads live in the repository and feature HTTP modules provide their actual boundaries.
 
-## Removing the compatibility bridge
-
-1. Publish calibrated dataset snapshots and implement the dataset/scene services.
-2. Implement canonical search and routing against the shared interfaces; validate responses.
-3. Replace browser data/search/route imports with asynchronous API adapters, preserving saved-link behavior and loading/error states.
-4. Confirm the viewer's highlight/route rendering and mobile decoding against the same fixture set.
-5. Remove the generated copies and allowlist entries when their consumers are migrated. Keep or adapt regression tests to exercise the API-backed behavior.
+Root workspaces, npm package identities, relative TypeScript paths and the Next.js API rewrite use the final layout. Deployment must include snapshots and OpenAPI alongside compiled server files. Mobile stays outside npm.

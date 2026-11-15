@@ -98,13 +98,14 @@ export function serializeRoute(
       buildingId: graph.source.buildingId,
       floorId,
     });
-  addStep(
-    legs[0]!,
-    "start",
-    "Start at the selected public access point.",
-    0,
-    path.origin.endpoint.floorId,
-  );
+  if (path.arcs.some(({ arc }) => arc.distance > 0))
+    addStep(
+      legs[0]!,
+      "start",
+      "Start at the selected public access point.",
+      0,
+      path.origin.endpoint.floorId,
+    );
   for (const leg of legs) {
     if (leg.kind === "vertical")
       addStep(

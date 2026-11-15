@@ -1,4 +1,3 @@
-// See docs/ownership.md and src/ports/service-ports.ts; no endpoint is implemented here yet.
 import type { DatasetPort, RequestScope } from "../../ports/service-ports.js";
 export class PlacesService {
   constructor(private readonly datasets: DatasetPort) {}

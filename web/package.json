@@ -7,9 +7,7 @@
     "build": "next build",
     "start": "next start",
     "test": "tsx --tsconfig tsconfig.json --test tests/*.test.ts",
-    "typecheck": "next typegen && tsc --noEmit",
-    "predev": "node ../scripts/sync-legacy-browser.mjs",
-    "prebuild": "node ../scripts/sync-legacy-browser.mjs"
+    "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.0",

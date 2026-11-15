@@ -28,3 +28,10 @@ coverage/
 server/.cache/
 mobile/**/DerivedData/
 mobile/**/xcuserdata/
+
+### Swift / Xcode ###
+.build/
+.swiftpm/
+DerivedData/
+xcuserdata/
+*.xcuserstate

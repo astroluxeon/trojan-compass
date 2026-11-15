@@ -3,9 +3,7 @@ import express from "express";
 import helmet from "helmet";
 import { rateLimit } from "express-rate-limit";
 import type { Services } from "./bootstrap/services.js";
-import type { RoutingPort, ChatPort } from "./ports/service-ports.js";
-import { catalogRoutes } from "./modules/catalog/catalog.routes.js";
-import type { DemoCatalog } from "./modules/catalog/demo-catalog.js";
+import type { RoutingPort } from "./ports/service-ports.js";
 import { AppError, disabled, invalid, missing, timeout } from "./lib/errors.js";
 import { validateQuery } from "./lib/contracts.js";
 import { buildingsRoutes } from "./modules/buildings/buildings.routes.js";
@@ -18,7 +16,6 @@ import { errorHandler } from "./middleware/error-handler.js";
 
 export type HttpOptions = {
   previewRouting?: RoutingPort;
-  demo?: { catalog: DemoCatalog; chat: ChatPort };
   origins?: string[];
   trustProxy?: string[];
   exposeGraph?: boolean;
@@ -47,9 +44,10 @@ export function createApp(services: Services, options: HttpOptions = {}) {
     const requestId = validId && supplied ? supplied : randomUUID();
     const controller = new AbortController();
     const start = performance.now();
-    const budget = ["/api/chat", "/api/preview/chat"].includes(request.path)
-      ? (options.chatTimeoutMs ?? 45000)
-      : (options.requestTimeoutMs ?? 10000);
+    const budget =
+      request.path === "/api/chat"
+        ? (options.chatTimeoutMs ?? 45000)
+        : (options.requestTimeoutMs ?? 10000);
     response.locals.scope = {
       requestId,
       dataVersion: "",
@@ -165,7 +163,6 @@ export function createApp(services: Services, options: HttpOptions = {}) {
     });
   app.use("/api", limiter(options.rateLimitPerMinute ?? 240));
   app.use("/api/chat", limiter(options.chatRateLimitPerMinute ?? 20));
-  app.use("/api/preview/chat", limiter(options.chatRateLimitPerMinute ?? 20));
   app.use((request, _response, next) => {
     if (request.method === "POST") {
       if (request.path === "/api/chat" && request.is("multipart/form-data"))
@@ -201,11 +198,6 @@ export function createApp(services: Services, options: HttpOptions = {}) {
     routingRoutes(services, options.previewRouting),
     chatRoutes(services),
   );
-  if (options.demo)
-    app.use(
-      "/api",
-      catalogRoutes(services, options.demo.catalog, options.demo.chat),
-    );
   app.get(["/api/events", "/api/events/:eventId"], () => {
     throw disabled("Events are not enabled in this deployment.");
   });

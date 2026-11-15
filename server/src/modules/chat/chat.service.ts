@@ -1,4 +1,3 @@
-// See docs/ownership.md and src/ports/service-ports.ts; no endpoint is implemented here yet.
 import type {
   BuildingSummary,
   Candidate,
@@ -22,7 +21,6 @@ import { assertContract, validateBody } from "../../lib/contracts.js";
 import { AppError, invalid } from "../../lib/errors.js";
 import { checkScope } from "../../lib/scope.js";
 import { normalize } from "../search/search.service.js";
-import type { CatalogRecord, DemoCatalog } from "../catalog/demo-catalog.js";
 
 const placeCandidate = (p: Place): Candidate => ({
   kind: "place",
@@ -44,7 +42,6 @@ export class ChatService implements ChatPort {
   constructor(
     private readonly dependencies: ChatDependencies,
     private readonly intentAdapter: IntentAdapter,
-    private readonly catalog?: DemoCatalog,
   ) {}
   async respond(
     scope: RequestScope,
@@ -52,7 +49,6 @@ export class ChatService implements ChatPort {
   ): Promise<ChatResponse> {
     validateBody("ChatTextRequest", request);
     checkScope(scope);
-    this.catalog?.assertVersion(scope.dataVersion);
     if (typeof request.message !== "string" || !request.message.trim())
       throw invalid("A nonempty message is required.", "message");
     if (request.dataVersion !== scope.dataVersion)
@@ -69,13 +65,8 @@ export class ChatService implements ChatPort {
     await this.dependencies.datasets.assertSnapshot(scope);
     await this.validateContext(scope, request);
     const intent = validateIntent(
-      await this.intentAdapter.interpret(
-        scope,
-        request,
-        this.catalog?.search(request.message).slice(0, 8),
-      ),
+      await this.intentAdapter.interpret(scope, request),
     );
-    const resolvedRecords: CatalogRecord[] = [];
     const response = (
       status: ChatResponse["status"],
       message: string,
@@ -152,25 +143,6 @@ export class ChatService implements ChatPort {
           "ambiguous_destination",
           "Select a location or name the room you mean.",
         );
-      const records = this.catalog?.search(query) ?? [];
-      if (records.length > 1) {
-        return clarify(
-          "ambiguous_destination",
-          `Which demo class or event do you mean? ${records.map((r) => `${r.title} (${r.id})`).join("; ")}. Please use its record ID.`,
-        );
-      }
-      if (records.length === 1) {
-        const record = records[0]!;
-        const p = await this.dependencies.datasets.getPlace(
-          scope,
-          record.location.buildingId,
-          record.location.placeId,
-        );
-        if (p.floorId !== record.location.floorId)
-          throw new Error("Catalog location no longer matches map data");
-        resolvedRecords.push(record);
-        return p;
-      }
       let buildingId = await scopedBuilding(role === "destination");
       if (buildingId && typeof buildingId !== "string") return buildingId;
       // An explicit code in this turn overrides stale viewport context.
@@ -303,13 +275,6 @@ export class ChatService implements ChatPort {
           clarify,
         );
     }
-    if (resolvedRecords.length && this.catalog)
-      result.message =
-        [...new Map(resolvedRecords.map((r) => [r.id, r])).values()]
-          .map((r) => this.catalog!.describe(r))
-          .join(" ") +
-        " " +
-        result.message;
     await this.validateActions(scope, result);
     const buildingIds = new Set(
       result.actions.flatMap((action) =>

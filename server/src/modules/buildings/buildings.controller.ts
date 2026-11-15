@@ -1,4 +1,3 @@
-// See docs/ownership.md and src/ports/service-ports.ts; no endpoint is implemented here yet.
 import type { Services } from "../../bootstrap/services.js";
 import { getEndpoint, id, searchInput } from "../../lib/http.js";
 import { BuildingsService } from "./buildings.service.js";

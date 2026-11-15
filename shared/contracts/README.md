@@ -1,9 +1,7 @@
 # API agreement
 
-`openapi.yaml` is the agreed API source of truth. `openapi.json` is the equivalent copied serialization from the mobile/team handoff. This migration changes neither.
+openapi.yaml is authoritative. Run npm run contract:generate after intentional schema changes to regenerate equivalent openapi.json and compile-time TypeScript wire types. npm run contract:check verifies both generated artifacts and all indexed positive/negative fixtures.
 
-Only health is implemented. The remaining operations specify future integration, not deployed behavior. The OpenAPI server URL ends in `/api`; paths in the document are relative to that base.
+The directory migration and backend integration preserve the agreed methods, fields, IDs, coordinates and errors. See docs/api.md for current implementation status; historical proposal text in the original contract is not a live capability report.
 
-Compile-time wire models are in `../typescript/src/generated/api-types.ts`, imported with `import type` from `@trojan-compass/shared` (or its `/api` subpath). They were copied from the agreed handoff; automated regeneration and runtime validation remain follow-up work. Earlier hand-written draft types remain accessible only through `/legacy` and are not the agreed contract.
-
-Coordinate changes, IDs, `dataVersion`, request/response fields, and errors require agreement between the affected owners. Update YAML, its JSON equivalent, wire types, and examples together when intentionally changing the contract.
+Runtime validation is explicit in server/src/infrastructure/contract.ts using AJV and the YAML schemas. The shared TypeScript package remains type-only. Earlier hand-written drafts remain isolated under /legacy and do not define HTTP behavior.

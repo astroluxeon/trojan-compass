@@ -1,9 +1,12 @@
 import { ajv } from "../../lib/contracts.js";
 const ref = (name: string) => ({ $ref: `compass#/components/schemas/${name}` });
-const object = (properties: Record<string, unknown>) => ({
+const object = (
+  properties: Record<string, unknown>,
+  optional: string[] = [],
+) => ({
   type: "object",
   properties,
-  required: Object.keys(properties),
+  required: Object.keys(properties).filter((key) => !optional.includes(key)),
   additionalProperties: false,
 });
 const array = (items: unknown, maxItems = 50000) => ({
@@ -41,21 +44,25 @@ export const validateSourceShape = ajv.compile(
         { type: "null" },
         object({
           floors: array(
-            object({
-              floorId: string,
-              elevationMeters: { type: "number" },
-              bounds: ref("Bounds3"),
-              walkableRegions: array(
-                object({
-                  id: string,
-                  kind: { enum: ["corridor", "room", "landing", "entrance"] },
-                  polygon,
-                  access,
-                }),
-                2000,
-              ),
-              blockedRegions: array(object({ id: string, polygon }), 2000),
-            }),
+            object(
+              {
+                openAreaApproaches: { type: "boolean" },
+                floorId: string,
+                elevationMeters: { type: "number" },
+                bounds: ref("Bounds3"),
+                walkableRegions: array(
+                  object({
+                    id: string,
+                    kind: { enum: ["corridor", "room", "landing", "entrance"] },
+                    polygon,
+                    access,
+                  }),
+                  2000,
+                ),
+                blockedRegions: array(object({ id: string, polygon }), 2000),
+              },
+              ["openAreaApproaches"],
+            ),
             100,
           ),
         }),

@@ -40,17 +40,15 @@ export const errorHandler: ErrorRequestHandler = (
   if (publicError.code === "RATE_LIMITED" && !response.hasHeader("Retry-After"))
     response.setHeader("Retry-After", "5");
   response.setHeader("Cache-Control", "no-store");
-  response
-    .status(publicError.httpStatus)
-    .json({
-      error: {
-        code: publicError.code,
-        message: publicError.message,
-        requestId: response.locals.scope.requestId,
-        ...(publicError.fieldErrors
-          ? { fieldErrors: publicError.fieldErrors }
-          : {}),
-        ...(publicError.details ? { details: publicError.details } : {}),
-      },
-    });
+  response.status(publicError.httpStatus).json({
+    error: {
+      code: publicError.code,
+      message: publicError.message,
+      requestId: response.locals.scope.requestId,
+      ...(publicError.fieldErrors
+        ? { fieldErrors: publicError.fieldErrors }
+        : {}),
+      ...(publicError.details ? { details: publicError.details } : {}),
+    },
+  });
 };

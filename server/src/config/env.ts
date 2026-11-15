@@ -1,4 +1,5 @@
 import { randomBytes } from "node:crypto";
+import { fileURLToPath } from "node:url";
 export function readConfig(input: NodeJS.ProcessEnv = process.env) {
   const production = input.NODE_ENV === "production";
   const integer = (
@@ -24,8 +25,7 @@ export function readConfig(input: NodeJS.ProcessEnv = process.env) {
       throw new Error(`${name} must be true or false.`);
     return input[name] === "true";
   };
-  const datasetMode =
-    input.DATASET_MODE ?? (production ? "files" : "prototype");
+  const datasetMode = input.DATASET_MODE ?? "files";
   if (
     !["files", "prototype"].includes(datasetMode) ||
     (production && datasetMode === "prototype")
@@ -33,7 +33,7 @@ export function readConfig(input: NodeJS.ProcessEnv = process.env) {
     throw new Error(
       "Production requires DATASET_MODE=files and a reviewed publication.",
     );
-  if (datasetMode === "files" && !input.DATASET_ROOT)
+  if (production && datasetMode === "files" && !input.DATASET_ROOT)
     throw new Error("DATASET_ROOT is required for file datasets.");
   const aiProvider = input.AI_PROVIDER ?? "disabled";
   if (!["disabled", "openai"].includes(aiProvider))
@@ -70,7 +70,9 @@ export function readConfig(input: NodeJS.ProcessEnv = process.env) {
     port: integer("PORT", 4000, 1, 65535),
     host: input.HOST ?? "127.0.0.1",
     datasetMode,
-    datasetRoot: input.DATASET_ROOT,
+    datasetRoot:
+      input.DATASET_ROOT ??
+      fileURLToPath(new URL("../../data/snapshots/", import.meta.url)),
     aiProvider,
     apiKey: input.OPENAI_API_KEY,
     model: input.OPENAI_MODEL,

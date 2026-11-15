@@ -1,26 +1,26 @@
-import { Edges, Line } from '@react-three/drei'
-import { MapHtml } from './MapHtml'
-import { useMemo, useState } from 'react'
-import * as THREE from 'three'
+import { Edges, Line } from '@react-three/drei';
+import { MapHtml } from './MapHtml';
+import { useMemo, useState } from 'react';
+import * as THREE from 'three';
 import {
   BUILDINGS,
   FLOOR_HEIGHT_CAMPUS,
   WALKWAYS,
   type Building,
   type BuildingCode,
-} from '../data/generated/campus'
-import type { OutdoorLeg } from '../../routing/legacy/routing.generated'
-import { COLORS } from '../types'
-import { EndPin, RouteLine, StartDot } from './RouteLine'
+} from '../data/campus-display';
+import type { OutdoorLeg } from '../../routing/viewer-route';
+import { COLORS } from '../types';
+import { EndPin, RouteLine, StartDot } from './RouteLine';
 
 interface Props {
-  emphasized: BuildingCode[]
-  outdoor?: OutdoorLeg
-  onSelect: (code: BuildingCode) => void
+  emphasized: BuildingCode[];
+  outdoor?: OutdoorLeg;
+  onSelect: (code: BuildingCode) => void;
 }
 
 export function CampusScene({ emphasized, outdoor, onSelect }: Props) {
-  const [hover, setHover] = useState<BuildingCode | null>(null)
+  const [hover, setHover] = useState<BuildingCode | null>(null);
   return (
     <group>
       <Ground />
@@ -57,12 +57,15 @@ export function CampusScene({ emphasized, outdoor, onSelect }: Props) {
       ))}
       {outdoor && outdoor.points[0] && (
         <>
-          <RouteLine points={outdoor.points.map(([x, z]) => [x, 0.12, z] as [number, number, number])} width={6} />
+          <RouteLine
+            points={outdoor.points.map(([x, z]) => [x, 0.12, z] as [number, number, number])}
+            width={6}
+          />
           <StartDot position={[outdoor.points[0][0], 0.02, outdoor.points[0][1]]} />
         </>
       )}
     </group>
-  )
+  );
 }
 
 function Ground() {
@@ -77,22 +80,22 @@ function Ground() {
         <shadowMaterial opacity={0.12} />
       </mesh>
     </>
-  )
+  );
 }
 
 function Trees() {
   const spots = useMemo(() => {
-    const out: [number, number][] = []
+    const out: [number, number][] = [];
     for (let z = -26; z <= 26; z += 3.6) {
-      if (Math.abs(z - 10) < 2.2) continue
-      out.push([6.85, z], [9.15, z])
+      if (Math.abs(z - 10) < 2.2) continue;
+      out.push([6.85, z], [9.15, z]);
     }
     for (let x = -30; x <= 30; x += 4) {
-      if (Math.abs(x - 8) < 2.5) continue
-      out.push([x, 8.6], [x, 11.4])
+      if (Math.abs(x - 8) < 2.5) continue;
+      out.push([x, 8.6], [x, 11.4]);
     }
-    return out
-  }, [])
+    return out;
+  }, []);
   return (
     <group>
       {spots.map(([x, z], i) => (
@@ -108,7 +111,7 @@ function Trees() {
         </group>
       ))}
     </group>
-  )
+  );
 }
 
 function BuildingMass({
@@ -118,27 +121,30 @@ function BuildingMass({
   onHover,
   onSelect,
 }: {
-  b: Building
-  hovered: boolean
-  emphasized: boolean
-  onHover: (h: boolean) => void
-  onSelect: () => void
+  b: Building;
+  hovered: boolean;
+  emphasized: boolean;
+  onHover: (h: boolean) => void;
+  onSelect: () => void;
 }) {
-  const height = b.floors * FLOOR_HEIGHT_CAMPUS
+  const height = b.floors * FLOOR_HEIGHT_CAMPUS;
   const geometry = useMemo(() => {
-    const shape = new THREE.Shape(b.footprint.map(([x, z]) => new THREE.Vector2(x, -z)))
-    const g = new THREE.ExtrudeGeometry(shape, { depth: height, bevelEnabled: false })
-    g.rotateX(-Math.PI / 2)
-    return g
-  }, [b, height])
+    const shape = new THREE.Shape(b.footprint.map(([x, z]) => new THREE.Vector2(x, -z)));
+    const g = new THREE.ExtrudeGeometry(shape, { depth: height, bevelEnabled: false });
+    g.rotateX(-Math.PI / 2);
+    return g;
+  }, [b, height]);
   const floorLines = useMemo(() => {
-    const loop = b.footprint.length ? [...b.footprint, b.footprint[0]!] : []
+    const loop = b.footprint.length ? [...b.footprint, b.footprint[0]!] : [];
     return Array.from({ length: b.floors - 1 }, (_, k) =>
-      loop.map(([x, z]) => [x * 1.002, (k + 1) * FLOOR_HEIGHT_CAMPUS, z * 1.002] as [number, number, number]),
-    )
-  }, [b])
-  const active = hovered || emphasized
-  const topY = height + (b.tower ? 2.4 : 0)
+      loop.map(
+        ([x, z]) =>
+          [x * 1.002, (k + 1) * FLOOR_HEIGHT_CAMPUS, z * 1.002] as [number, number, number]
+      )
+    );
+  }, [b]);
+  const active = hovered || emphasized;
+  const topY = height + (b.tower ? 2.4 : 0);
   return (
     <group position={[b.position[0], 0, b.position[1]]}>
       <mesh
@@ -146,21 +152,25 @@ function BuildingMass({
         castShadow
         receiveShadow
         onPointerOver={(e) => {
-          e.stopPropagation()
-          onHover(true)
-          document.body.style.cursor = 'pointer'
+          e.stopPropagation();
+          onHover(true);
+          document.body.style.cursor = 'pointer';
         }}
         onPointerOut={() => {
-          onHover(false)
-          document.body.style.cursor = ''
+          onHover(false);
+          document.body.style.cursor = '';
         }}
         onClick={(e) => {
-          e.stopPropagation()
-          onSelect()
+          e.stopPropagation();
+          onSelect();
         }}
       >
         <meshStandardMaterial color={active ? COLORS.modelHover : COLORS.model} roughness={0.85} />
-        <Edges threshold={20} color={active ? COLORS.cardinal : COLORS.edge} lineWidth={active ? 2 : 1} />
+        <Edges
+          threshold={20}
+          color={active ? COLORS.cardinal : COLORS.edge}
+          lineWidth={active ? 2 : 1}
+        />
       </mesh>
       {floorLines.map((pts, i) => (
         <Line key={i} points={pts} color={active ? '#c08080' : '#bdbdc2'} lineWidth={1} />
@@ -168,7 +178,10 @@ function BuildingMass({
       {b.tower && (
         <mesh position={[0, height + 1.2, b.code === 'VKC' ? -2 : 0]} castShadow>
           <boxGeometry args={[1.8, 2.4, 1.8]} />
-          <meshStandardMaterial color={active ? COLORS.modelHover : COLORS.model} roughness={0.85} />
+          <meshStandardMaterial
+            color={active ? COLORS.modelHover : COLORS.model}
+            roughness={0.85}
+          />
           <Edges color={active ? COLORS.cardinal : COLORS.edge} />
         </mesh>
       )}
@@ -186,7 +199,9 @@ function BuildingMass({
         >
           {b.code}
           {b.featured && (
-            <span className={`whitespace-nowrap rounded-full px-1.5 py-px text-[9px] font-bold uppercase tracking-wider ${active ? 'bg-white/20 text-white' : 'bg-[#FFCC00] text-neutral-900'}`}>
+            <span
+              className={`whitespace-nowrap rounded-full px-1.5 py-px text-[9px] font-bold uppercase tracking-wider ${active ? 'bg-white/20 text-white' : 'bg-[#FFCC00] text-neutral-900'}`}
+            >
               Floor plans
             </span>
           )}
@@ -195,13 +210,13 @@ function BuildingMass({
               {b.name}
               <span className="block text-[11px] font-normal text-neutral-300">
                 {b.subtitle ? `${b.subtitle} · ` : ''}
-                {b.levels?.includes(0) ? `${b.floors} floors + basement` : `${b.floors} floors`} · Click to explore
+                {b.levels?.includes(0) ? `${b.floors} floors + basement` : `${b.floors} floors`} ·
+                Click to explore
               </span>
             </span>
           )}
         </button>
       </MapHtml>
     </group>
-  )
+  );
 }
-

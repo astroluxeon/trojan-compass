@@ -293,6 +293,23 @@
               }
             }
           },
+          "304": {
+            "description": "Not modified. No response body; reuse the matching cached representation.",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for support and diagnostics.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "Caching policy. Versioned GETs may be cached; chat and route replies are no-store.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
           "400": {
             "description": "The request contains invalid fields.",
             "headers": {
@@ -513,23 +530,6 @@
                     "message": "A required service is temporarily unavailable.",
                     "requestId": "example-request"
                   }
-                }
-              }
-            }
-          },
-          "304": {
-            "description": "Not modified. No response body; reuse the matching cached representation.",
-            "headers": {
-              "X-Request-ID": {
-                "description": "Correlation ID for support and diagnostics.",
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Cache-Control": {
-                "description": "Caching policy. Versioned GETs may be cached; chat and route replies are no-store.",
-                "schema": {
-                  "type": "string"
                 }
               }
             }
@@ -731,6 +731,23 @@
               }
             }
           },
+          "304": {
+            "description": "Not modified. No response body; reuse the matching cached representation.",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for support and diagnostics.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "Caching policy. Versioned GETs may be cached; chat and route replies are no-store.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
           "400": {
             "description": "The request contains invalid fields.",
             "headers": {
@@ -954,23 +971,6 @@
                 }
               }
             }
-          },
-          "304": {
-            "description": "Not modified. No response body; reuse the matching cached representation.",
-            "headers": {
-              "X-Request-ID": {
-                "description": "Correlation ID for support and diagnostics.",
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Cache-Control": {
-                "description": "Caching policy. Versioned GETs may be cached; chat and route replies are no-store.",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
           }
         }
       }
@@ -1144,6 +1144,23 @@
                       }
                     }
                   }
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "Not modified. No response body; reuse the matching cached representation.",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for support and diagnostics.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "Caching policy. Versioned GETs may be cached; chat and route replies are no-store.",
+                "schema": {
+                  "type": "string"
                 }
               }
             }
@@ -1402,23 +1419,6 @@
                 }
               }
             }
-          },
-          "304": {
-            "description": "Not modified. No response body; reuse the matching cached representation.",
-            "headers": {
-              "X-Request-ID": {
-                "description": "Correlation ID for support and diagnostics.",
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Cache-Control": {
-                "description": "Caching policy. Versioned GETs may be cached; chat and route replies are no-store.",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
           }
         }
       }
@@ -1565,6 +1565,23 @@
                       "nextCursor": null
                     }
                   }
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "Not modified. No response body; reuse the matching cached representation.",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for support and diagnostics.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "Caching policy. Versioned GETs may be cached; chat and route replies are no-store.",
+                "schema": {
+                  "type": "string"
                 }
               }
             }
@@ -1789,23 +1806,6 @@
                     "message": "A required service is temporarily unavailable.",
                     "requestId": "example-request"
                   }
-                }
-              }
-            }
-          },
-          "304": {
-            "description": "Not modified. No response body; reuse the matching cached representation.",
-            "headers": {
-              "X-Request-ID": {
-                "description": "Correlation ID for support and diagnostics.",
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Cache-Control": {
-                "description": "Caching policy. Versioned GETs may be cached; chat and route replies are no-store.",
-                "schema": {
-                  "type": "string"
                 }
               }
             }
@@ -2226,6 +2226,23 @@
               }
             }
           },
+          "304": {
+            "description": "Not modified. No response body; reuse the matching cached representation.",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for support and diagnostics.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "Caching policy. Versioned GETs may be cached; chat and route replies are no-store.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
           "400": {
             "description": "The request contains invalid fields.",
             "headers": {
@@ -2446,23 +2463,6 @@
                     "message": "A required service is temporarily unavailable.",
                     "requestId": "example-request"
                   }
-                }
-              }
-            }
-          },
-          "304": {
-            "description": "Not modified. No response body; reuse the matching cached representation.",
-            "headers": {
-              "X-Request-ID": {
-                "description": "Correlation ID for support and diagnostics.",
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Cache-Control": {
-                "description": "Caching policy. Versioned GETs may be cached; chat and route replies are no-store.",
-                "schema": {
-                  "type": "string"
                 }
               }
             }
@@ -2804,6 +2804,23 @@
               }
             }
           },
+          "304": {
+            "description": "Not modified. No response body; reuse the matching cached representation.",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for support and diagnostics.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "Caching policy. Versioned GETs may be cached; chat and route replies are no-store.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
           "400": {
             "description": "The request contains invalid fields.",
             "headers": {
@@ -3024,23 +3041,6 @@
                     "message": "A required service is temporarily unavailable.",
                     "requestId": "example-request"
                   }
-                }
-              }
-            }
-          },
-          "304": {
-            "description": "Not modified. No response body; reuse the matching cached representation.",
-            "headers": {
-              "X-Request-ID": {
-                "description": "Correlation ID for support and diagnostics.",
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Cache-Control": {
-                "description": "Caching policy. Versioned GETs may be cached; chat and route replies are no-store.",
-                "schema": {
-                  "type": "string"
                 }
               }
             }
@@ -3194,6 +3194,23 @@
               }
             }
           },
+          "304": {
+            "description": "Not modified. No response body; reuse the matching cached representation.",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for support and diagnostics.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "Caching policy. Versioned GETs may be cached; chat and route replies are no-store.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
           "400": {
             "description": "The request contains invalid fields.",
             "headers": {
@@ -3414,23 +3431,6 @@
                     "message": "A required service is temporarily unavailable.",
                     "requestId": "example-request"
                   }
-                }
-              }
-            }
-          },
-          "304": {
-            "description": "Not modified. No response body; reuse the matching cached representation.",
-            "headers": {
-              "X-Request-ID": {
-                "description": "Correlation ID for support and diagnostics.",
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Cache-Control": {
-                "description": "Caching policy. Versioned GETs may be cached; chat and route replies are no-store.",
-                "schema": {
-                  "type": "string"
                 }
               }
             }
@@ -3643,6 +3643,23 @@
               }
             }
           },
+          "304": {
+            "description": "Not modified. No response body; reuse the matching cached representation.",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for support and diagnostics.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "Caching policy. Versioned GETs may be cached; chat and route replies are no-store.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
           "400": {
             "description": "The request contains invalid fields.",
             "headers": {
@@ -3863,23 +3880,6 @@
                     "message": "A required service is temporarily unavailable.",
                     "requestId": "example-request"
                   }
-                }
-              }
-            }
-          },
-          "304": {
-            "description": "Not modified. No response body; reuse the matching cached representation.",
-            "headers": {
-              "X-Request-ID": {
-                "description": "Correlation ID for support and diagnostics.",
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Cache-Control": {
-                "description": "Caching policy. Versioned GETs may be cached; chat and route replies are no-store.",
-                "schema": {
-                  "type": "string"
                 }
               }
             }
@@ -5088,6 +5088,23 @@
               }
             }
           },
+          "304": {
+            "description": "Not modified. No response body; reuse the matching cached representation.",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for support and diagnostics.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "Caching policy. Versioned GETs may be cached; chat and route replies are no-store.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
           "400": {
             "description": "The request contains invalid fields.",
             "headers": {
@@ -5339,23 +5356,6 @@
                     "message": "A required service is temporarily unavailable.",
                     "requestId": "example-request"
                   }
-                }
-              }
-            }
-          },
-          "304": {
-            "description": "Not modified. No response body; reuse the matching cached representation.",
-            "headers": {
-              "X-Request-ID": {
-                "description": "Correlation ID for support and diagnostics.",
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Cache-Control": {
-                "description": "Caching policy. Versioned GETs may be cached; chat and route replies are no-store.",
-                "schema": {
-                  "type": "string"
                 }
               }
             }
@@ -5475,6 +5475,23 @@
               }
             }
           },
+          "304": {
+            "description": "Not modified. No response body; reuse the matching cached representation.",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for support and diagnostics.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "Caching policy. Versioned GETs may be cached; chat and route replies are no-store.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
           "400": {
             "description": "The request contains invalid fields.",
             "headers": {
@@ -5726,23 +5743,6 @@
                     "message": "A required service is temporarily unavailable.",
                     "requestId": "example-request"
                   }
-                }
-              }
-            }
-          },
-          "304": {
-            "description": "Not modified. No response body; reuse the matching cached representation.",
-            "headers": {
-              "X-Request-ID": {
-                "description": "Correlation ID for support and diagnostics.",
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Cache-Control": {
-                "description": "Caching policy. Versioned GETs may be cached; chat and route replies are no-store.",
-                "schema": {
-                  "type": "string"
                 }
               }
             }
@@ -5883,6 +5883,23 @@
               }
             }
           },
+          "304": {
+            "description": "Not modified. No response body; reuse the matching cached representation.",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for support and diagnostics.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "Caching policy. Versioned GETs may be cached; chat and route replies are no-store.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
           "400": {
             "description": "The request contains invalid fields.",
             "headers": {
@@ -6134,23 +6151,6 @@
                     "message": "A required service is temporarily unavailable.",
                     "requestId": "example-request"
                   }
-                }
-              }
-            }
-          },
-          "304": {
-            "description": "Not modified. No response body; reuse the matching cached representation.",
-            "headers": {
-              "X-Request-ID": {
-                "description": "Correlation ID for support and diagnostics.",
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Cache-Control": {
-                "description": "Caching policy. Versioned GETs may be cached; chat and route replies are no-store.",
-                "schema": {
-                  "type": "string"
                 }
               }
             }

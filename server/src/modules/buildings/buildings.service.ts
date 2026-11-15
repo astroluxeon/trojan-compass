@@ -1,4 +1,3 @@
-// See docs/ownership.md and src/ports/service-ports.ts; no endpoint is implemented here yet.
 import type { DatasetPort, RequestScope } from "../../ports/service-ports.js";
 /** Thin data-read service: replace DatasetPort without changing the HTTP or AI layers. */
 export class BuildingsService {

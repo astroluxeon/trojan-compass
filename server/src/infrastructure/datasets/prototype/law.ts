@@ -1,4 +1,4 @@
-// Preserved prototype logic; not the canonical HTTP contract. See docs/migration.md.
+// Preserved prototype source; canonical runtime data is exported to server/data/snapshots/.
 /**
  * Musick Law Building (USC Gould School of Law), traced from the Gould building map PDF
  * (gould.usc.edu/resources/downloads/about/visit/building-map.pdf, 2022).

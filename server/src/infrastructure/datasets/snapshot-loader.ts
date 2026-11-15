@@ -2,6 +2,14 @@ import { readFile, realpath, stat } from "node:fs/promises";
 import { resolve, sep } from "node:path";
 import { SnapshotStore, type DatasetSnapshot } from "./snapshot-store.js";
 import { dataError } from "../../lib/errors.js";
+import type {
+  Building,
+  Place,
+  Scene,
+  FloorGeometry,
+} from "@trojan-compass/shared/api";
+import type { PublishedNavigation } from "./publication-format.js";
+import { publicationNavigation } from "./publication-navigation.js";
 
 /** Load a complete publication at startup. No request-controlled filenames or partial hot reloads. */
 export async function loadSnapshots(
@@ -18,6 +26,100 @@ export async function loadSnapshots(
     return JSON.parse(await readFile(actual, "utf8"));
   };
   const manifest = await read("current.json", 16_384);
+  if (manifest && typeof manifest.dataVersion === "string") {
+    const version = manifest.dataVersion;
+    if (!/^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$/.test(version))
+      throw dataError("invalid publication version");
+    const index = await read(`${version}/manifest.json`, 16384);
+    if (
+      index.dataVersion !== version ||
+      !Array.isArray(index.buildingIds) ||
+      !index.buildingIds.length ||
+      new Set(index.buildingIds).size !== index.buildingIds.length ||
+      index.buildingIds.some(
+        (id: unknown) =>
+          typeof id !== "string" ||
+          !/^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$/.test(id),
+      )
+    )
+      throw dataError("invalid building manifest");
+    const snapshot: DatasetSnapshot = {
+      dataVersion: version,
+      buildings: [],
+      places: [],
+      scenes: [],
+      floorGeometry: [],
+      navigation: [],
+    };
+    for (const id of index.buildingIds as string[]) {
+      const base = `${version}/buildings/${id}/`;
+      const building = (await read(
+        base + "building.json",
+        1024 * 1024,
+      )) as Building;
+      const places = (await read(
+        base + "places.json",
+        8 * 1024 * 1024,
+      )) as Place[];
+      const scene = (await read(base + "scene.json", 1024 * 1024)) as Scene;
+      const floorRecords = await read(base + "floors.json", 1024 * 1024);
+      if (
+        building.id !== id ||
+        JSON.stringify(floorRecords) !== JSON.stringify(building.floors)
+      )
+        throw dataError("published floor records disagree");
+      const viewerBase = process.env.VIEWER_BASE_URL ?? "http://localhost:3000";
+      const apiBase =
+        process.env.PUBLIC_API_BASE_URL ?? "http://127.0.0.1:4000";
+      building.viewerUrl = new URL(building.viewerUrl, viewerBase).href;
+      scene.viewerUrl = new URL(scene.viewerUrl, viewerBase).href;
+      for (const f of scene.floors)
+        f.geometryUrl = new URL(f.geometryUrl, apiBase).href;
+      snapshot.buildings.push(building);
+      snapshot.places.push(...places);
+      snapshot.scenes.push(scene);
+      for (const f of building.floors) {
+        if (!/^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$/.test(f.id))
+          throw dataError("unsafe floor id");
+        snapshot.floorGeometry.push(
+          (await read(
+            base + `geometry/${f.id}.json`,
+            8 * 1024 * 1024,
+          )) as FloorGeometry,
+        );
+      }
+      const topology = await read(
+        base + "navigation/topology.json",
+        8 * 1024 * 1024,
+      );
+      const source: PublishedNavigation = {
+        ...topology,
+        buildingId: id,
+        dataVersion: version,
+        walkable: await read(
+          base + "navigation/walkable-areas.json",
+          8 * 1024 * 1024,
+        ),
+        barriers: await read(
+          base + "navigation/barriers.json",
+          8 * 1024 * 1024,
+        ),
+        connectors: await read(
+          base + "navigation/connectors.json",
+          1024 * 1024,
+        ),
+      };
+      snapshot.navigation.push(
+        publicationNavigation(
+          source,
+          building,
+          places,
+          snapshot.floorGeometry.filter((g) => g.buildingId === id),
+        ),
+      );
+    }
+    return new SnapshotStore([snapshot], version, options);
+  }
   if (
     !manifest ||
     typeof manifest.currentVersion !== "string" ||

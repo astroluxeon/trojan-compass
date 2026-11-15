@@ -1,6 +1,6 @@
 # Backend implementation and integration guide
 
-The agreed HTTP contract remains `shared/contracts/openapi.yaml` / `openapi.json`. No account, campus-code, public editing, event-feed, or image-analysis module has been added. The Swift directory remains a placeholder. This guide describes the implemented backend and the boundary with the dataset and renderer owners.
+The agreed HTTP contract remains `shared/contracts/openapi.yaml` / `openapi.json`. No account, campus-code, public editing, event-feed, or image-analysis module has been added. This integration leaves the current Swift directory and its separate pull request unchanged. This guide describes the implemented backend and the boundary with the dataset and renderer owners.
 
 ## Architecture and ownership
 
@@ -56,7 +56,7 @@ npm run typecheck
 npm run build
 ```
 
-The development adapter exposes the existing prototype places and authored entrances under `prototype-v1`. It preserves room IDs, scales horizontal coordinates deliberately, and declares illustrative accuracy. It does not publish the legacy guessed navigation graph or a new scene manifest. Therefore ordinary lookup works, `/scene` is unavailable until a real manifest is supplied, and canonical routes are disabled for these prototype buildings.
+Development defaults to `DATASET_MODE=files` with the bundled `server/data/snapshots/` publication. The API-backed viewer loads the same versioned records, geometry and coordinates used by search, chat and routing. The publication is illustrative and unverified; production startup intentionally rejects it. `DATASET_MODE=prototype` remains an explicit compatibility mode with a development preview endpoint; the current viewer uses file-backed `/api/routes`.
 
 Copy `server/.env.example` to `server/.env` for configuration. To enable real AI interpretation, set `AI_PROVIDER=openai`, `OPENAI_API_KEY`, and `OPENAI_MODEL` to a model available to your account with structured-output support. No key or model is invented, and no canned fallback impersonates the provider. With `AI_PROVIDER=disabled`, chat returns `501 FEATURE_DISABLED`; search still works.
 
@@ -68,21 +68,21 @@ Every API path below starts with `/api`. Canonical identifiers are case-sensitiv
 
 GET requests may omit `dataVersion` only for initial discovery. Capture the returned version and send it with related reads, routes, and chat. POST bodies require `dataVersion` and a UUID `clientRequestId`. The server echoes the latter so clients can discard stale results; it is not a persistence or idempotency key.
 
-| Method and endpoint | Inputs | Response and behavior |
-| --- | --- | --- |
-| GET `/health` | Optional `X-Request-ID` | `{status: "ok", service: "trojan-compass-api"}`; no model call; no caching. |
-| GET `/buildings` | `q`, `limit`, `cursor`, `dataVersion` | `BuildingListResponse`; empty query lists by code; aliases included in matching. |
-| GET `/buildings/{buildingId}` | `dataVersion` | `BuildingResponse`; metadata, capabilities, floors, bounds, coordinates, provenance. |
-| GET `/buildings/{buildingId}/floors` | `dataVersion` | `FloorListResponse`; floor order comes from `sortOrder`, not lexical floor IDs. |
-| GET `/buildings/{buildingId}/floors/{floorId}` | `dataVersion` | `FloorResponse`; floor, its places, and optional procedural geometry. Missing geometry is null. |
-| GET `/buildings/{buildingId}/places` | `q`, `floorId`, `kind`, `limit`, `cursor`, `dataVersion` | `PlaceListResponse`; empty query lists the building's filtered places. |
-| GET `/buildings/{buildingId}/places/{placeId}` | `dataVersion` | `PlaceResponse`; canonical location, access-point references, and optional scene object key. |
-| GET `/places` | `q`, `buildingId`, `floorId`, `kind`, `stepFree`, `limit`, `cursor`, `dataVersion` | `PlaceSearchResponse`; unscoped empty query returns no results. `floorId` requires `buildingId`. |
-| GET `/buildings/{buildingId}/scene` | `representation=auto\|procedural\|glb\|usdz`, `dataVersion` | `SceneResponse`; returns a published scene, never generates a building. Unsupported representation returns 406; absent scene returns 501. |
-| POST `/routes` | `RouteRequest` | `RouteResponse`; computed path, normalized endpoints, geometry, instructions, estimates, warnings. |
-| POST `/chat` | `ChatTextRequest` | `ChatResponse`; resolved actions, clarification candidates, not-found, no-route, or unsupported turn. |
-| GET `/buildings/{buildingId}/graph` | `dataVersion`; deployment must enable `EXPOSE_GRAPH` | `GraphResponse`; validated source graph for inspection. Normal clients use `/routes`. |
-| GET `/events`, `/events/{eventId}` | Deferred | 501 `FEATURE_DISABLED`. |
+| Method and endpoint                            | Inputs                                                                             | Response and behavior                                                                                                                     |
+| ---------------------------------------------- | ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| GET `/health`                                  | Optional `X-Request-ID`                                                            | `{status: "ok", service: "trojan-compass-api"}`; no model call; no caching.                                                               |
+| GET `/buildings`                               | `q`, `limit`, `cursor`, `dataVersion`                                              | `BuildingListResponse`; empty query lists by code; aliases included in matching.                                                          |
+| GET `/buildings/{buildingId}`                  | `dataVersion`                                                                      | `BuildingResponse`; metadata, capabilities, floors, bounds, coordinates, provenance.                                                      |
+| GET `/buildings/{buildingId}/floors`           | `dataVersion`                                                                      | `FloorListResponse`; floor order comes from `sortOrder`, not lexical floor IDs.                                                           |
+| GET `/buildings/{buildingId}/floors/{floorId}` | `dataVersion`                                                                      | `FloorResponse`; floor, its places, and optional procedural geometry. Missing geometry is null.                                           |
+| GET `/buildings/{buildingId}/places`           | `q`, `floorId`, `kind`, `limit`, `cursor`, `dataVersion`                           | `PlaceListResponse`; empty query lists the building's filtered places.                                                                    |
+| GET `/buildings/{buildingId}/places/{placeId}` | `dataVersion`                                                                      | `PlaceResponse`; canonical location, access-point references, and optional scene object key.                                              |
+| GET `/places`                                  | `q`, `buildingId`, `floorId`, `kind`, `stepFree`, `limit`, `cursor`, `dataVersion` | `PlaceSearchResponse`; unscoped empty query returns no results. `floorId` requires `buildingId`.                                          |
+| GET `/buildings/{buildingId}/scene`            | `representation=auto\|procedural\|glb\|usdz`, `dataVersion`                        | `SceneResponse`; returns a published scene, never generates a building. Unsupported representation returns 406; absent scene returns 501. |
+| POST `/routes`                                 | `RouteRequest`                                                                     | `RouteResponse`; computed path, normalized endpoints, geometry, instructions, estimates, warnings.                                        |
+| POST `/chat`                                   | `ChatTextRequest`                                                                  | `ChatResponse`; resolved actions, clarification candidates, not-found, no-route, or unsupported turn.                                     |
+| GET `/buildings/{buildingId}/graph`            | `dataVersion`; deployment must enable `EXPOSE_GRAPH`                               | `GraphResponse`; validated source graph for inspection. Normal clients use `/routes`.                                                     |
+| GET `/events`, `/events/{eventId}`             | Deferred                                                                           | 501 `FEATURE_DISABLED`.                                                                                                                   |
 
 Search text is at most 200 characters. Limits are integers 1–100, default 20. Query booleans accept exactly `true` or `false`. Repeated or unknown parameters are rejected. JSON bodies are limited to one MiB; chat text to 4,000 characters and history to 20 user/assistant messages of at most 4,000 characters each. Multipart chat returns `501 IMAGE_INPUT_DISABLED` before parsing uploads.
 
@@ -98,8 +98,8 @@ GET responses use stable ETags excluding the request ID and `private, no-cache` 
 {
   "clientRequestId": "d49b977a-3cda-45c3-9dd9-bf0a281b8a11",
   "dataVersion": "your-published-version",
-  "origin": {"kind": "place", "buildingId": "LAW", "placeId": "LAW-101"},
-  "destination": {"kind": "place", "buildingId": "LAW", "placeId": "LAW-103"},
+  "origin": { "kind": "place", "buildingId": "LAW", "placeId": "LAW-101" },
+  "destination": { "kind": "place", "buildingId": "LAW", "placeId": "LAW-103" },
   "mode": "fastest",
   "stepFree": false,
   "accessProfile": "public"
@@ -159,25 +159,27 @@ Only `status=resolved` may change the map. `needs_clarification`, `not_found`, `
 
 ## Teammate dataset handoff
 
-Implement the methods in `server/src/ports/service-ports.ts`, or export a normalized `DatasetSnapshot` for the included adapter. The public HTTP contract is unchanged. The internal navigation input is now defined in `ports/navigation-source.ts` and validated in `modules/routing/source-schema.ts` plus domain checks in `graph-store.ts`.
+The published authoring-file adapter already implements `DatasetPort`. A future dataset may use the same files, implement the methods in `server/src/ports/service-ports.ts`, or export a normalized `DatasetSnapshot`. The public HTTP contract is unchanged. The internal navigation input is now defined in `ports/navigation-source.ts` and validated in `modules/routing/source-schema.ts` plus domain checks in `graph-store.ts`.
 
-| Source field | What the data owner supplies |
-| --- | --- |
-| `buildingId`, `dataVersion`, `provenance` | Stable canonical identity, immutable publication version, truthful source/verification metadata. |
-| `nodes`, `edges` | Floor-scoped positions, directed connectivity, actual polyline lengths, access and step-free claims. Node IDs must be unique per building. |
-| `geometry` | Null for place-to-place graph-only routing; otherwise floor records with elevation, bounds, public walkable regions, and blocked polygons. Missing floor geometry disables picks on that floor. |
-| `edgeDetails` | Exactly one record per edge: oriented geometry, involved region IDs, door/connector reference, access evidence, estimated-metric flag. |
-| `doors` | Regions on each side or an outside side, floor, allowed direction, edge IDs, and access evidence. Room/corridor crossings require explicit door edges. |
-| `connectors` | Stairs/elevator/ramp identity, served floors, connector edge IDs, and access evidence. Cross-floor edges require matching connectors. |
-| `placeAccessBindings` | Every place access point mapped to an existing node, floor, region (or null for graph-only input), door if applicable, policy-dependent approach edges, and evidence. |
-| `referenceEntrances` | Documented entry-allowed entrance place/access-point pairs for accessibility search. |
-| `evidence` | Unique evidence IDs with source URLs, verification timestamp, step-free status, and note. Unknown evidence must stay unknown. |
+| Source field                              | What the data owner supplies                                                                                                                                                                    |
+| ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `buildingId`, `dataVersion`, `provenance` | Stable canonical identity, immutable publication version, truthful source/verification metadata.                                                                                                |
+| `nodes`, `edges`                          | Floor-scoped positions, directed connectivity, actual polyline lengths, access and step-free claims. Node IDs must be unique per building.                                                      |
+| `geometry`                                | Null for place-to-place graph-only routing; otherwise floor records with elevation, bounds, public walkable regions, and blocked polygons. Missing floor geometry disables picks on that floor. |
+| `edgeDetails`                             | Exactly one record per edge: oriented geometry, involved region IDs, door/connector reference, access evidence, estimated-metric flag.                                                          |
+| `doors`                                   | Regions on each side or an outside side, floor, allowed direction, edge IDs, and access evidence. Room/corridor crossings require explicit door edges.                                          |
+| `connectors`                              | Stairs/elevator/ramp identity, served floors, connector edge IDs, and access evidence. Cross-floor edges require matching connectors.                                                           |
+| `placeAccessBindings`                     | Every place access point mapped to an existing node, floor, region (or null for graph-only input), door if applicable, policy-dependent approach edges, and evidence.                           |
+| `referenceEntrances`                      | Documented entry-allowed entrance place/access-point pairs for accessibility search.                                                                                                            |
+| `evidence`                                | Unique evidence IDs with source URLs, verification timestamp, step-free status, and note. Unknown evidence must stay unknown.                                                                   |
 
-Polygon rings must be closed, finite, nonzero-area, non-self-intersecting, with strictly interior, non-overlapping holes. Edges must follow their declared walkable regions and avoid barriers, including thin barriers between endpoints. Runtime validation checks references, directions, floor membership, geometry endpoints, and physical distances. The adapter does not infer missing walls, corridors, doors, or georeferencing.
+Polygon rings must be closed, finite, nonzero-area, non-self-intersecting, with strictly interior, non-overlapping holes. Edges must follow their declared walkable regions and avoid barriers, including thin barriers between endpoints. Runtime validation checks references, directions, floor membership, geometry endpoints, and physical distances. The adapter does not invent missing walls, doors, vertical connectors or georeferencing. For the current publication it derives open corridor regions from slab boxes minus closed rooms and blocked areas, and validates every resulting edge against those polygons. Disconnected corridor components may be joined only by an unobstructed segment wholly within published public corridor space. Derived links never change source files or establish accessibility evidence. `openAreaApproaches: true` allows a picked point to walk to a visible corridor connection instead of snapping across a large distance; without that flag, the two-meter snap limit remains.
 
 For a graph-only publication set `geometry: null`, use empty edge region lists, and set binding `regionId: null`. Door records that reference interior regions require geometry; graph-only data may use appropriately documented public access-point/edge policy without accepting arbitrary picks. `navigation=false` requires no source graph. `verifiedStepFreeRouting` should reflect actual coverage; proof still must pass the route engine.
 
-The reference file adapter loads a complete publication at startup:
+The file adapter accepts the teammate's existing publication layout directly: `current.json` contains `{dataVersion}`, followed by a version manifest and `buildings/{id}/{building,places,floors,scene}.json`, `geometry/{floorId}.json`, and the four navigation files. Source records remain immutable. Scene URLs resolve against `VIEWER_BASE_URL` and `PUBLIC_API_BASE_URL` (development defaults: localhost:3000 and 127.0.0.1:4000); configure public HTTPS origins for mobile/deployment. This layout currently retains one active version. Use the normalized bundle format below for multiple retained versions.
+
+The same loader also accepts a normalized publication:
 
 ```text
 DATASET_ROOT/
@@ -187,10 +189,13 @@ DATASET_ROOT/
 ```
 
 ```json
-{"currentVersion":"version-b","availableVersions":["version-a","version-b"]}
+{
+  "currentVersion": "version-b",
+  "availableVersions": ["version-a", "version-b"]
+}
 ```
 
-Each `dataset.json` contains `{dataVersion, buildings, places, scenes, floorGeometry, navigation}` arrays matching `DatasetSnapshot`. This is a normalized export bundle: the teammate can continue authoring separate `building.json`, `floors.json`, scene, geometry, and navigation files and export the bundle, or inject another `DatasetPort`. Do not rewrite source authoring files into runtime cache structures.
+Each `dataset.json` contains `{dataVersion, buildings, places, scenes, floorGeometry, navigation}` arrays matching `DatasetSnapshot`. This is an alternative normalized export bundle; no migration of the current authoring files is required. Do not rewrite source authoring files into runtime cache structures.
 
 The loader accepts at most eight versions and 32 MiB per bundle, rejects traversal/symlink escapes, freezes records, and checks cross-record references. Each navigation source is limited to 50,000 nodes/edges, 100,000 total geometry/polyline points, and bounded rings/arrays. Production refuses demo or unreviewed building/navigation provenance; these declarations still require real human/source verification outside the algorithm.
 
@@ -205,34 +210,34 @@ Create a new version directory completely before atomically replacing `current.j
 
 ## Web and mobile integration
 
-The web search, chat and Directions panels call the backend. `web/src/lib/api-client.ts` supplies transport helpers for all core reads, chat, published routes and explicit development preview routes, with timeouts, cancellation, version checks, and POST UUID matching. `useRoute` covers location resolution and path requests under one cancellation generation. Editing inputs, changing preferences, or clearing a route cancels old work. `route-scene.ts` explicitly converts meter coordinates into the existing model scale; Y is already in meters. The green route overlay and sidebar steps use the returned geometry.
+The web search, chat and Directions panels call the backend. `web/src/lib/api-client.ts` supplies timeouts, cancellation, version checks, and POST request-ID matching. `LatestRequest` coordinates all asynchronous map mutations. A newer query, location change, floor selection, or unmount invalidates pending work. `ViewerSession` stages and validates every building/floor/place in an action batch before installing any viewer state; failed or stale batches cannot partially replace the scene. Failed search preserves the current selection, while editing direction inputs or preferences clears a now-obsolete route.
 
-The existing renderer still uses prototype geometry. `map-action-adapter.ts` accepts only known prototype focus/highlight actions. The Directions panel explicitly uses `POST /api/preview/routes` for this model. This development-only extension takes `RouteRequest` and returns `RouteResponse`; it is registered only when the server runs a non-production prototype dataset. It is not registered in production or file-publication mode, and `/api/routes` never falls back to it. Preview routes preserve `verifiedStepFree: false`, estimated metrics and unverified/demo provenance. Elevator preferences exclude stair connections in the illustration but do not certify campus accessibility.
+The viewer consumes published scene manifests and floor geometry. Both geometry and route positions are already in building-local meters, with Y up. `route-scene.ts` adds only a small rendering lift; it does not divide horizontal coordinates by the old prototype scale. Stable place IDs survive map picks, including two restrooms with the same label. Saved-link routes, manual controls and AI route actions all use canonical `/api/routes` behavior, with no fallback to preview routing.
 
-`PreviewRoutingService` derives a bounded, cached visibility graph from the displayed slab outlines, closed-cell walls, door gaps and named floor connectors. Segment clipping prevents crossing closed rooms or leaving the illustrated footprint. Picked endpoints attach in a request-local graph; closed rooms connect through their modeled door. A time-weighted heap search applies stair/elevator preferences. The frontend preserves a picked amenity ID even if two restrooms have the same display label. Route calculations do not run in the browser. The older saved-link route code remains a compatibility path; new Directions submissions use the backend.
+The Directions view retains the header, sidebar, building model and floor controls. Walking legs draw green lines with destination-facing arrows. Vertical legs remain distinct and draw upright translucent blue markers with an up/down platform and a clickable destination-floor label. The marker encloses the actual landing positions without drawing a diagonal walking line between offset floors; it is a symbolic indicator, not surveyed shaft geometry. Motion respects reduced-motion preferences. Sidebar steps change the selected floor and emphasize the active leg.
 
-The current Directions view keeps the existing header, sidebar, model and floor controls. It adds a green path with destination-facing chevrons, loading/errors, distance/time estimates and previous/next instructions that change the selected floor and emphasize a route segment. Floor changes use an upright translucent blue rectangular marker, an ascending/descending platform and a clickable destination-floor label. The marker encloses the true landing positions without drawing a diagonal walking line between offset floors or changing backend geometry; it is a symbolic indicator, not surveyed shaft geometry. Motion respects the device’s reduced-motion preference. Real publication scenes still require the data/rendering teammate’s manifest and coordinate mapping; the preview is not a verified USC navigation dataset.
+`PreviewRoutingService` remains available only in explicit non-production prototype mode for compatibility tests. It is not used by the published viewer and never replaces a failed canonical route. The default file publication still contains inferred geometry and unknown accessibility. See `docs/integration-review.md` for current data gaps and the acceptance matrix.
 
 The mobile teammate should implement native decoding of the same shared schemas, initial version discovery, cancellable requests, stale-response checks, all chat statuses, and the four action variants. Rendering/camera/gestures stay local. Fetch assets from scene metadata; keep network positions in canonical meters and apply an explicit renderer transform. A GLB/ USDZ choice is a scene negotiation, not a different backend. An actual iPhone uses the hosted HTTPS backend, not its own `localhost`.
 
 ## Errors and operations
 
-| Status/code | Client behavior |
-| --- | --- |
-| 400 `INVALID_REQUEST` | Correct the indicated fields; no automatic retry. |
-| 404 `RESOURCE_NOT_FOUND` | Discard missing selection or show unavailable location. |
-| 406 `REPRESENTATION_UNAVAILABLE` | Use `auto` or a listed supported scene format. |
-| 409 `DATA_VERSION_MISMATCH` | Clear mixed-version state and rediscover. |
-| 410 `DATA_VERSION_UNAVAILABLE` | Rediscover the directory and clear old scene/route state. |
-| 413 / 415 | Reduce body size or send uncompressed UTF-8 JSON. |
-| 422 `INVALID_POSITION` | Ask for another public map pick or listed place. |
-| 422 `NO_ROUTE` | Show no route for these endpoints/preferences. |
-| 422 `UNVERIFIED_ACCESSIBILITY` | Explain missing verification; do not draw a supposedly accessible path. |
-| 422 `OUTDOOR_NETWORK_UNAVAILABLE` | Keep the destination searchable; explain cross-building routing is unavailable. |
-| 429 `RATE_LIMITED` | Honor `Retry-After`; do not retry rapidly. |
-| 501 `FEATURE_DISABLED` / `IMAGE_INPUT_DISABLED` | Hide or explain the unavailable capability. |
-| 503 / 504 | Offer a user-initiated retry; keep manual search usable when AI is unavailable. |
-| 500 `INTERNAL_ERROR` | Show the request ID; internal exception text is not returned. |
+| Status/code                                     | Client behavior                                                                 |
+| ----------------------------------------------- | ------------------------------------------------------------------------------- |
+| 400 `INVALID_REQUEST`                           | Correct the indicated fields; no automatic retry.                               |
+| 404 `RESOURCE_NOT_FOUND`                        | Discard missing selection or show unavailable location.                         |
+| 406 `REPRESENTATION_UNAVAILABLE`                | Use `auto` or a listed supported scene format.                                  |
+| 409 `DATA_VERSION_MISMATCH`                     | Clear mixed-version state and rediscover.                                       |
+| 410 `DATA_VERSION_UNAVAILABLE`                  | Rediscover the directory and clear old scene/route state.                       |
+| 413 / 415                                       | Reduce body size or send uncompressed UTF-8 JSON.                               |
+| 422 `INVALID_POSITION`                          | Ask for another public map pick or listed place.                                |
+| 422 `NO_ROUTE`                                  | Show no route for these endpoints/preferences.                                  |
+| 422 `UNVERIFIED_ACCESSIBILITY`                  | Explain missing verification; do not draw a supposedly accessible path.         |
+| 422 `OUTDOOR_NETWORK_UNAVAILABLE`               | Keep the destination searchable; explain cross-building routing is unavailable. |
+| 429 `RATE_LIMITED`                              | Honor `Retry-After`; do not retry rapidly.                                      |
+| 501 `FEATURE_DISABLED` / `IMAGE_INPUT_DISABLED` | Hide or explain the unavailable capability.                                     |
+| 503 / 504                                       | Offer a user-initiated retry; keep manual search usable when AI is unavailable. |
+| 500 `INTERNAL_ERROR`                            | Show the request ID; internal exception text is not returned.                   |
 
 Default lookup/routing budget is 10 seconds; chat is 45 seconds. The browser allows 15/60 seconds respectively. Disconnects and shutdown abort request work. CPU-intensive loops check a monotonic deadline and yield; shared preparation has its own budget so one caller's cancellation cannot cancel everyone else's graph/index. Failed cache preparations are evicted. Elevator/route calculations use request-local overlays.
 
@@ -252,6 +257,6 @@ docker build -f server/Dockerfile -t trojan-compass-api .
 
 The image includes compiled server code and the authoritative schema, not frontend assets or credentials. Production needs `CURSOR_SECRET`, a reviewed dataset publication, exact HTTPS browser origins, and provider settings if chat is enabled. Use your secret manager; do not bake credentials into images or commit them.
 
-CI runs installation, type checking, compatibility drift checks, behavioral tests, and a production build. Tests cover wire fixtures, request/error envelopes, normalization/pagination, directionality, room doors, two picks on one edge, simultaneous requests, elevator cost, accessibility proof, invalid geometry, immutable snapshots, publication boundaries, chat clarification, provider admission, cancellation, CORS, and cache validators.
+CI runs installation, type checking, compatibility drift checks, behavioral tests, a production build, and an HTTP smoke run through the built Next.js proxy. Smoke chat uses a fixed intent fixture, not a live provider. Tests cover wire fixtures, request/error envelopes, normalization/pagination, directionality, room doors, two picks on one edge, simultaneous requests, elevator cost, accessibility proof, invalid geometry, immutable snapshots, publication boundaries, chat clarification, provider admission, cancellation, CORS, and cache validators.
 
-A passing build/test suite establishes the implementation behavior. Launch readiness additionally requires real dataset and accessibility review, an exercised live model configuration, renderer/mobile integration for the published scenes, and representative deployment load testing. This change supplies the code and tests for Eddie's portion; it does not invent those external inputs.
+A passing build/test suite establishes the implementation behavior. Launch readiness additionally requires real dataset and accessibility review, an exercised live model configuration, physical-device/mobile integration for the published scenes, and representative deployment load testing. This change supplies the code and tests for Eddie's portion; it does not invent those external inputs.

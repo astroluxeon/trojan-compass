@@ -4,7 +4,7 @@ export function buildingCode(place) {
   const code = place.code || place.name.match(/\(([A-Z]+)\)$/)?.[1]
   if (SUPPORTED_CODES.includes(code)) return code
   // USC renamed the former Von KleinSmid Center; the interior demo still uses VKC.
-  if (/Medicine Crow/i.test(place.name)) return 'VKC'
+  if (code === 'DMC' || /Medicine Crow/i.test(place.name)) return 'VKC'
   return null
 }
 

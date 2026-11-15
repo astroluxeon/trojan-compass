@@ -22,6 +22,8 @@ export type WalkableRegion = {
   access: TraversalAccess;
 };
 export type NavigationFloor = {
+  /** Full open-floor polygons permit walked approaches beyond the 2 m snap band. */
+  openAreaApproaches?: boolean;
   floorId: string;
   elevationMeters: number;
   bounds: Bounds3;

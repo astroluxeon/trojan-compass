@@ -10,8 +10,6 @@ import {
 } from "./integrations/ai/provider-adapter.js";
 import { createServices, prepareServices } from "./bootstrap/services.js";
 import { PreviewRoutingService } from "./modules/routing/preview/preview-routing.service.js";
-import { DemoCatalog } from "./modules/catalog/demo-catalog.js";
-import { ChatService } from "./modules/chat/chat.service.js";
 
 const config = readConfig();
 const datasets =
@@ -32,16 +30,6 @@ const services = createServices(
   intent,
 );
 await prepareServices(services, datasets.versions());
-const previewRouting =
-  !config.production && config.datasetMode === "prototype"
-    ? new PreviewRoutingService()
-    : undefined;
-const catalog = previewRouting ? new DemoCatalog() : undefined;
-if (catalog)
-  await catalog.validateLocations(datasets, {
-    requestId: "catalog-startup",
-    dataVersion: datasets.currentVersion,
-  });
 const shutdown = new AbortController();
 const log = (event: Record<string, unknown>) =>
   process.stdout.write(JSON.stringify(event) + "\n");
@@ -50,17 +38,9 @@ const server = createServer(
     ...config,
     shutdownSignal: shutdown.signal,
     log,
-    previewRouting,
-    demo:
-      catalog && previewRouting
-        ? {
-            catalog,
-            chat: new ChatService(
-              { datasets, search: services.search, routing: previewRouting },
-              intent,
-              catalog,
-            ),
-          }
+    previewRouting:
+      !config.production && config.datasetMode === "prototype"
+        ? new PreviewRoutingService()
         : undefined,
   }),
 );

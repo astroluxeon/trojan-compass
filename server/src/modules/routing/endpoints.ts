@@ -251,28 +251,103 @@ export async function prepareEndpoints(
       )
         best = { ...projection, edgeId: edge.id, policy };
     }
-    if (!best)
+    if (!best && !floor.openAreaApproaches)
       throw invalidPosition(
         "No wall-safe corridor connection was found within two meters.",
       );
-    const edge = graph.edges.get(best.edgeId)!;
+    if (floor.openAreaApproaches && (!best || best.distance > EPS)) {
+      // An open-area pick is a walked approach, never a long-distance snap.
+      // Only connect through public corridor/landing polygons, retaining walls
+      // and room doors as barriers. These arcs exist only for this request.
+      const publicRegions = floor.walkableRegions.filter(
+        (r) => r.kind !== "room" && graph.policy(r.access).public,
+      );
+      const allowed = publicRegions.map((r) => r.polygon);
+      const blocked = floor.blockedRegions.map((r) => r.polygon);
+      const verified = publicRegions
+        .filter((r) => graph.policy(r.access).stepFree === "verified_yes")
+        .map((r) => r.polygon);
+      const possible = publicRegions
+        .filter((r) => graph.policy(r.access).stepFree !== "verified_no")
+        .map((r) => r.polygon);
+      const id = pickId();
+      const policies: Policy[] = [];
+      for (const node of graph.nodes.values()) {
+        await checkpoint(scope, count++);
+        if (
+          node.floorId !== ref.floorId ||
+          node.kind !== "corridor" ||
+          !graph.adjacency.get(node.id)?.length
+        )
+          continue;
+        if (!segmentWalkable(p, node.position, allowed, blocked)) continue;
+        const policy: Policy = {
+          public: true,
+          stepFree: segmentWalkable(p, node.position, verified, blocked)
+            ? "verified_yes"
+            : segmentWalkable(p, node.position, possible, blocked)
+              ? "unknown"
+              : "verified_no",
+        };
+        const arc: Arc = {
+          id: `${id}:${node.id}`,
+          edgeId: id,
+          from: id,
+          to: node.id,
+          kind: "walkway",
+          points: [p, node.position],
+          distance: distance(p, node.position),
+          connectorId: null,
+          policy,
+          metricsEstimated: true,
+        };
+        if (role === "origin") addArc(arc);
+        else
+          addArc({ ...arc, from: node.id, to: id, points: [node.position, p] });
+        policies.push(policy);
+      }
+      if (!policies.length)
+        throw invalidPosition(
+          "No wall-safe connection to the published corridors was found. Choose another point or a listed place.",
+        );
+      floorForNode.set(id, ref.floorId);
+      // The endpoint inherits its region; each approach retains its own policy.
+      return [
+        result(
+          id,
+          p,
+          0,
+          combinePolicy(
+            ...regions
+              .filter((r) => r.kind !== "room")
+              .map((r) => graph.policy(r.access)),
+          ),
+        ),
+      ];
+    }
+    const edge = graph.edges.get(best!.edgeId)!;
     const end = polylineLength(graph.details.get(edge.id)!.points);
     const id =
-      best.offset < EPS
+      best!.offset < EPS
         ? edge.fromNodeId
-        : end - best.offset < EPS
+        : end - best!.offset < EPS
           ? edge.toNodeId
           : pickId();
     if (!graph.nodes.has(id)) {
       breaks.set(edge.id, [
         ...(breaks.get(edge.id) ?? []),
-        { id, point: best.point, offset: best.offset },
+        { id, point: best!.point, offset: best!.offset },
       ]);
       floorForNode.set(id, ref.floorId);
       adjacency.set(id, []);
     }
     return [
-      result(id, best.point, distance(ref.position, best.point), best.policy),
+      result(
+        id,
+        best!.point,
+        distance(ref.position, best!.point),
+        best!.policy,
+      ),
     ];
   };
   const origins = await prepare(origin, "origin");

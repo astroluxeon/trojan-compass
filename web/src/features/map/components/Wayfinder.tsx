@@ -1,213 +1,621 @@
-'use client'
+"use client";
 
-import dynamic from 'next/dynamic'
-import { useSearchParams } from 'next/navigation'
-import { useEffect, useMemo, useState } from 'react'
-import { cellCenter, cellTitle, findCell, getLevels, metersPerUnit } from '../data/generated/floorplan'
-import { readDeepLink } from '../map-link'
-import { mapLocationFromQuery } from '../map-location'
-import type { Route } from '../../routing/legacy/routing.generated'
-import { COLORS, type LayerKey, type MapLocation, type View } from '../types'
-import { AppShellFallback, MapLoading } from '../../../components/layout/AppShellFallback'
-import { Header } from '../../../components/layout/Header'
-import { FloorTools, type LocationField } from './FloorTools'
-import { Breadcrumb, CampusHint, FloorSelector, LayerPanel, RouteBar } from './MapOverlays'
-import { prototypeMapAction } from '@/features/chat/map-action-adapter'
-import { useRoute } from '@/features/routing/hooks/useRoute'
-import { directionsInput, mapLocationRef } from '@/features/routing/directions-input'
-import type { RouteMode } from '@trojan-compass/shared/api'
-import type { BuildingCode } from '../data/generated/campus'
+import dynamic from "next/dynamic";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
+import type {
+  ChatTextRequest,
+  ChatResponse,
+  LocationRef,
+  MapAction,
+  RouteMode,
+  Route as ApiRoute,
+} from "@trojan-compass/shared";
+import {
+  client,
+  compassApi,
+  APIRequestError,
+  clientRequestId,
+} from "@/lib/api-client";
+import { LatestRequest } from "@/lib/latest-request";
+import { ViewerSession } from "../api-viewer";
+import { parseMapLink } from "../map-link-input";
+import {
+  cellCenter,
+  cellTitle,
+  getLevels,
+  getPlaces,
+  floorY,
+} from "../data/viewer-data";
+import type { Route } from "../../routing/viewer-route";
+import { COLORS, type LayerKey, type MapLocation, type View } from "../types";
+import { MapLoading } from "@/components/layout/AppShellFallback";
+import { Header } from "@/components/layout/Header";
+import { FloorTools, type LocationField } from "./FloorTools";
+import { Breadcrumb, FloorSelector, LayerPanel } from "./MapOverlays";
 
-const MapCanvas = dynamic(() => import('../renderer/MapCanvas').then((m) => m.MapCanvas), {
-  ssr: false,
-  loading: () => <MapLoading />,
-})
-
-const DEFAULT_LAYERS: LayerKey[] = ['classrooms', 'mensRestrooms', 'womensRestrooms', 'ramps', 'elevators', 'stairs', 'entrances']
-
+const MapCanvas = dynamic(
+  () => import("../renderer/MapCanvas").then((m) => m.MapCanvas),
+  {
+    ssr: false,
+    loading: () => <MapLoading />,
+  },
+);
+const DEFAULT_LAYERS: LayerKey[] = [
+  "classrooms",
+  "mensRestrooms",
+  "womensRestrooms",
+  "ramps",
+  "elevators",
+  "stairs",
+  "entrances",
+];
 export default function Wayfinder() {
-  const searchParams = useSearchParams()
-  const [link] = useState(() => readDeepLink(new URLSearchParams(searchParams.toString())))
-  const [view, setView] = useState<View>(link.view)
-  const [layers, setLayers] = useState<Set<LayerKey>>(() => new Set(DEFAULT_LAYERS))
-  const [route, setRoute] = useState<Route | null>(link.route)
-  const [activeStep, setActiveStep] = useState(0)
-  const [selectedCell, setSelectedCell] = useState<string | undefined>(link.room?.id ?? link.to?.id)
-  const [locations, setLocations] = useState({ from: '', to: '' })
-  const [picking, setPicking] = useState<LocationField | null>(null)
-  const [currentLocation, setCurrentLocation] = useState<MapLocation | null>(null)
-  const [selections, setSelections] = useState<Record<LocationField, MapLocation | null>>({ from: null, to: null })
-  const directions = useRoute('prototype-v1', 'preview')
-  const [directionStep, setDirectionStep] = useState(0)
-  const [activeLegId, setActiveLegId] = useState<string | null>(null)
-
-  function clearDirections() { directions.clear(); setActiveLegId(null); setDirectionStep(0); setRoute(null) }
-  function calculateDirections(mode: RouteMode, stepFree: boolean) {
-    if (view.type !== 'building') return
-    setRoute(null); setPicking(null); setActiveLegId(null); setDirectionStep(0)
-    void directions.calculate(signal => directionsInput({ labels: locations, selections, building: view.code, mode, stepFree }, signal))
+  const params = useSearchParams();
+  const initial = useRef(params.toString());
+  const session = useRef<ViewerSession | null>(null);
+  const requests = useRef(new LatestRequest());
+  const [view, setView] = useState<View>({
+    type: "building",
+    code: "LAW",
+    floor: 1,
+  });
+  const [ready, setReady] = useState(false);
+  const [version, setVersion] = useState("");
+  const [error, setError] = useState("");
+  const [reload, setReload] = useState(0);
+  const [layers, setLayers] = useState(() => new Set(DEFAULT_LAYERS));
+  const [route, setRoute] = useState<Route | null>(null);
+  const [activeStep, setActiveStep] = useState(0);
+  const [apiRoute, setApiRoute] = useState<ApiRoute | null>(null);
+  function invalidate() {
+    requests.current.invalidate();
   }
-  function followDirection(index: number) {
-    const step = directions.route?.steps[index]
-    if (!step || !step.buildingId || step.floorId === null) return
-    setDirectionStep(index); setActiveLegId(step.legId)
-    setView({ type: 'building', code: step.buildingId as BuildingCode, floor: Number(step.floorId) })
+  function clearRoute() {
+    invalidate();
+    setRoute(null);
+    setApiRoute(null);
+    setActiveStep(0);
   }
-  useEffect(() => {
-    if (!directions.route) return
-    const { origin, destination } = directions.route
-    const code = origin.buildingId as BuildingCode, scale = metersPerUnit(code)
-    setCurrentLocation({ building: code, floor: Number(origin.floorId), x: origin.position.x / scale, z: origin.position.z / scale, label: 'Current location' })
-    if (destination.placeId && findCell(destination.placeId)) setSelectedCell(destination.placeId)
-    setView({ type: 'building', code: destination.buildingId as BuildingCode, floor: Number(destination.floorId) })
-  }, [directions.route])
+  const [selectedCell, setSelectedCell] = useState<string>();
+  const [locations, setLocations] = useState({ from: "", to: "" });
+  const [refs, setRefs] = useState<Record<LocationField, LocationRef | null>>({
+    from: null,
+    to: null,
+  });
+  const [picking, setPicking] = useState<LocationField | null>(null);
+  const [currentLocation, setCurrentLocation] = useState<MapLocation | null>(
+    null,
+  );
 
-  useEffect(() => {
-    if (link.view.type === 'campus' && !link.route) window.location.replace('http://localhost:3001')
-  }, [link])
-
-  const highlights = useMemo(() => {
-    const result = new Map<string, string>()
-    if (route?.to.kind === 'room') result.set(route.to.id, COLORS.cardinal)
-    return result
-  }, [route])
-
-  useEffect(() => {
-    const q = new URLSearchParams()
-    if (route) {
-      q.set('from', route.from.id)
-      q.set('to', route.to.id)
-      if (route.mode !== 'fastest') q.set('mode', route.mode)
-    } else if (view.type === 'building') {
-      q.set('building', view.code)
-      q.set('floor', view.allFloors ? 'all' : view.floor === 0 ? 'B' : String(view.floor))
-      if (selectedCell) q.set('room', selectedCell)
+  function fail(error: unknown) {
+    if (
+      error instanceof APIRequestError &&
+      [409, 410].includes(error.status ?? 0)
+    )
+      return "The dataset changed. Reload map data, then resolve your locations again.";
+    return error instanceof Error
+      ? error.message
+      : "The request failed. Please retry.";
+  }
+  function commit(result: Awaited<ReturnType<ViewerSession["actions"]>>) {
+    result.commit();
+    setView(result.view);
+    setSelectedCell(result.selected);
+    setRoute(result.route);
+    setApiRoute(result.wireRoute);
+    if (result.wireRoute) {
+      const { origin, destination } = result.wireRoute;
+      setView({
+        type: "building",
+        code: destination.buildingId as "LAW",
+        floor: Number(destination.floorId),
+      });
+      setCurrentLocation({
+        building: origin.buildingId as "LAW",
+        floor: Number(origin.floorId),
+        x: origin.position.x,
+        z: origin.position.z,
+        label: "Current location",
+        placeId: origin.placeId ?? undefined,
+      });
     }
-    const query = q.toString() ? `?${q}` : ''
-    if (query !== window.location.search) window.history.replaceState(null, '', window.location.pathname + query)
-  }, [view, selectedCell, route])
-
-  const goToStep = (i: number) => {
-    const step = route?.steps[i]
-    if (!step) return
-    setActiveStep(i)
-    setView(step.building ? { type: 'building', code: step.building, floor: step.floor ?? 1 } : { type: 'campus' })
+    setActiveStep(0);
+    if (result.wireRoute) {
+      const { origin, destination } = result.wireRoute;
+      setRefs({ from: origin.requested, to: destination.requested });
+      setLocations({
+        from:
+          result.places.find((p) => p.id === origin.placeId)?.displayLabel ??
+          "Selected map position",
+        to:
+          result.places.find((p) => p.id === destination.placeId)
+            ?.displayLabel ?? "Selected map position",
+      });
+    }
+    setPicking(null);
   }
+  useEffect(() => {
+    let active = true;
+    const ticket = requests.current.start();
+    async function load() {
+      try {
+        const directory = await client.buildings(ticket.signal);
+        const next = new ViewerSession(directory);
+        const link = parseMapLink(
+          new URLSearchParams(initial.current),
+          directory.items,
+        );
+        let actions: MapAction[] = [
+          {
+            type: "focus_floor",
+            buildingId: link.buildingId ?? "LAW",
+            floorId: link.floorId,
+          },
+        ];
+        const desired = await next.prepare(link.buildingId ?? "LAW");
+        if (!desired.building.floors.some((f) => f.id === link.floorId))
+          actions = [
+            { type: "focus_building", buildingId: desired.building.id },
+          ];
+        let notice = "";
+        try {
+          if (link.room) {
+            const place = await next.resolve(link.room);
+            if (
+              !link.buildingId ||
+              link.allFloors ||
+              !new URLSearchParams(initial.current).has("floor") ||
+              place.floorId === link.floorId
+            )
+              actions = [
+                {
+                  type: "focus_place",
+                  buildingId: place.buildingId,
+                  floorId: place.floorId,
+                  placeId: place.id,
+                },
+              ];
+          }
+          if (link.from && link.to) {
+            const [from, to] = await Promise.all([
+              next.resolve(link.from),
+              next.resolve(link.to),
+            ]);
+            const response = await client.route({
+              clientRequestId: clientRequestId(),
+              dataVersion: directory.dataVersion,
+              origin: {
+                kind: "place",
+                buildingId: from.buildingId,
+                placeId: from.id,
+              },
+              destination: {
+                kind: "place",
+                buildingId: to.buildingId,
+                placeId: to.id,
+              },
+              mode: link.mode,
+              stepFree: false,
+              accessProfile: "public",
+            });
+            actions = [{ type: "show_route", route: response.route }];
+          }
+        } catch (e) {
+          notice = fail(e);
+        }
+        const result = await next.actions(actions);
+        if (!active || !ticket.isCurrent()) return;
+        session.current = next;
+        setVersion(directory.dataVersion);
+        commit(result);
+        if (link.allFloors && result.view.type === "building")
+          setView({ ...result.view, allFloors: true });
+        if (!link.buildingId && !link.room && !link.from && !link.to)
+          setView({ type: "campus" });
+        setReady(true);
+        setError(notice);
+        if (!result.wireRoute) {
+          setRefs({ from: null, to: null });
+          setCurrentLocation(null);
+        }
+      } catch (e) {
+        if (active && ticket.isCurrent()) setError(fail(e));
+      }
+    }
+    void load();
+    return () => {
+      active = false;
+      invalidate();
+    };
+  }, [reload]);
 
-  const routeFloors = directions.route && view.type === 'building'
-    ? [...new Set(directions.route.legs.flatMap(leg => leg.kind === 'indoor' && leg.buildingId === view.code ? [Number(leg.floorId)] : leg.kind === 'vertical' && leg.buildingId === view.code ? getLevels(view.code).filter(f => f >= Math.min(Number(leg.fromFloorId), Number(leg.toFloorId)) && f <= Math.max(Number(leg.fromFloorId), Number(leg.toFloorId))) : []))]
-    : route && view.type === 'building'
-    ? route.legs.flatMap((leg) => leg.kind === 'indoor' && leg.building === view.code ? leg.floors : [])
-    : []
+  useEffect(() => {
+    if (!ready) return;
+    const q = new URLSearchParams();
+    if (view.type === "building") {
+      q.set("building", view.code);
+      q.set(
+        "floor",
+        view.allFloors ? "all" : view.floor === 0 ? "B" : String(view.floor),
+      );
+      if (selectedCell) q.set("room", selectedCell);
+    }
+    if (apiRoute?.origin.placeId && apiRoute.destination.placeId) {
+      q.set("from", apiRoute.origin.placeId);
+      q.set("to", apiRoute.destination.placeId);
+      q.set("mode", apiRoute.mode);
+    }
+    window.history.replaceState(null, "", window.location.pathname + "?" + q);
+  }, [view, apiRoute, selectedCell, ready]);
 
-  function selectLocation(location: MapLocation) {
-    if (!picking) return
-    clearDirections()
-    setLocations((current) => ({ ...current, [picking]: location.label }))
-    setSelections((current) => ({ ...current, [picking]: location }))
-    if (picking === 'from') setCurrentLocation(location)
-    if (picking === 'to') setSelectedCell(location.placeId)
-    setPicking(null)
+  async function execute(actions: MapAction[]) {
+    const ticket = requests.current.start();
+    try {
+      const result = await session.current!.actions(actions);
+      if (ticket.isCurrent()) {
+        commit(result);
+        setError("");
+      }
+    } catch (error) {
+      if (ticket.isCurrent()) throw error;
+    }
   }
-
-  function startPicking(field: LocationField | null) {
-    if (field) clearDirections()
-    if (field && view.type === 'building' && view.allFloors) setView({ ...view, allFloors: false })
-    setPicking(field)
+  async function search(query: string) {
+    const ticket = requests.current.start();
+    const s = session.current!;
+    const results = await compassApi.buildings(
+      { q: query, dataVersion: version, limit: 100 },
+      ticket.signal,
+    );
+    if (results.items.length > 1)
+      throw new Error("Choose a more specific building name or code.");
+    const building = results.items[0];
+    const place = building ? null : await s.resolve(query, ticket.signal);
+    const result = await s.actions(
+      building
+        ? [{ type: "focus_building", buildingId: building.id }]
+        : [
+            {
+              type: "focus_place",
+              buildingId: place!.buildingId,
+              floorId: place!.floorId,
+              placeId: place!.id,
+            },
+          ],
+    );
+    if (ticket.isCurrent()) {
+      commit(result);
+      setError("");
+    }
+    return true;
   }
-
-  function selectFloor(floor: number) {
-    if (view.type !== 'building') return
-    if (floor !== view.floor) setSelectedCell(undefined)
-    setView({ ...view, floor, allFloors: false })
+  function picked(location: MapLocation) {
+    if (!picking) return;
+    clearRoute();
+    const ref: LocationRef = location.placeId
+      ? {
+          kind: "place",
+          buildingId: location.building,
+          placeId: location.placeId,
+        }
+      : {
+          kind: "position",
+          buildingId: location.building,
+          floorId: String(location.floor),
+          position: {
+            x: location.x,
+            y: floorY(location.floor, location.building),
+            z: location.z,
+          },
+        };
+    setLocations((current) => ({ ...current, [picking]: location.label }));
+    setRefs((current) => ({ ...current, [picking]: ref }));
+    if (picking === "from") setCurrentLocation(location);
+    setPicking(null);
   }
-
-  if (link.view.type === 'campus' && !link.route) return <AppShellFallback />
-
-  return (
-    <div className="flex h-full flex-col">
-      <Header />
-      <main id="main" className="relative flex min-h-0 flex-1 bg-white">
-        <div className="relative min-w-0 flex-1">
-        <MapCanvas
-          view={view}
-          layers={layers}
-          route={route}
-          apiRoute={directions.route}
-          activeLegId={activeLegId}
-          highlights={highlights}
-          selectedCell={selectedCell}
-          currentLocation={currentLocation}
-          placingCurrentLocation={picking === 'from'}
-          onMoveCurrentLocation={() => startPicking('from')}
-          onSelectLocation={picking ? (location) => {
-            setSelectedCell(undefined)
-            selectLocation(location)
-          } : undefined}
-          onSelectBuilding={(code) => {
-            clearDirections()
-            setView({ type: 'building', code, floor: 1 })
-            setSelectedCell(undefined)
-          }}
-          onSelectCell={(cell) => {
-            setSelectedCell(cell.id)
-            setView({ type: 'building', code: cell.building, floor: cell.floor })
-            if (picking) {
-              const [x, z] = cellCenter(cell)
-              selectLocation({ label: cellTitle(cell), building: cell.building, floor: cell.floor, x, z, placeId: cell.id })
-            }
-          }}
-          onSelectFloor={selectFloor}
-        />
-        <Breadcrumb view={view} onCampus={() => {
-          window.location.assign('http://localhost:3001')
-        }} />
-        {view.type === 'campus' && !route && <CampusHint />}
-        {route && <RouteBar route={route} active={activeStep} onStep={goToStep} onClose={() => {
-          setRoute(null)
-          setActiveStep(0)
-        }} />}
-        {view.type === 'building' && (
-          <FloorSelector levels={getLevels(view.code)} floor={view.floor} allFloors={view.allFloors} routeFloors={routeFloors}
-            currentFloor={currentLocation?.building === view.code ? currentLocation.floor : undefined}
-            onSelect={selectFloor}
-            onSelectAll={() => {
-              setPicking(null)
-              setView({ ...view, allFloors: true })
-              setSelectedCell(undefined)
-            }} />
-        )}
-        <LayerPanel layers={layers} view={view} onToggle={(key) => setLayers((current) => {
-          const next = new Set(current)
-          if (next.has(key)) next.delete(key)
-          else next.add(key)
-          return next
-        })} />
-        </div>
-        {view.type === 'building' && <FloorTools locations={locations} picking={picking} onPick={startPicking}
-          directions={{ route: directions.route, loading: directions.loading, error: directions.error, activeStep: directionStep, onStep: followDirection, onCalculate: calculateDirections, onClear: clearDirections }}
-          chatContext={{ buildingId: view.code, floorId: String(view.floor), selectedPlace: selectedCell ? { kind: 'place', buildingId: view.code, placeId: selectedCell } : null, origin: selections.from ? mapLocationRef(selections.from) : null }}
-          onChatActions={(actions, dataVersion) => {
-            // Validate every action before mutating the viewer; never mix snapshot coordinates.
-            const updates = actions.map(action => prototypeMapAction(action, dataVersion))
-            if (!updates.length) return
-            const update = updates.at(-1)!
-            clearDirections(); setPicking(null); setView(update.view); setSelectedCell(update.selectedCell)
-          }}
-          onLocationChange={(field, value) => {
-            clearDirections()
-            setLocations((current) => ({ ...current, [field]: value }))
-            setSelections((current) => ({ ...current, [field]: mapLocationFromQuery(value) }))
-            if (field === 'from') {
-              const location = mapLocationFromQuery(value)
-              setCurrentLocation(location)
-              if (location) {
-                setSelectedCell(undefined)
-                setView((current) => ({ type: 'building', code: location.building, floor: location.floor, allFloors: current.type === 'building' && current.allFloors }))
+  async function resolveField(
+    field: LocationField,
+    signal: AbortSignal,
+  ): Promise<LocationRef> {
+    if (refs[field]) return refs[field]!;
+    const text = locations[field].trim();
+    if (!text)
+      throw new Error(
+        `Choose a ${field === "from" ? "starting location" : "destination"}.`,
+      );
+    if (/^outside(?: the building)?$/i.test(text)) {
+      const entrances = getPlaces(
+        view.type === "building" ? view.code : undefined,
+      ).filter((p) => p.kind === "entrance" && p.access.entryAllowed);
+      if (entrances.length !== 1)
+        throw new Error("Choose a specific entrance on the map or by name.");
+      return {
+        kind: "place",
+        buildingId: entrances[0]!.buildingId,
+        placeId: entrances[0]!.id,
+      };
+    }
+    const p = await session.current!.resolve(text, signal);
+    return { kind: "place", buildingId: p.buildingId, placeId: p.id };
+  }
+  async function directions(mode: RouteMode, stepFree: boolean) {
+    const ticket = requests.current.start();
+    const [origin, destination] = await Promise.all([
+      resolveField("from", ticket.signal),
+      resolveField("to", ticket.signal),
+    ]);
+    const id = clientRequestId();
+    const response = await client.route(
+      {
+        clientRequestId: id,
+        dataVersion: version,
+        origin,
+        destination,
+        mode,
+        stepFree,
+        accessProfile: "public",
+      },
+      ticket.signal,
+    );
+    if (!ticket.isCurrent()) return;
+    if (response.clientRequestId !== id || response.dataVersion !== version)
+      throw new Error("Discarded a stale route response.");
+    const result = await session.current!.actions([
+      { type: "show_route", route: response.route },
+    ]);
+    if (!ticket.isCurrent()) return;
+    commit(result);
+    setRefs({ from: origin, to: destination });
+    if (origin.kind === "position")
+      setCurrentLocation({
+        building: origin.buildingId as "LAW",
+        floor: Number(origin.floorId),
+        label: locations.from,
+        x: origin.position.x,
+        z: origin.position.z,
+      });
+    else {
+      const p = result.places.find(
+        (p) => p.id === origin.placeId && p.buildingId === origin.buildingId,
+      );
+      if (p)
+        setCurrentLocation({
+          building: p.buildingId as "LAW",
+          floor: Number(p.floorId),
+          label: p.displayLabel,
+          x: p.position.x,
+          z: p.position.z,
+        });
+    }
+  }
+  async function chat(
+    request: Pick<ChatTextRequest, "message" | "history" | "preferences">,
+  ): Promise<ChatResponse> {
+    const ticket = requests.current.start();
+    const id = clientRequestId();
+    const selected = getPlaces().find((p) => p.id === selectedCell);
+    const response = await client.chat(
+      {
+        ...request,
+        clientRequestId: id,
+        dataVersion: version,
+        context: {
+          buildingId: view.type === "building" ? view.code : null,
+          floorId: view.type === "building" ? String(view.floor) : null,
+          origin: refs.from,
+          selectedPlace: selected
+            ? {
+                kind: "place",
+                buildingId: selected.buildingId,
+                placeId: selected.id,
               }
+            : null,
+        },
+      },
+      ticket.signal,
+    );
+    if (!ticket.isCurrent())
+      throw new Error("This reply was superseded by a newer map selection.");
+    if (response.clientRequestId !== id || response.dataVersion !== version)
+      throw new Error("Discarded a stale chat response.");
+    if (response.status === "resolved") {
+      const result = await session.current!.actions(response.actions);
+      if (!ticket.isCurrent())
+        throw new DOMException(
+          "A newer map selection replaced this reply.",
+          "AbortError",
+        );
+      commit(result);
+    }
+    return response;
+  }
+  const highlights = useMemo(() => {
+    const map = new Map<string, string>();
+    if (route?.to.kind === "room") map.set(route.to.id, COLORS.cardinal);
+    return map;
+  }, [route]);
+  function selectFloor(floor: number) {
+    invalidate();
+    if (view.type === "building") {
+      setView({ ...view, floor, allFloors: false });
+      setSelectedCell(undefined);
+    }
+  }
+  const routeFloors =
+    view.type === "building"
+      ? (route?.legs
+          .filter((l) => l.building === view.code)
+          .flatMap((l) => l.floors) ?? [])
+      : [];
+  const toggleLayer = (key: LayerKey) =>
+    setLayers((current) => {
+      const next = new Set(current);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  const floorControls = (inline = false) =>
+    view.type === "building" && (
+      <FloorSelector
+        inline={inline}
+        code={view.code}
+        levels={getLevels(view.code)}
+        floor={view.floor}
+        allFloors={view.allFloors}
+        routeFloors={routeFloors}
+        currentFloor={
+          currentLocation?.building === view.code
+            ? currentLocation.floor
+            : undefined
+        }
+        onSelect={selectFloor}
+        onSelectAll={() => {
+          invalidate();
+          setPicking(null);
+          setView({ ...view, allFloors: true });
+          setSelectedCell(undefined);
+        }}
+      />
+    );
+  return (
+    <div className="compass-app flex h-full flex-col">
+      <Header />
+      {error && (
+        <div
+          role="alert"
+          className="flex items-center justify-between gap-4 bg-cardinal-50 px-5 py-3 text-sm text-cardinal"
+        >
+          <span>{error}</span>
+          <button
+            className="shrink-0 font-bold underline"
+            onClick={() => {
+              initial.current =
+                view.type === "building"
+                  ? `building=${view.code}&floor=${view.floor}`
+                  : "";
+              setReload((x) => x + 1);
+            }}
+          >
+            Reload map data
+          </button>
+        </div>
+      )}
+      {!ready ? (
+        <MapLoading />
+      ) : (
+        <main
+          id="main"
+          className="compass-main relative flex min-h-0 flex-1 bg-white"
+        >
+          <div className="map-viewport relative min-w-0 flex-1">
+            <MapCanvas
+              view={view}
+              layers={layers}
+              route={route}
+              apiRoute={apiRoute}
+              activeLegId={
+                activeStep > 0 ? apiRoute?.steps[activeStep]?.legId : null
+              }
+              highlights={highlights}
+              selectedCell={selectedCell}
+              currentLocation={currentLocation}
+              placingCurrentLocation={picking === "from"}
+              onMoveCurrentLocation={() => {
+                invalidate();
+                setPicking("from");
+              }}
+              onSelectLocation={picking ? picked : undefined}
+              onSelectBuilding={(code) =>
+                void execute([
+                  { type: "focus_building", buildingId: code },
+                ]).catch((e) => setError(fail(e)))
+              }
+              onSelectCell={(cell) => {
+                if (picking) {
+                  const [x, z] = cellCenter(cell);
+                  picked({
+                    building: cell.building,
+                    floor: cell.floor,
+                    placeId: cell.id,
+                    label: cellTitle(cell),
+                    x,
+                    z,
+                  });
+                } else {
+                  invalidate();
+                  setSelectedCell(cell.id);
+                  setView({
+                    type: "building",
+                    code: cell.building,
+                    floor: cell.floor,
+                  });
+                }
+              }}
+              onSelectFloor={selectFloor}
+            />
+            <Breadcrumb
+              view={view}
+              onCampus={() => {
+                invalidate();
+                setView({ type: "campus" });
+              }}
+            />
+            {floorControls()}
+            <LayerPanel layers={layers} view={view} onToggle={toggleLayer} />
+            <p className="pointer-events-none absolute bottom-3 right-3 max-w-xs rounded bg-white/90 px-2 py-1 text-[10px] text-neutral-500">
+              Illustrative USC map · access and navigation unverified
+            </p>
+          </div>
+          <FloorTools
+            floors={floorControls(true)}
+            layers={
+              <LayerPanel
+                inline
+                layers={layers}
+                view={view}
+                onToggle={toggleLayer}
+              />
             }
-          }} />}
-      </main>
+            dataVersion={version}
+            directions={{
+              route: apiRoute,
+              activeStep,
+              onClear: clearRoute,
+              onStep: (i) => {
+                const step = apiRoute?.steps[i];
+                if (!step || !step.buildingId || step.floorId === null) return;
+                invalidate();
+                setActiveStep(i);
+                setView({
+                  type: "building",
+                  code: step.buildingId as "LAW",
+                  floor: Number(step.floorId),
+                });
+              },
+            }}
+            locations={locations}
+            picking={picking}
+            onPick={(field) => {
+              invalidate();
+              setPicking(field);
+              if (field && view.type === "building")
+                setView({ ...view, allFloors: false });
+            }}
+            onSearch={search}
+            onDirections={directions}
+            onChat={chat}
+            onDraftChange={invalidate}
+            onRoutePreferenceChange={clearRoute}
+            onLocationChange={(field, value) => {
+              clearRoute();
+              setLocations((current) => ({ ...current, [field]: value }));
+              setRefs((current) => ({ ...current, [field]: null }));
+              if (field === "from") setCurrentLocation(null);
+            }}
+          />
+        </main>
+      )}
     </div>
-  )
+  );
 }

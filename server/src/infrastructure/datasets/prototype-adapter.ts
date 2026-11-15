@@ -11,6 +11,7 @@ import {
   metersPerUnit,
 } from "./prototype/floorplan.js";
 import { SnapshotStore } from "./snapshot-store.js";
+import { prototypeFloorId } from "./prototype/floor-id.js";
 
 /** Development bridge: preserves existing IDs; never promotes guessed topology to canonical routes. */
 export function prototypeStore(chatEnabled = false): SnapshotStore {
@@ -45,7 +46,7 @@ export function prototypeStore(chatEnabled = false): SnapshotStore {
         places.push({
           id: c.id,
           buildingId: b.code,
-          floorId: String(level),
+          floorId: prototypeFloorId(level),
           name: c.name,
           displayLabel: cellTitle(c),
           roomNumber: c.kind === "room" ? c.number || null : null,
@@ -77,38 +78,37 @@ export function prototypeStore(chatEnabled = false): SnapshotStore {
           provenance,
         });
       }
-      if (level === 1)
-        for (const p of entrancePlaces(b.code)) {
-          const e = layout.entrances.find((entry) => entry.id === p.node)!;
-          places.push({
-            id: p.id,
-            buildingId: b.code,
-            floorId: String(level),
-            name: e.label,
-            displayLabel: p.label,
-            roomNumber: null,
-            kind: "entrance",
-            description: "Illustrative entrance position.",
-            aliases: [],
-            position: { x: e.x * scale, y, z: e.z * scale },
-            sceneObjectKey: null,
-            bounds: null,
-            accessPoints: [],
-            access: {
-              level: "unknown",
-              stepFreeAccess: "unknown",
-              isRamp: e.ramp ?? false,
-              entryAllowed: true,
-              exitAllowed: true,
-              note: "Entrance shown on the prototype; physical access requires verification.",
-            },
-            provenance,
-          });
-        }
+      for (const p of entrancePlaces(b.code).filter((p) => p.floor === level)) {
+        const e = layout.entrances.find((entry) => entry.id === p.node)!;
+        places.push({
+          id: p.id,
+          buildingId: b.code,
+          floorId: prototypeFloorId(level),
+          name: e.label,
+          displayLabel: p.label,
+          roomNumber: null,
+          kind: "entrance",
+          description: "Illustrative entrance position.",
+          aliases: [],
+          position: { x: e.x * scale, y, z: e.z * scale },
+          sceneObjectKey: null,
+          bounds: null,
+          accessPoints: [],
+          access: {
+            level: "unknown",
+            stepFreeAccess: "unknown",
+            isRamp: e.ramp ?? false,
+            entryAllowed: true,
+            exitAllowed: true,
+            note: "Entrance shown on the prototype; physical access requires verification.",
+          },
+          provenance,
+        });
+      }
       return {
-        id: String(level),
+        id: prototypeFloorId(level),
         buildingId: b.code,
-        label: floorName(level),
+        label: floorName(level, b.code),
         sortOrder: level,
         elevationMeters: y,
         sceneObjectKey: `${b.code}:floor:${level}`,
