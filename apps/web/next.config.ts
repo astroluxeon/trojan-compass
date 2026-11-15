@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  allowedDevOrigins: ["192.168.0.1"],
   devIndicators: false,
   transpilePackages: ["@trojan-compass/shared"],
   async rewrites() {

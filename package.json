@@ -2,13 +2,8 @@
   "name": "trojan-compass",
   "version": "0.1.0",
   "private": true,
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
-  "engines": {
-    "node": ">=22.9.0"
-  },
+  "workspaces": ["apps/*", "packages/*"],
+  "engines": { "node": ">=22.9.0" },
   "scripts": {
     "dev": "concurrently -k -n web,api \"npm run dev:web\" \"npm run dev:api\"",
     "dev:web": "npm run dev --workspace=@trojan-compass/web",
@@ -23,8 +18,5 @@
     "@types/node": "^24.0.0",
     "concurrently": "^9.2.1",
     "typescript": "^5.9.3"
-  },
-  "allowScripts": {
-    "esbuild@0.28.2": true
   }
 }
