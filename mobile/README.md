@@ -22,7 +22,8 @@ device screen. Below 768px, the interior uses the requested mobile layout: a 44p
 header with a 42px USC logo, and a five-button bottom bar (Search, Chat, Directions,
 Floors, Layers) with icons above labels. Compact, scrollable sheets reserve space
 above the toolbar; the 3D canvas resizes and refits above them. The floor icon is
-a custom vector of architectural floor plates. Tap the active tool
+a custom vector of architectural floor plates. Mobile sheets omit the repeated
+title/subtitle and X; their names remain available to assistive technology. Tap the active tool
 or grab handle to collapse a sheet; dragging the handle down also closes it.
 Directions retains its inputs between tools and keeps its primary action pinned.
 The desktop interior retains its sidebar and map overlays. For a phone,

@@ -53,6 +53,22 @@ Native interactive checks using the bundle origin (not localhost):
 - The refreshed bundled UI was opened in the native Mac preview and a screenshot
   saved. Real iPhone keyboard/safe-area/touch checks still require Xcode/device.
 
+## Compact mobile layout update
+
+- Bundled the responsive interior with a 44px header, smaller USC logo, and
+  Search/Chat/Directions/Floors/Layers toolbar with icons above labels.
+- Native 393 × 852 preview verified compact panels, successful `LAW 205` search
+  dismissal/highlight, Floor 3 selection, and emergency-exit layer toggling.
+- Browser checks at 393 × 759 and 320 × 568 verified bounded panels, the pinned
+  Directions action, retained location inputs, step-free mode, demo chat submission,
+  and unsuccessful search staying editable. Short screens scroll inside the sheet.
+- Removed the repeated title/subtitle and X from every mobile sheet, retaining
+  an accessible panel name and grab handle. Visually verified the final bundled
+  Chat panel in the native preview. The active toolbar button also collapses it.
+- Full web TypeScript check, 28 web tests, replica build, and asset checks passed.
+- These are Mac/browser checks; iPhone keyboard, touch gestures, and safe areas
+  still require device verification.
+
 ## Shared foundation checks retained from the preceding implementation
 
 All **46 positive handoff fixtures** decoded, including unknown-action and
