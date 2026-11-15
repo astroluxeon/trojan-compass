@@ -2,8 +2,23 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { readFile } from 'node:fs/promises'
 import { buildingCode, compassUrl, mapPoint, SUPPORTED_CODES } from './map-data.js'
+import { onCleanCampus } from './clean-map.js'
 
 const places = JSON.parse(await readFile(new URL('./locations.json', import.meta.url)))
+
+test('campus crop keeps main campus and Village while excluding surrounding locations', () => {
+  for (const name of ['Musick Law Building (LAW)', 'Cowlings Residential College (CRC)', 'McMorrow Residential College (MRC)']) {
+    const place = places.find(p => p.name === name)
+    assert.ok(place, name)
+    assert.ok(onCleanCampus(place), name)
+  }
+  for (const name of [/USC Hotel/, /Cardinal Gardens/]) {
+    const place = places.find(p => name.test(p.name))
+    assert.ok(place, String(name))
+    assert.equal(onCleanCampus(place), false, place.name)
+  }
+  assert.equal(onCleanCampus({lat:34.061, lng:-118.205}), false, 'Health Sciences is outside the displayed campus')
+})
 
 test('official building records link to every supported interior, with no false fallback', () => {
   for (const code of SUPPORTED_CODES) {

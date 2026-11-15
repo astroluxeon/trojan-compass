@@ -117,3 +117,54 @@ verification evidence rather than an uncompleted `swift test` run.
 Campus source/fixture data remain unverified, and the website's routing/chat
 previews remain previews. Live routing, AI, or navigation accuracy is not established
 by copying the website or by these tests.
+
+## Clean campus vector map
+
+- Replaced rendered tiles and markers with campus-only SVG footprints and quiet
+  roads. Cardinal buildings, gold selection, gray parking, and green illustrative
+  hedge accents render in both Chrome at 393px and the bundled Swift macOS preview.
+- Native preview: LAW search selects its footprint, opens the compact detail card,
+  enters the bundled LAW interior, and returns to the campus map.
+- Browser: Parking switch hides all five parking shape groups and restores them.
+- All three campus tests pass, including main-campus/Village inclusion and
+  surrounding-location/HSC exclusion. Replica build, asset checks, and JavaScript
+  syntax checks pass. No physical iPhone gesture testing was performed.
+
+## Campus UI and dismissal refinement
+
+- Matched building-view Source Sans 3, cardinal actions, neutral surfaces and
+  sheet styling. Building codes use plain red text; availability labels removed.
+- At 393 × 852 in the browser, outside taps dismissed search and detail sheets.
+  Dragging the handle down dismissed options; filters stayed open when operated
+  and parking visibility toggled correctly.
+- Six campus tests, JavaScript syntax, replica build and asset checks passed.
+  Keyboard viewport avoidance and safe-area padding are implemented; physical
+  iPhone keyboard/touch verification remains required.
+
+## Campus landscape and hover revision
+
+- Restored 26 OSM field/park/lawn polygons, 324 walking/cycling segments and
+  Village border streets; green areas and hedge accents use muted sage colors.
+- No building-code labels remain on the map. At 393 × 852, LAW hover/selection
+  rendered RGB(255, 204, 0), displayed its name/code callout, and dismissed on
+  an outside tap. Shared building-code footprints highlight together.
+- Eight campus tests, replica build and bundled-asset verification passed.
+
+## Surrounding street backdrop
+
+- Added 2,647 OSM road segments around campus, styled as white roads with gray
+  edges. An exterior mask keeps surrounding geometry out of campus grounds.
+- At 393 × 852, surrounding roads fill the full viewport and remain aligned
+  with campus while dragging and recentering. Four batched SVG paths render
+  the road network; decorative streets do not intercept map gestures.
+- Ten campus/geography/activation tests, replica build and asset checks pass.
+
+## Ground contrast and raised building view
+
+- Darker neutral ground is distinct from blue-gray parking, white roads and
+  thin gray walkways. Added an accessible 44px 2D/3D toggle.
+- 3D projects the original footprint roofs and side walls using mapped heights
+  or documented estimates. LAW keyboard selection highlights both roof/walls;
+  returning to 2D hides all walls. Pan/zoom remains shared by ground/buildings.
+- Twelve campus/geography/height/activation tests, replica build and asset
+  checks pass. Heights are illustrative map geometry, not surveyed models.

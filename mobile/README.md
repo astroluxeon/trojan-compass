@@ -3,7 +3,7 @@
 The default Swift app now bundles the **actual website screens and assets** from
 `trojan-compass-main (1).zip` (reference commit
 `c04a38a332bcdd89cc0d8c5d0624c628a1750b07`). It reproduces the original USC logo,
-campus map tiles/footprints, fonts, sidebar, menus, search, interior viewer, floor
+campus building footprints, fonts, sidebar, menus, search, interior viewer, floor
 and layer controls, Directions/Chat panels, and updated Trojan guide/dances.
 The earlier Apple Maps screen and native bottom toolbar are no longer the default.
 Submitting a successful room/building search closes the Search panel and restores
@@ -54,13 +54,26 @@ official resources. Copying the UI does not deploy a real routing or AI service.
 
 ## Campus map on phones
 
+The basemap is now a clean vector plan of University Park and USC Village.
+Buildings are cardinal red, selected footprints gold, and parking gray. Streets
+and all mapped campus walkways remain on a plain background. Fields, parks, and
+lawns use a pale sage fill, while streets bordering the Village remain visible.
+Surrounding streets extend across the map viewport as white lines with soft gray
+edges, using OpenStreetMap geometry and the same pan/zoom transform.
+Building codes appear in hover/tap callouts; hovered buildings turn USC yellow.
+The **3D** button raises the original footprints into shaded masses; **2D**
+returns to the flat map. Mapped heights are used where available; other heights
+are documented floor-count or building-type estimates. The ground stays light
+gray, parking is darker blue-gray, roads are white, and walkways are thin gray.
+Green hedge accents are illustrative, not surveyed landscaping. Tap a footprint or
+search result to select it, then **Explore building** to enter an available model.
+Roads and campus boundaries use OpenStreetMap data; see
+[map sources](../apps/campus-demo/MAP-SOURCES.md).
+
 The campus screen uses the same USC logo asset, divider, Source Sans font, and
 Trojan Compass wordmark as the building view. A single slim search field replaces
-the campus tab bar. Its small options icon opens Filters, Campus, and More in
-compact sheets. Campus contains UPC, HSC, and Recenter; HSC keeps the existing
-official-map fallback. Filters reuse the original category actions and checked
-state, with Buildings and Parking first. Other categories retain the original
-demo availability notices. The building-view UI is unchanged.
+the campus tab bar. The search field has no options button. Search results and
+location details use compact sheets. The building-view UI is unchanged.
 
 The mobile map has no +/− buttons. Pointer gestures support dragging and two-finger
 pinch zoom; trackpad/wheel and keyboard zoom remain available. Real iPhone pinch,

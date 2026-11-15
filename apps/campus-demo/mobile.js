@@ -26,14 +26,35 @@ export function setupMobileCampus({ search, categories, panel, resetMap, showRes
   sheet.className = 'campus-mobile-sheet'
   sheet.id = 'campus-mobile-sheet'
   sheet.hidden = true
-  const grip = button('', close)
+  const grip = button('', () => close())
   grip.className = 'campus-sheet-grip'
   grip.setAttribute('aria-label', 'Collapse panel')
   grip.innerHTML = '<span></span>'
-  let swipeY
-  grip.onpointerdown = e => { swipeY = e.clientY; grip.setPointerCapture(e.pointerId) }
-  grip.onpointerup = e => { if (swipeY !== undefined && e.clientY - swipeY > 32) close(); swipeY = undefined }
-  grip.onpointercancel = () => { swipeY = undefined }
+  let swipe = null
+  let suppressGripClick = false
+  grip.onpointerdown = e => {
+    swipe = { id: e.pointerId, y: e.clientY, time: e.timeStamp, distance: 0 }
+    grip.setPointerCapture(e.pointerId)
+  }
+  grip.onpointermove = e => {
+    if (!swipe || swipe.id !== e.pointerId) return
+    swipe.distance = Math.max(0, e.clientY - swipe.y)
+    if (swipe.distance < 4) return
+    sheet.classList.add('is-dragging')
+    sheet.style.transform = `translateY(${Math.min(swipe.distance, sheet.clientHeight)}px)`
+  }
+  function finishSwipe(e, cancelled = false) {
+    if (!swipe || swipe.id !== e.pointerId) return
+    const { distance, time } = swipe
+    swipe = null
+    sheet.classList.remove('is-dragging')
+    sheet.style.transform = ''
+    suppressGripClick = distance > 4
+    if (!cancelled && (distance > 50 || (distance > 18 && distance / Math.max(1, e.timeStamp - time) > .5))) close(false)
+  }
+  grip.onpointerup = e => finishSwipe(e)
+  grip.onpointercancel = e => finishSwipe(e, true)
+  grip.onclick = () => { if (!suppressGripClick) close(); suppressGripClick = false }
   const content = document.createElement('div')
   content.className = 'campus-sheet-content'
   sheet.append(grip, content)
@@ -45,12 +66,7 @@ export function setupMobileCampus({ search, categories, panel, resetMap, showRes
   const lens = document.createElement('span')
   lens.className = 'campus-search-lens'
   lens.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg>'
-  const options = button('', () => { if (active) close(); else open('options') })
-  options.className = 'campus-search-options'
-  options.setAttribute('aria-label', 'Map options')
-  options.setAttribute('aria-expanded', 'false')
-  options.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="2.5" fill="white"/><circle cx="15" cy="17" r="2.5" fill="white"/></svg>'
-  bar.append(lens, options)
+  bar.append(lens)
   const searchTray = document.createElement('div')
   searchTray.className = 'campus-search-tray'
   searchTray.append(bar)
@@ -68,16 +84,18 @@ export function setupMobileCampus({ search, categories, panel, resetMap, showRes
     for (const [node, marker] of homes) {
       if (node !== input || !media.matches) marker.after(node)
     }
-    if (media.matches && input.parentElement !== bar) bar.insertBefore(input, options)
+    if (media.matches && input.parentElement !== bar) bar.append(input)
     panel.hidden = true
   }
-  function close() {
+  function close(restoreFocus = true) {
     restore()
     sheet.hidden = true
+    sheet.style.transform = ''
+    sheet.classList.remove('is-dragging')
+    swipe = null
     active = null
-    options.setAttribute('aria-expanded', 'false')
     input.blur()
-    returnFocus?.focus({ preventScroll: true })
+    if (restoreFocus) returnFocus?.focus({ preventScroll: true })
     returnFocus = null
     resizeMap()
   }
@@ -86,12 +104,10 @@ export function setupMobileCampus({ search, categories, panel, resetMap, showRes
     restore()
     content.replaceChildren()
     active = id
-    returnFocus = options
+    returnFocus = brand
     sheet.dataset.tool = id
     sheet.setAttribute('aria-label', title ?? ({search:'Search campus locations',options:'Map options',filters:'Campus filters',campus:'Choose campus',more:'More map tools'}[id] ?? 'Map information'))
     sheet.hidden = false
-    options.setAttribute('aria-expanded', 'true')
-    options.setAttribute('aria-controls', sheet.id)
     if (id === 'search') {
       content.append(results)
       if (!preserveResults && !input.value.trim()) showResults(buildings.filter(b => /\((LAW|THH|TCC|VKC)\)/.test(b.name)).slice(0, 4))
@@ -146,7 +162,7 @@ export function setupMobileCampus({ search, categories, panel, resetMap, showRes
         button('My location', () => document.querySelector('#location-services').click()),
         button('Campus tours', () => document.querySelector('#sidebar-tab-tours').click()),
         button('Street View', () => notify('Street View is available on the official USC map.')),
-        button('Map gestures', () => notify('Drag to move. Pinch to zoom. Tap a building to explore inside.')),
+        button('Map gestures', () => notify('Drag to move. Pinch to zoom. Tap a building for its name; double-tap to explore. Swipe a panel down to close.')),
       )
       const credits = document.querySelector('#atlas3d').cloneNode(true)
       credits.removeAttribute('id')
@@ -158,13 +174,29 @@ export function setupMobileCampus({ search, categories, panel, resetMap, showRes
       panel.hidden = false
       panel.dataset.mobileTitle = ['share'].includes(id) ? 'hidden' : 'visible'
     }
-    if (id !== 'search') grip.focus({ preventScroll: true })
+    if (id !== 'search') { input.blur(); grip.focus({ preventScroll: true }) }
     resizeMap()
   }
   function resizeMap() {
     document.body.style.setProperty('--campus-dock-height', `${dock.getBoundingClientRect().height}px`)
   }
   new ResizeObserver(resizeMap).observe(dock)
+  function syncKeyboard() {
+    const viewport = window.visualViewport
+    const inset = media.matches && viewport && viewport.scale === 1
+      ? Math.max(0, innerHeight - viewport.height - viewport.offsetTop) : 0
+    document.body.style.setProperty('--campus-keyboard-offset', `${inset}px`)
+  }
+  window.visualViewport?.addEventListener('resize', syncKeyboard)
+  window.visualViewport?.addEventListener('scroll', syncKeyboard)
+  syncKeyboard()
+  // Capture before map selection: close the current sheet without swallowing the tap.
+  document.addEventListener('pointerdown', e => {
+    if (media.matches && active && !dock.contains(e.target)) close(false)
+  }, true)
+  document.addEventListener('campus:panel-close', () => {
+    if (media.matches && active) close()
+  })
   document.addEventListener('campus:panel-open', e => {
     if (media.matches) open(e.detail.title === 'Share this map' ? 'share' : 'info', e.detail.title)
   })
@@ -194,6 +226,7 @@ export function setupMobileCampus({ search, categories, panel, resetMap, showRes
     resizeMap()
   }
   input.addEventListener('focus', () => { if (media.matches && active !== 'search') open('search') })
+  input.addEventListener('click', () => { if (media.matches && active !== 'search') open('search') })
   input.addEventListener('input', () => { if (media.matches && active !== 'search') open('search', undefined, true) })
   media.addEventListener('change', adapt)
   adapt()
