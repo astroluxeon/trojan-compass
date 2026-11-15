@@ -1,5 +1,5 @@
 // Bake only motion from the supplied GLBs; source meshes/textures never ship.
-// Run: node scripts/retarget-dances.mjs C:/Users/salty/Downloads
+// Run from the repository root: node scripts/retarget-dances.mjs /path/to/source-dances
 import { readFileSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import assert from 'node:assert/strict'

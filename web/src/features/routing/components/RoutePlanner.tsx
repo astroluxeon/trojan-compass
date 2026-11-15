@@ -1,4 +1,5 @@
-import { Accessibility, ArrowUpDown, Footprints, MapPin } from "lucide-react";
+import { Accessibility, ArrowUpDown, MapPin } from "lucide-react";
+import { StairsIcon } from "@/features/map/renderer/StairsIcon";
 import { useState, type RefObject } from "react";
 import { LocationAutocomplete } from "@/features/search/components/LocationAutocomplete";
 import { INPUT, ACTION } from "@/components/ui/form-styles";
@@ -188,7 +189,7 @@ export function RoutePlanner({
         <div className="grid grid-cols-2 gap-2">
           {(
             [
-              { value: "stairs", label: "Stairs", icon: Footprints },
+              { value: "stairs", label: "Stairs", icon: StairsIcon },
               { value: "elevator", label: "Elevators", icon: ArrowUpDown },
             ] as const
           ).map(({ value, label, icon: Icon }) => (
