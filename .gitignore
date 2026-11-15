@@ -6,6 +6,7 @@
 
 ### VS Code ###
 .vscode/
+/graphify-out/
 
 ### Node / build output ###
 node_modules/
