@@ -106,8 +106,13 @@ test("single-floor framing stays centered and fits narrow, resized, and wide vie
     }
 });
 
-test("room labels hide at the zoom limit with hysteresis", () => {
-  assert.equal(roomLabelsVisible(100, 100, true), false);
-  assert.equal(roomLabelsVisible(99.3, 100, false), false);
-  assert.equal(roomLabelsVisible(98, 100, false), true);
+test("room labels hide at the dynamic zoom limit and restore without flickering", () => {
+  for (const max of [160, 300, 500]) {
+    assert.equal(roomLabelsVisible(max * 0.994, max, true), true);
+    assert.equal(roomLabelsVisible(max * 0.995, max, true), false);
+    assert.equal(roomLabelsVisible(max, max, false), false);
+    assert.equal(roomLabelsVisible(max * 0.992, max, false), false);
+    assert.equal(roomLabelsVisible(max * 0.989, max, false), true);
+    assert.equal(roomLabelsVisible(max / 2, max, false), true);
+  }
 });

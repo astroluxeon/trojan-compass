@@ -4,7 +4,7 @@ Put building `.glb` or `.gltf` assets here, grouped by building ID. Public paths
 start with `/models/`. Use licensed or team-created assets and record their source.
 No real building models are included in this scaffold.
 
-Keep mesh names, floor IDs, and coordinates aligned with `data/buildings/`.
+Keep mesh names, floor IDs, and coordinates aligned with the published scene manifests in `server/data/snapshots/`.
 Do not import React Three Fiber into a Server Component. The eventual viewer
 should be a client component; keep browser-only model loading inside it.
 
@@ -33,7 +33,7 @@ Rebuild with Blender 4.3 and the included source template; no authoring packages
 & 'C:/Program Files/Blender Foundation/Blender 4.3/blender.exe' --background --factory-startup --python scripts/build-tommy.py -- --render
 ```
 
-The script checks finite vertices, model height, five animation pivots, fewer than
+The script checks finite vertices, model height, 14 animation bones, fewer than
 6,000 triangles, a connected watertight skin, and an asset below 200 KB. Two vertex-colored
 materials separate brushed bronze from the matte figure and crest; there are no
 texture downloads and only two material draw calls. The optional render
@@ -60,8 +60,8 @@ in the standing pose and stop when the guide is picked up.
 `fortnite_frozen_nog_ops_with_old_school_emote.glb`. No source meshes or textures
 ship. Rebuild after changing the rig with:
 
-```powershell
-node scripts/retarget-dances.mjs C:/Users/salty/Downloads
+```sh
+node scripts/retarget-dances.mjs /path/to/source-dances
 ```
 
 The baker restores inverse-bind poses, maps anatomical sides onto the guide's

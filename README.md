@@ -22,6 +22,8 @@ The backend serves directory, building, floor, place and procedural scene reads;
 
 The web loads prepared geometry from that backend and executes the same actions as the mobile viewer. It does not perform search ranking or pathfinding. Scene changes are staged before committing; failed requests preserve the previous map and drafts. The legacy generated browser datasets and search/pathfinding copies have been removed.
 
+The Seaweed UI integration restores the updated Trojan guide, drag/double-click interactions, three dances, shared stair icons and zoom-dependent room labels. Drag the guide to move it, or double-click it (or focus its label and press `D`) to dance. See [feature reconciliation](docs/seaweed-integration.md) for source provenance and ownership without duplicate implementations.
+
 Chat is disabled until `AI_PROVIDER=openai`, `OPENAI_API_KEY` and `OPENAI_MODEL` are configured in the server environment. The provider uses a strict intent schema; our search and routing services resolve all records and paths. With AI disabled, the API returns an explicit `FEATURE_DISABLED` error and the chat draft is preserved. Provider behavior is tested with injected responses; live model quality requires a configured provider. See [backend setup](docs/backend-guide.md).
 
 ## Data and scope
