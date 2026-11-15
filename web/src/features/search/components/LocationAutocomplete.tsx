@@ -149,7 +149,7 @@ export function LocationAutocomplete({
         }}
       />
       {expanded && (
-        <div className="scrollbar-thin absolute inset-x-0 top-full z-50 mt-1 max-h-64 overflow-y-auto rounded-2xl border border-neutral-200 bg-white shadow-xl">
+        <div className="scrollbar-thin relative z-50 mt-1 max-h-64 overflow-y-auto rounded-2xl border border-neutral-200 bg-white shadow-xl">
           <ul
             id={`${id}-options`}
             role="listbox"

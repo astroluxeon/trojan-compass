@@ -242,3 +242,4 @@ body.demo-sidebar-open #hamburger-portal-root #hamburger { position: fixed !impo
 .clean-campus .campus-view-toggle:is(:hover, :focus, :active) { background: #fff; color: #990000; box-shadow: 0 2px 8px #0000000c; }
 .campus-view-toggle:focus-visible { outline: 2px solid #990000; outline-offset: 2px; }
 .campus-view-toggle[aria-pressed="true"] { border-color: #990000; }
+body:not(.mobile-campus) .campus-view-toggle { right: 60px; }

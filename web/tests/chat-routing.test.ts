@@ -11,7 +11,10 @@ import { installNativeAPITransport } from "../../mobile/Replica/api-bridge.mjs";
 import { client } from "../src/lib/api-client";
 import { ViewerSession } from "../src/features/map/api-viewer";
 import { sceneRoute } from "../src/features/routing/route-scene";
-import { routeLinkParams, parseMapLink } from "../src/features/map/map-link-input";
+import {
+  routeLinkParams,
+  parseMapLink,
+} from "../src/features/map/map-link-input";
 
 const nativeFetch = globalThis.fetch;
 let server: ReturnType<ReturnType<typeof createApp>["listen"]>;
@@ -182,11 +185,14 @@ for (const transport of ["web", "iOS bridge"]) {
     const saved = parseMapLink(routeLinkParams(staged.wireRoute!), []);
     assert.equal(saved.via, "LAW-201");
     const reopened = await client.route({
-      clientRequestId: request.clientRequestId, dataVersion: version,
+      clientRequestId: request.clientRequestId,
+      dataVersion: version,
       origin: { kind: "place", buildingId: "LAW", placeId: saved.from! },
       destination: { kind: "place", buildingId: "LAW", placeId: saved.to! },
       via: { kind: "place", buildingId: "LAW", placeId: saved.via! },
-      mode: saved.mode, stepFree: saved.stepFree, accessProfile: "public",
+      mode: saved.mode,
+      stepFree: saved.stepFree,
+      accessProfile: "public",
     });
     assert.equal(reopened.route.via?.placeId, "LAW-201");
     assert.ok(reopened.route.steps.some((s) => s.text.startsWith("Stop at ")));

@@ -1,4 +1,5 @@
 import { Vector3 } from "three";
+import type { CameraControls } from "@react-three/drei";
 import type { BuildingCode } from "./data/campus-display";
 import {
   cellCenter,
@@ -7,6 +8,31 @@ import {
   getLevels,
   planBounds,
 } from "./data/viewer-data";
+
+export function zoomModelWithShortcut(
+  event: KeyboardEvent,
+  controls: CameraControls,
+  protocol: string,
+) {
+  if (
+    !["http:", "https:"].includes(protocol) ||
+    !(event.ctrlKey || event.metaKey) ||
+    event.altKey ||
+    event.isComposing ||
+    event.defaultPrevented
+  )
+    return;
+  const direction =
+    ["+", "="].includes(event.key) || event.code === "NumpadAdd"
+      ? 1
+      : event.key === "-" || event.code === "NumpadSubtract"
+        ? -1
+        : 0;
+  if (!direction) return;
+  event.preventDefault();
+  if (controls.enabled)
+    void controls.dolly(direction * controls.distance * 0.15, true);
+}
 
 /** Turn only when the selected room is on the far side of the building. */
 export function roomFacingAngle(

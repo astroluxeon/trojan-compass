@@ -89,7 +89,9 @@ export function createApp(services: Services, options: HttpOptions = {}) {
           status: response.statusCode,
           durationMs: Math.round(performance.now() - start),
           errorCode: response.locals.errorCode ?? null,
-          ...(response.locals.errorDiagnostic ? { diagnostic: response.locals.errorDiagnostic } : {}),
+          ...(response.locals.errorDiagnostic
+            ? { diagnostic: response.locals.errorDiagnostic }
+            : {}),
         });
       } catch {
         /* Logging must not break a response. */

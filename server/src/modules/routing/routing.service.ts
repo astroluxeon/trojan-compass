@@ -18,7 +18,10 @@ export class RoutingService implements RoutingPort {
     private readonly datasets: DatasetPort,
     private readonly graphs: GraphStore,
   ) {}
-  async calculateRoute(scope: RequestScope, request: RouteRequest): Promise<Route> {
+  async calculateRoute(
+    scope: RequestScope,
+    request: RouteRequest,
+  ): Promise<Route> {
     validateBody("RouteRequest", request);
     checkScope(scope);
     if (request.dataVersion !== scope.dataVersion)

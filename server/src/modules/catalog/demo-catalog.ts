@@ -276,7 +276,8 @@ export class DemoCatalog {
                 ? 100
                 : phrase
                   ? 80
-                  : nameMatch && (overlap >= 2 || (tokens.length === 1 && overlap === 1))
+                  : nameMatch &&
+                      (overlap >= 2 || (tokens.length === 1 && overlap === 1))
                     ? 40 + overlap
                     : 0,
         };

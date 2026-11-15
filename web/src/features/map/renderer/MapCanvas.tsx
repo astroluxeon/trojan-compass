@@ -5,7 +5,12 @@ import type { BuildingCode } from "../data/campus-display";
 import type { Cell } from "../data/viewer-data";
 import type { Route } from "../../routing/viewer-route";
 import type { Route as ApiRoute } from "@trojan-compass/shared/api";
-import { buildingFrame, roomFacingAngle, roomLabelsVisible } from "../camera";
+import {
+  buildingFrame,
+  roomFacingAngle,
+  roomLabelsVisible,
+  zoomModelWithShortcut,
+} from "../camera";
 import type { LayerKey, MapLocation, View } from "../types";
 import { BuildingScene } from "./BuildingScene";
 import { LabelLayerContext } from "./MapHtml";
@@ -67,6 +72,19 @@ export function MapCanvas(props: Props) {
   const controls = useRef<CameraControls>(null);
   const [showRoomLabels, setShowRoomLabels] = useState(true);
   const labelLayer = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const zoom = (event: KeyboardEvent) => {
+      if (controls.current)
+        zoomModelWithShortcut(
+          event,
+          controls.current,
+          window.location.protocol,
+        );
+    };
+    window.addEventListener("keydown", zoom);
+    return () => window.removeEventListener("keydown", zoom);
+  }, []);
 
   const indoorLegs = route?.legs.filter((l) => l.kind === "indoor") ?? [];
   const leg =

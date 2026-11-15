@@ -33,6 +33,7 @@ import { MapLoading } from "@/components/layout/AppShellFallback";
 import { Header } from "@/components/layout/Header";
 import { campusLink } from '../campus-link';
 import { FloorTools, type LocationField } from "./FloorTools";
+import { RouteInstructions } from "@/features/routing/components/RouteInstructions";
 import { Breadcrumb, FloorSelector, LayerPanel } from "./MapOverlays";
 
 const MapCanvas = dynamic(
@@ -69,6 +70,7 @@ export default function Wayfinder({ bundled = false }: { bundled?: boolean }) {
   const [layers, setLayers] = useState(() => new Set(DEFAULT_LAYERS));
   const [route, setRoute] = useState<Route | null>(null);
   const [apiRoute, setApiRoute] = useState<ApiRoute | null>(null);
+  const [activeStep, setActiveStep] = useState(0);
   function invalidate() {
     requests.current.invalidate();
   }
@@ -104,6 +106,7 @@ export default function Wayfinder({ bundled = false }: { bundled?: boolean }) {
     setSelectedCell(result.selected);
     setRoute(result.route);
     setApiRoute(result.wireRoute);
+    setActiveStep(0);
     if (result.wireRoute) {
       const { origin, destination } = result.wireRoute;
       setView({
@@ -197,7 +200,9 @@ export default function Wayfinder({ bundled = false }: { bundled?: boolean }) {
               },
               mode: link.mode,
               stepFree: link.stepFree,
-              ...(via ? { via: { kind: "place" as const, buildingId: via.buildingId, placeId: via.id } } : {}),
+              ...(via
+                ? { via: { kind: "place" as const, buildingId: via.buildingId, placeId: via.id } }
+                : {}),
               accessProfile: "public",
             });
             actions = [{ type: "show_route", route: response.route }];
@@ -595,6 +600,19 @@ export default function Wayfinder({ bundled = false }: { bundled?: boolean }) {
             onChat={chat}
             onDraftChange={invalidate}
             onRoutePreferenceChange={clearRoute}
+            routeInstructions={apiRoute && (
+              <RouteInstructions
+                route={apiRoute}
+                activeStep={activeStep}
+                onClear={clearRoute}
+                onStep={(index) => {
+                  const step = apiRoute.steps[index];
+                  if (!step) return;
+                  setActiveStep(index);
+                  if (step.floorId !== null) selectFloor(Number(step.floorId));
+                }}
+              />
+            )}
             onLocationChange={(field, value) => {
               clearRoute();
               setLocations((current) => ({ ...current, [field]: value }));

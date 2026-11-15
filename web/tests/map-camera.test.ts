@@ -1,9 +1,14 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { PerspectiveCamera, Vector3 } from "three";
+import * as THREE from "three";
+import CameraControls from "camera-controls";
 import { BUILDINGS } from "../src/features/map/data/campus-display";
 import "./viewer-fixtures";
-import { roomLabelsVisible } from "../src/features/map/camera";
+import {
+  roomLabelsVisible,
+  zoomModelWithShortcut,
+} from "../src/features/map/camera";
 import {
   cellCenter,
   floorY,
@@ -115,4 +120,76 @@ test("room labels hide at the dynamic zoom limit and restore without flickering"
     assert.equal(roomLabelsVisible(max * 0.989, max, false), true);
     assert.equal(roomLabelsVisible(max / 2, max, false), true);
   }
+});
+
+test("browser zoom shortcuts move only the camera, respect limits, and leave native iOS alone", (t) => {
+  // CameraControls creates an element rectangle even when no DOM element is attached.
+  const rectangle = Object.getOwnPropertyDescriptor(globalThis, "DOMRect");
+  Object.defineProperty(globalThis, "DOMRect", {
+    configurable: true,
+    value: class {
+      x = 0;
+      y = 0;
+      width = 0;
+      height = 0;
+    },
+  });
+  t.after(() => {
+    if (rectangle) Object.defineProperty(globalThis, "DOMRect", rectangle);
+    else Reflect.deleteProperty(globalThis, "DOMRect");
+  });
+  CameraControls.install({ THREE });
+  const camera = new PerspectiveCamera(32, 1.5, 0.5, 600);
+  camera.position.set(0, 0, 80);
+  const controls = new CameraControls(camera);
+  controls.minDistance = 12;
+  controls.maxDistance = 160;
+  const press = (
+    key: string,
+    options: Partial<KeyboardEvent> = {},
+    protocol = "https:",
+  ) => {
+    const event = Object.assign(new Event("keydown", { cancelable: true }), {
+      key,
+      code: "",
+      ctrlKey: true,
+      metaKey: false,
+      altKey: false,
+      isComposing: false,
+      ...options,
+    }) as KeyboardEvent;
+    zoomModelWithShortcut(event, controls, protocol);
+    controls.update(10);
+    return event;
+  };
+  for (const key of ["+", "="]) {
+    controls.distance = 80;
+    assert.equal(press(key).defaultPrevented, true);
+    assert.ok(controls.distance < 80);
+  }
+  assert.equal(
+    press("-", { ctrlKey: false, metaKey: true }).defaultPrevented,
+    true,
+  );
+  assert.ok(controls.distance > 68);
+  controls.distance = 80;
+  for (const protocol of ["compass-web:", "file:"]) {
+    assert.equal(press("+", {}, protocol).defaultPrevented, false);
+    assert.equal(controls.distance, 80);
+  }
+  for (const [key, options] of [
+    ["0", {}],
+    ["+", { ctrlKey: false }],
+    ["+", { altKey: true }],
+    ["+", { isComposing: true }],
+  ] as const)
+    assert.equal(press(key, options).defaultPrevented, false);
+  assert.equal(controls.distance, 80);
+  for (let i = 0; i < 100; i++) press("+", { code: "NumpadAdd" });
+  assert.equal(controls.distance, 12);
+  for (let i = 0; i < 100; i++) press("-", { code: "NumpadSubtract" });
+  assert.equal(controls.distance, 160);
+  assert.equal(camera.fov, 32);
+  assert.equal(camera.aspect, 1.5);
+  controls.dispose();
 });

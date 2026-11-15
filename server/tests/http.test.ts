@@ -254,7 +254,9 @@ test("rate limits include Retry-After; error bodies and logs do not expose inter
   assert.equal(failure.requestId, error.headers.get("x-request-id"));
   const diagnostic = failure.diagnostic as { type: string; frames: string[] };
   assert.equal(diagnostic.type, "Error");
-  assert.ok(diagnostic.frames.some((frame) => /^http\.test\.ts:\d+:\d+$/.test(frame)));
+  assert.ok(
+    diagnostic.frames.some((frame) => /^http\.test\.ts:\d+:\d+$/.test(frame)),
+  );
 });
 
 test("published scenes negotiate representation without generating or fetching external assets", async (t) => {

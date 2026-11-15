@@ -100,8 +100,13 @@ test("retrieval handles aliases and rejects unsupported courses and unrelated or
 
 test("literal room requests never resolve to a class sharing that number", async () => {
   for (const query of ["LAW 340", "LAW 356", "LAW 354", "LAW 298"]) {
-    const { chat } = setup({ interpret: async () => intent({ kind: "find_place", query }) });
-    const response = await chat.respond(scope(), chatRequest({ dataVersion: "prototype-v1", message: `Show ${query}` }));
+    const { chat } = setup({
+      interpret: async () => intent({ kind: "find_place", query }),
+    });
+    const response = await chat.respond(
+      scope(),
+      chatRequest({ dataVersion: "prototype-v1", message: `Show ${query}` }),
+    );
     assert.equal(response.status, "not_found", query);
     assert.deepEqual(response.actions, []);
   }

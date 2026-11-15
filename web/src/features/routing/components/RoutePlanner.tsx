@@ -166,7 +166,7 @@ export function RoutePlanner({
                 onPick(field);
                 setNotice("");
               }}
-              className={`absolute inset-y-1 right-1 grid w-9 touch-none place-items-center rounded-md text-cardinal transition hover:bg-cardinal-50 focus-visible:outline-2 focus-visible:outline-cardinal ${picking === field ? "bg-cardinal-50 ring-1 ring-cardinal/30" : ""}`}
+              className={`absolute top-1 right-1 grid h-9 w-9 touch-none place-items-center rounded-md text-cardinal transition hover:bg-cardinal-50 focus-visible:outline-2 focus-visible:outline-cardinal ${picking === field ? "bg-cardinal-50 ring-1 ring-cardinal/30" : ""}`}
             >
               <MapPin className="h-4 w-4" />
             </button>
@@ -214,6 +214,7 @@ export function RoutePlanner({
       </fieldset>
       <button
         id="directions-submit"
+        onPointerDown={(event) => event.preventDefault()}
         disabled={pending}
         className={`desktop-directions-action ${ACTION}`}
       >

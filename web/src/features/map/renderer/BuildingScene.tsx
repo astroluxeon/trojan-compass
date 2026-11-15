@@ -92,7 +92,7 @@ export function BuildingScene(props: Props) {
             floor={f}
             above={f > floor}
             inRoute={!!leg?.floors.includes(f)}
-            interactive={!props.onSelectLocation}
+            interactive={f < floor && !props.onSelectLocation}
             onClick={() => props.onSelectFloor(f)}
           />
         ),
@@ -335,7 +335,11 @@ function ActiveFloor({
   const accessibleOn = layers.has("accessible");
   const nodeById = new Map(layout.walkNodes.map((n) => [n.id, n]));
   return (
-    <group position={[0, floorY(floor, code), 0]}>
+    <group
+      position={[0, floorY(floor, code), 0]}
+      onClick={(event) => event.stopPropagation()}
+      onPointerOver={(event) => event.stopPropagation()}
+    >
       <Slabs
         layout={layout}
         color="#f4f4f6"

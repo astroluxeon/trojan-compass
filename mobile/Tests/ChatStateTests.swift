@@ -36,7 +36,7 @@ private final class HeldResponse: URLProtocol, @unchecked Sendable {
 }
 
 final class ChatStateTests: XCTestCase {
-    @MainActor private func store(holding path: String) throws -> CompassStore {
+    @MainActor private func makeStore(holding path: String) throws -> CompassStore {
         HeldResponse.heldPath = path; HeldResponse.pending = nil
         HeldResponse.arrived = expectation(description: "Request reached \(path)")
         let configuration = URLSessionConfiguration.ephemeral
@@ -50,7 +50,7 @@ final class ChatStateTests: XCTestCase {
     }
 
     @MainActor func testReturningToCampusDiscardsPendingChat() async throws {
-        let store = try store(holding: "/api/chat")
+        let store = try makeStore(holding: "/api/chat")
         store.chatDraft = "Show LAW 101"
         let task = Task { await store.sendChat() }
         await fulfillment(of: [HeldResponse.arrived!], timeout: 3)
@@ -66,7 +66,7 @@ final class ChatStateTests: XCTestCase {
     }
 
     @MainActor func testReturningToCampusDuringSceneStagingPreventsCommit() async throws {
-        let store = try store(holding: "/api/buildings/LAW/scene")
+        let store = try makeStore(holding: "/api/buildings/LAW/scene")
         let response = try AppResources.decode(ChatResponse.self, "Fixtures/chat-focus-place.json")
         let task = Task { try await store.applyActions(response.actions) }
         await fulfillment(of: [HeldResponse.arrived!], timeout: 3)

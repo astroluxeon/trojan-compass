@@ -66,6 +66,7 @@ export function FloorTools({
   onChat,
   onDraftChange,
   onRoutePreferenceChange,
+  routeInstructions,
 }: {
   floors: ReactNode;
   layers: ReactNode;
@@ -81,6 +82,7 @@ export function FloorTools({
   ) => Promise<ChatResponse>;
   onDraftChange: () => void;
   onRoutePreferenceChange: () => void;
+  routeInstructions: ReactNode;
 }) {
   const [active, setActive] = useState<Tool | null>(null);
   const [width, setWidth] = useState(336);
@@ -406,6 +408,7 @@ export function FloorTools({
                 setNotice={setNotice}
               />
             )}
+            {active === "directions" && routeInstructions}
             {active === "chat" && (
               <ChatPanel
                 conversation={conversation}

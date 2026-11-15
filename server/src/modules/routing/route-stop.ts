@@ -1,5 +1,9 @@
 import { randomUUID } from "node:crypto";
-import type { PlaceLocation, Route, RouteRequest } from "@trojan-compass/shared/api";
+import type {
+  PlaceLocation,
+  Route,
+  RouteRequest,
+} from "@trojan-compass/shared/api";
 import type { RequestScope, RoutingPort } from "../../ports/service-ports.js";
 
 export async function routeThroughStop(
@@ -8,9 +12,20 @@ export async function routeThroughStop(
   direct: RouteRequest,
   via: PlaceLocation,
 ): Promise<Route> {
-  const first = await routing.calculateRoute(scope, { ...direct, destination: via });
-  const onward = await routing.calculateRoute(scope, { ...direct, origin: via });
-  return joinRoutesThroughStop(first, onward, via.placeId, onward.destination.placeId ?? "your destination");
+  const first = await routing.calculateRoute(scope, {
+    ...direct,
+    destination: via,
+  });
+  const onward = await routing.calculateRoute(scope, {
+    ...direct,
+    origin: via,
+  });
+  return joinRoutesThroughStop(
+    first,
+    onward,
+    via.placeId,
+    onward.destination.placeId ?? "your destination",
+  );
 }
 
 export function joinRoutesThroughStop(

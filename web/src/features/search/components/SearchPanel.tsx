@@ -57,7 +57,7 @@ export function SearchPanel({
           className={INPUT}
         />
       </div>
-      <button disabled={pending} className={ACTION}>
+      <button onPointerDown={(event) => event.preventDefault()} disabled={pending} className={ACTION}>
         <Search className="h-4 w-4" /> {pending ? 'Searching…' : 'Search rooms'}
       </button>
     </form>
