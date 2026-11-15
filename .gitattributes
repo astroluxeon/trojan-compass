@@ -4,3 +4,9 @@
 *.jpg binary
 *.woff2 binary
 *.docx binary
+
+# Generated viewer includes upstream GLSL template strings whose whitespace is intentional.
+mobile/TrojanCompass/Resources/Viewer/viewer.js linguist-generated=true -whitespace
+mobile/TrojanCompass/Resources/Viewer/viewer.css linguist-generated=true
+mobile/TrojanCompass/Resources/preview-catalog.json linguist-generated=true
+mobile/TrojanCompass/Resources/Replica/** linguist-generated=true -whitespace

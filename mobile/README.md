@@ -1,26 +1,72 @@
-# Trojan Compass iPhone client
+# Trojan Compass for iOS
 
-Open `TrojanCompass.xcodeproj` on macOS with Xcode. The initial client uses SwiftUI and WKWebView to reuse the API-backed Three.js viewer, search, directions and chat. The embedded viewer owns requests, selected place, current origin and route state. Native code does not send duplicate requests or calculate paths.
+The SwiftUI application in `TrojanCompass.xcodeproj` hosts the bundled campus
+map and the current API-backed web interior in WKWebView. Search, routing and
+chat use the same Express backend and contract as the web application.
+The optional native integration shell remains available with the
+`--native-integration` launch argument.
 
-## Development
+## Run
 
-1. Start the root web/API development servers.
-2. Set the target build setting `COMPASS_VIEWER_URL` to the viewer origin reachable from your simulator or iPhone. Debug defaults to `http://localhost:3000` for a server running on the Mac. A physical phone's localhost is the phone, not your Windows/Mac computer.
-3. Configure web API_BASE_URL and server PUBLIC_API_BASE_URL/VIEWER_BASE_URL for that environment. When using LAN development, bind the backend appropriately and use reachable addresses.
-4. Select your signing team and run on an iPhone simulator/device. No signing identity is stored in this repository.
+1. From the repository root, run `npm ci` and `npm run dev:api`.
+2. Open `mobile/TrojanCompass.xcodeproj` in Xcode and select an iPhone simulator.
+3. Run the Debug configuration. Its `COMPASS_API_BASE_URL` build setting defaults
+   to `http://127.0.0.1:4000/api`.
 
-Debug alone permits HTTP web content for local development and provides a local-network description. Release uses the stricter Info.plist and requires an explicitly configured HTTPS viewer URL. Minimum iOS is 16. The module remains outside npm workspaces.
+For a physical device, set that build setting to a backend reachable from the
+device. Debug permits local HTTP development. Release requires an HTTPS URL
+ending in `/api`; configure it before archiving. Release has no deployed backend
+URL configured in the repository. Signing remains a local Xcode setting.
+For the Swift Package macOS preview, supply `COMPASS_API_BASE_URL` in the
+launch environment. A URL saved by the native shell can also be reused.
 
-## Shared fixture decoding
+The campus directory, vector map, branding, fonts, models and dances load from
+the app bundle. The default interior needs the backend for building data,
+search, route calculation and chat. It reports connection failures rather than
+falling back to canned chat or invented routes.
 
-ContractModels.swift supplies native decoding seams and rejects unsupported action execution. It intentionally decodes the fields consumed by the initial mobile integration and safely ignores additional response fields. The current embedded implementation uses the web models for live requests.
+The private `compass-web://bundle/` scheme serves local assets. A main-frame
+message bridge forwards only `GET`/`POST /api/*` requests through URLSession
+to the configured backend, preserving response status, JSON errors, dataset
+versions and cancellation. No second backend runs in the app.
+Legacy localhost links and `trojancompass://map?building=LAW&floor=1` open the
+bundled interior. External official links open the system browser.
 
-On a Mac with Swift:
+## Source and ownership
+
+- `web/src/features/`: shared interior UI, camera, picking, highlighting and
+  drawing API-provided routes. Phones use Search, Chat, Directions, Floors and
+  Layers in a bottom toolbar with compact sheets.
+- `demos/usc-map/`: campus UI and attributed geographic assets; see
+  [map sources](../demos/usc-map/MAP-SOURCES.md).
+- `mobile/Replica/`: packaging and native HTTP bridge adapter.
+- `mobile/Viewer/`: viewer used by the optional native shell.
+- `TrojanCompass/Core/`, `Views/`: Swift screens, state, transport and decoders.
+- `shared/contracts/openapi.yaml`: authoritative HTTP contract.
+- `shared/fixtures/`: authoritative examples. Bundled copies are checked
+  against these files; mobile has no separate OpenAPI agreement.
+
+The native shell starts in a clearly labeled offline preview, exported from
+the server snapshot in canonical meters. Preview records cannot be used for
+live routing/chat. Connect its Settings screen to the backend for those flows.
+Geometry and access remain illustrative/unverified, and navigation is optional
+where usable data is unavailable.
+
+## Rebuild and verify
+
+From the repository root:
 
 ```sh
-swiftc mobile/TrojanCompass/ContractModels.swift mobile/tests/DecodeFixtures.swift -o /tmp/compass-fixtures
-/tmp/compass-fixtures shared/fixtures/examples
-xcodebuild -project mobile/TrojanCompass.xcodeproj -scheme TrojanCompass -sdk iphonesimulator -configuration Debug CODE_SIGNING_ALLOWED=NO build
+npm run build:mobile-viewer
+npm run build:mobile-replica
+npm run check:mobile
 ```
 
-Verify LAW loading, LAW 101 highlighting, LAW 101 to LAW 107 routing, floor transitions, chat actions, clarification, unavailable step-free routes, request failure preservation and pinch/orbit on the actual mobile viewer. Native iOS compilation and device behavior have not been verified on this Windows machine.
+These regenerate checked-in resources from the current top-level directories,
+including the server snapshot preview and shared fixtures. Xcode can use the
+checked-in assets without npm. Rebuild them after source changes.
+
+On macOS, also run `bash scripts/check-mobile.sh`, `swift test --package-path mobile`,
+and the shared Xcode scheme with an iOS simulator. CI performs those compilation
+and fixture checks. Device gestures, safe areas, VoiceOver and real backend
+networking still need an interactive iPhone acceptance pass.

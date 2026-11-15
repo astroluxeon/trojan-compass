@@ -18,7 +18,9 @@ export function RoutePlanner({
   setTravelMode,
   lastPick,
   setNotice,
+  onPendingChange,
 }: {
+  onPendingChange?: (pending: boolean) => void;
   locations: Record<LocationField, string>;
   onLocationChange: (field: LocationField, value: string) => void;
   picking: LocationField | null;
@@ -35,11 +37,13 @@ export function RoutePlanner({
   const [pending, setPending] = useState(false);
   return (
     <form
-      className="space-y-4"
+      id="directions-form"
+      className="directions-form space-y-4"
       onSubmit={async (event) => {
         event.preventDefault();
         if (pending) return;
         setPending(true);
+        onPendingChange?.(true);
         try {
           await onDirections(travelMode, accessibleOnly);
           setNotice("");
@@ -51,6 +55,7 @@ export function RoutePlanner({
           );
         } finally {
           setPending(false);
+          onPendingChange?.(false);
         }
       }}
     >
@@ -105,7 +110,7 @@ export function RoutePlanner({
           { field: "to", label: "Destination", placeholder: "e.g. TCC 201" },
         ] as const
       ).map(({ field, label, placeholder }) => (
-        <div key={field}>
+        <div className="directions-location" key={field}>
           <label
             htmlFor={`directions-${field}`}
             className="block text-[12px] font-semibold text-neutral-700"
@@ -206,7 +211,11 @@ export function RoutePlanner({
           ))}
         </div>
       </fieldset>
-      <button id="directions-submit" disabled={pending} className={ACTION}>
+      <button
+        id="directions-submit"
+        disabled={pending}
+        className={`desktop-directions-action ${ACTION}`}
+      >
         <MapPin className="h-4 w-4" />{" "}
         {pending ? "Calculating…" : "Get directions"}
       </button>

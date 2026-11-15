@@ -2,7 +2,7 @@ import Image from 'next/image'
 
 export function Header() {
   return (
-    <header className="relative z-40 shrink-0 bg-cardinal text-white">
+    <header className="compass-header relative z-40 shrink-0 bg-cardinal text-white">
       <a href="/" className="flex h-16 w-fit items-center gap-4 px-4 md:px-6" aria-label="USC campus map">
         <Image src="/images/usc-monogram.png" alt="USC" width={64} height={26} priority className="h-auto w-16 brightness-0 invert" />
         <span aria-hidden="true" className="h-7 w-px bg-white/30" />

@@ -1,4 +1,6 @@
+import { FloorIcon } from "@/components/ui/FloorIcon";
 import {
+  Layers,
   ChevronDown,
   ChevronRight,
   MessageCircle,
@@ -6,7 +8,7 @@ import {
   Search,
   X,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import type {
   ChatTextRequest,
   ChatResponse,
@@ -42,11 +44,20 @@ const TOOLS = [
     description: "Plan your way there",
     icon: Route,
   },
+  {
+    id: "floors",
+    label: "Floors",
+    description: "Choose a floor",
+    icon: FloorIcon,
+  },
+  { id: "layers", label: "Layers", description: "Map layers", icon: Layers },
 ] as const;
 
 type Tool = (typeof TOOLS)[number]["id"];
 
 export function FloorTools({
+  floors,
+  layers,
   dataVersion,
   locations,
   onLocationChange,
@@ -59,6 +70,8 @@ export function FloorTools({
   onRoutePreferenceChange,
   directions,
 }: {
+  floors: ReactNode;
+  layers: ReactNode;
   directions: {
     route: ApiRoute | null;
     activeStep: number;
@@ -93,6 +106,9 @@ export function FloorTools({
     },
   ]);
   const [notice, setNotice] = useState("");
+  const [routePending, setRoutePending] = useState(false);
+  const toolbar = useRef<HTMLElement>(null);
+  const swipeStart = useRef<number | null>(null);
   const menu = useRef<HTMLDetailsElement>(null);
   const sidebar = useRef<HTMLElement>(null);
   const conversation = useRef<HTMLDivElement>(null);
@@ -135,17 +151,23 @@ export function FloorTools({
   function close() {
     selectTool(null);
     if (menu.current) menu.current.open = false;
-    menu.current?.querySelector("summary")?.focus();
+    if (window.matchMedia("(max-width: 767px)").matches)
+      toolbar.current
+        ?.querySelector<HTMLButtonElement>(`[data-tool="${active}"]`)
+        ?.focus();
+    else menu.current?.querySelector("summary")?.focus();
   }
 
   return (
     <div
+      data-active-tool={active ?? undefined}
+      data-picking={!!picking}
       style={{ width: active ? width : 0 }}
-      className={`relative order-first z-50 shrink-0 max-w-[calc(100%-16rem)] max-md:absolute max-md:inset-y-0 max-md:left-0 max-md:max-w-[calc(100%-4.75rem)] ${picking ? "max-md:top-[60%]" : ""}`}
+      className={`tool-dock relative order-first z-50 shrink-0 max-w-[calc(100%-16rem)] max-md:absolute max-md:inset-y-0 max-md:left-0 max-md:max-w-[calc(100%-4.75rem)] ${picking ? "max-md:top-[60%]" : ""}`}
     >
       <details
         ref={menu}
-        className={`group absolute bottom-4 left-full z-[60] ml-4 w-56 rounded-xl border border-neutral-200 bg-white/95 shadow-[0_4px_16px_rgba(0,0,0,0.08)] backdrop-blur ${active ? "max-md:w-11" : "max-md:w-52"}`}
+        className={`desktop-tool-menu group absolute bottom-4 left-full z-[60] ml-4 w-56 rounded-xl border border-neutral-200 bg-white/95 shadow-[0_4px_16px_rgba(0,0,0,0.08)] backdrop-blur ${active ? "max-md:w-11" : "max-md:w-52"}`}
         onKeyDown={(event) => {
           if (event.key === "Escape") close();
         }}
@@ -167,36 +189,65 @@ export function FloorTools({
         <div
           className={`border-t border-neutral-100 px-1.5 pb-2 pt-1 ${active ? "max-md:absolute max-md:bottom-full max-md:right-0 max-md:mb-2 max-md:w-52 max-md:rounded-xl max-md:border max-md:border-neutral-200 max-md:bg-white max-md:shadow-lg" : ""}`}
         >
-          {TOOLS.map(({ id, label, description, icon: Icon }) => (
-            <button
-              key={id}
-              aria-controls="floor-tools-sidebar"
-              aria-expanded={active === id}
-              onClick={() => {
-                selectTool(id);
-                setNotice("");
-                if (menu.current) menu.current.open = false;
-                if (active === id)
-                  sidebar.current
-                    ?.querySelector<HTMLInputElement | HTMLTextAreaElement>(
-                      "input, textarea",
-                    )
-                    ?.focus();
-              }}
-              className={`flex w-full items-center gap-2.5 rounded-md px-2 py-2 text-left transition hover:bg-neutral-50 ${active === id ? "bg-cardinal-50 text-cardinal" : "text-neutral-700"}`}
-            >
-              <Icon className="h-4 w-4 shrink-0 text-cardinal" />
-              <span className="flex-1">
-                <span className="block text-[13px] font-semibold">{label}</span>
-                <span className="block text-[11px] text-neutral-500">
-                  {description}
+          {TOOLS.filter((t) => t.id !== "floors" && t.id !== "layers").map(
+            ({ id, label, description, icon: Icon }) => (
+              <button
+                key={id}
+                aria-controls="floor-tools-sidebar"
+                aria-expanded={active === id}
+                onClick={() => {
+                  selectTool(id);
+                  setNotice("");
+                  if (menu.current) menu.current.open = false;
+                  if (active === id)
+                    sidebar.current
+                      ?.querySelector<HTMLInputElement | HTMLTextAreaElement>(
+                        "input, textarea",
+                      )
+                      ?.focus();
+                }}
+                className={`flex w-full items-center gap-2.5 rounded-md px-2 py-2 text-left transition hover:bg-neutral-50 ${active === id ? "bg-cardinal-50 text-cardinal" : "text-neutral-700"}`}
+              >
+                <Icon className="h-4 w-4 shrink-0 text-cardinal" />
+                <span className="flex-1">
+                  <span className="block text-[13px] font-semibold">
+                    {label}
+                  </span>
+                  <span className="block text-[11px] text-neutral-500">
+                    {description}
+                  </span>
                 </span>
-              </span>
-              <ChevronRight className="h-3.5 w-3.5 text-neutral-400" />
-            </button>
-          ))}
+                <ChevronRight className="h-3.5 w-3.5 text-neutral-400" />
+              </button>
+            ),
+          )}
         </div>
       </details>
+
+      <nav ref={toolbar} className="mobile-tool-bar" aria-label="Map tools">
+        {TOOLS.map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            type="button"
+            data-tool={id}
+            aria-label={label}
+            aria-controls={active === id ? "floor-tools-sidebar" : undefined}
+            aria-expanded={active === id}
+            onClick={() => {
+              if (active === id) close();
+              else {
+                selectTool(id);
+                setNotice("");
+              }
+            }}
+          >
+            <span className="mobile-tool-icon">
+              <Icon className="h-[22px] w-[22px]" />
+            </span>
+            <span>{label}</span>
+          </button>
+        ))}
+      </nav>
 
       {tool && (
         <aside
@@ -206,8 +257,31 @@ export function FloorTools({
           onKeyDown={(event) => {
             if (event.key === "Escape") close();
           }}
-          className="absolute inset-0 flex flex-col border-r border-neutral-200 bg-white max-md:shadow-xl"
+          className="tool-sheet absolute inset-0 flex flex-col border-r border-neutral-200 bg-white max-md:shadow-xl"
         >
+          <button
+            type="button"
+            className="sheet-grip"
+            aria-label="Collapse panel"
+            onClick={close}
+            onPointerDown={(event) => {
+              swipeStart.current = event.clientY;
+              event.currentTarget.setPointerCapture(event.pointerId);
+            }}
+            onPointerUp={(event) => {
+              if (
+                swipeStart.current !== null &&
+                event.clientY - swipeStart.current > 32
+              )
+                close();
+              swipeStart.current = null;
+            }}
+            onPointerCancel={() => {
+              swipeStart.current = null;
+            }}
+          >
+            <span />
+          </button>
           <div
             role="separator"
             tabIndex={0}
@@ -265,16 +339,20 @@ export function FloorTools({
                       ),
               );
             }}
-            className="group absolute inset-y-0 -right-1 z-10 flex w-2 cursor-col-resize touch-none select-none items-center justify-center outline-none hover:bg-cardinal/10 focus-visible:bg-cardinal/10"
+            className="desktop-sheet-resize group absolute inset-y-0 -right-1 z-10 flex w-2 cursor-col-resize touch-none select-none items-center justify-center outline-none hover:bg-cardinal/10 focus-visible:bg-cardinal/10"
           >
             <span className="h-10 w-1 rounded-full bg-neutral-300 transition group-hover:bg-cardinal group-focus-visible:bg-cardinal" />
           </div>
-          <div className="flex items-center gap-3 border-b border-neutral-100 px-5 py-4">
+          <div className="tool-sheet-heading flex items-center gap-3 border-b border-neutral-100 px-5 py-4">
             <span className="grid h-9 w-9 place-items-center rounded-xl bg-cardinal-50 text-cardinal">
               <tool.icon className="h-4 w-4" />
             </span>
             <div className="min-w-0 flex-1">
-              <h2 id="floor-tools-title" className="text-[16px] font-bold">
+              <h2
+                id="floor-tools-title"
+                tabIndex={-1}
+                className="text-[16px] font-bold"
+              >
                 {tool.label}
               </h2>
               <p className="text-[12px] text-neutral-500">{tool.description}</p>
@@ -289,11 +367,14 @@ export function FloorTools({
           </div>
           <div
             className={
-              active === "chat"
+              "tool-sheet-body " +
+              (active === "chat"
                 ? "flex min-h-0 flex-1 flex-col px-5 pb-3 pt-5"
-                : "min-h-0 flex-1 overflow-y-auto p-5"
+                : "min-h-0 flex-1 overflow-y-auto p-5")
             }
           >
+            {active === "floors" && floors}
+            {active === "layers" && layers}
             {active === "search" && (
               <SearchPanel
                 dataVersion={dataVersion}
@@ -302,7 +383,12 @@ export function FloorTools({
                   onDraftChange();
                   setQuery(value);
                 }}
-                onSearch={onSearch}
+                onSearch={async (query) => {
+                  const found = await onSearch(query);
+                  if (found && window.matchMedia("(max-width: 767px)").matches)
+                    close();
+                  return found;
+                }}
                 setNotice={setNotice}
               />
             )}
@@ -318,6 +404,7 @@ export function FloorTools({
                   setAccessibleOnly(value);
                 }}
                 dataVersion={dataVersion}
+                onPendingChange={setRoutePending}
                 onDirections={onDirections}
                 travelMode={travelMode}
                 setTravelMode={(value) => {
@@ -355,8 +442,19 @@ export function FloorTools({
               </p>
             )}
           </div>
+          {active === "directions" && (
+            <div className="mobile-directions-action">
+              <button
+                form="directions-form"
+                disabled={routePending}
+                className="flex w-full justify-center rounded-lg bg-cardinal p-3 text-sm font-bold text-white disabled:opacity-50"
+              >
+                {routePending ? "Calculating?" : "Get directions"}
+              </button>
+            </div>
+          )}
           {active !== "chat" && (
-            <p className="px-5 pb-4 pt-3 text-[11px] text-neutral-400">
+            <p className="tool-sheet-footer px-5 pb-4 pt-3 text-[11px] text-neutral-400">
               USC demo data · accessibility has not been verified.
             </p>
           )}

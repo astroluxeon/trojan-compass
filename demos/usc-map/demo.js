@@ -1,10 +1,14 @@
-import { buildingCode, compassUrl, mapPoint } from './map-data.js'
+import { setupMobileCampus } from './mobile.js'
+import { createCleanMap, onCleanCampus } from './clean-map.js'
+import { buildingCode, compassUrl } from './map-data.js'
 
 const sidebar = document.querySelector('#sidebar')
 const menu = document.querySelector('#hamburger')
 const map = document.querySelector('#map')
-const surface = document.querySelector('.gm-style > div:first-child')
+let surface = document.querySelector('.gm-style > div:first-child')
+let cleanMap
 const buildingTooltip = document.createElement('div')
+let pinnedBuildingName = false
 buildingTooltip.className = 'demo-building-tooltip'
 buildingTooltip.setAttribute('role', 'tooltip')
 buildingTooltip.hidden = true
@@ -13,19 +17,40 @@ function showBuildingName(target, x, y) {
   const building = target.closest('[data-place-name]')
   buildingTooltip.hidden = !building
   if (!building) return
-  buildingTooltip.textContent = building.dataset.placeName
+  renderPlaceName(buildingTooltip, building.dataset.placeName)
   buildingTooltip.style.left = `${Math.max(8, Math.min(x + 14, innerWidth - buildingTooltip.offsetWidth - 8))}px`
   buildingTooltip.style.top = `${Math.max(8, Math.min(y + 18, innerHeight - buildingTooltip.offsetHeight - 8))}px`
 }
-map.addEventListener('pointermove', e => showBuildingName(e.target, e.clientX, e.clientY))
+map.addEventListener('pointermove', e => { if (e.pointerType === 'mouse' && !e.buttons) showBuildingName(e.target, e.clientX, e.clientY) })
 map.addEventListener('focusin', e => {
   const rect = e.target.getBoundingClientRect()
   showBuildingName(e.target, rect.left + rect.width / 2, rect.bottom)
 })
 for (const event of ['pointerleave', 'pointerdown', 'focusout', 'wheel']) {
-  map.addEventListener(event, () => { buildingTooltip.hidden = true })
+  map.addEventListener(event, () => { pinnedBuildingName = false; buildingTooltip.hidden = true })
 }
-document.addEventListener('keydown', e => { if (e.key === 'Escape') buildingTooltip.hidden = true })
+map.addEventListener('click', () => { pinnedBuildingName = false; buildingTooltip.hidden = true; cleanMap?.selectPlace(null) })
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { pinnedBuildingName = false; buildingTooltip.hidden = true } })
+// Dismiss names and desktop cards from anywhere outside them, including toolbars.
+document.addEventListener('pointerdown', e => {
+  if (!buildingTooltip.contains(e.target)) { pinnedBuildingName = false; buildingTooltip.hidden = true }
+  if (!panel.hidden && !panel.contains(e.target) && !document.body.classList.contains('mobile-campus')) closePanel(false)
+}, true)
+function renderPlaceName(target, name) {
+  const text = name.replace('LEED Certified Building: ', '')
+  const match = text.match(/^(.*?)(\s*\([A-Z0-9-]{2,8}\))$/)
+  target.replaceChildren()
+  const label = document.createElement('span')
+  label.className = 'campus-place-name'
+  label.textContent = match ? match[1] : text
+  target.append(label)
+  if (match) {
+    const code = document.createElement('span')
+    code.className = 'campus-place-code'
+    code.textContent = match[2].trim()
+    target.append(' ', code)
+  }
+}
 const status = document.createElement('div')
 status.className = 'demo-status'
 status.setAttribute('role', 'status')
@@ -39,7 +64,7 @@ function notify(text) {
 
 const label = document.createElement('div')
 label.className = 'demo-label'
-label.textContent = 'Local USC map demo · Click a building to explore inside'
+label.textContent = 'Click for a building name · Double-click to explore inside'
 document.body.append(label)
 
 function toggleSidebar(open = !document.body.classList.contains('demo-sidebar-open')) {
@@ -66,24 +91,51 @@ function showPanel(title, trigger = document.activeElement) {
   close.textContent = '×'
   close.dataset.close = ''
   close.setAttribute('aria-label', 'Close map information')
-  close.onclick = closePanel
+  close.onclick = () => closePanel()
   const heading = document.createElement('h2')
-  heading.textContent = title
+  renderPlaceName(heading, title)
   panel.append(close, heading)
   panel.hidden = false
   close.focus()
+  document.dispatchEvent(new CustomEvent('campus:panel-open', { detail: { title } }))
   return panel
 }
-function closePanel() {
+function closePanel(restoreFocus = true) {
   panel.hidden = true
-  panelTrigger?.focus()
+  document.dispatchEvent(new Event('campus:panel-close'))
+  if (restoreFocus && !document.body.classList.contains('mobile-campus')) panelTrigger?.focus()
 }
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && !panel.hidden) closePanel() })
 
+function showPlaceName(place, event) {
+  cleanMap?.selectPlace(place.id)
+  const rect = event.currentTarget.getBoundingClientRect()
+  const pointer = typeof event.clientX === 'number' && (event.clientX !== 0 || event.clientY !== 0)
+  const x = pointer ? event.clientX : rect.left + rect.width / 2
+  const y = pointer ? event.clientY : rect.top + rect.height / 2
+  renderPlaceName(buildingTooltip, place.name)
+  buildingTooltip.hidden = false
+  buildingTooltip.style.left = `${Math.max(8, Math.min(x + 14, innerWidth - buildingTooltip.offsetWidth - 8))}px`
+  buildingTooltip.style.top = `${Math.max(8, Math.min(y + 18, innerHeight - buildingTooltip.offsetHeight - 8))}px`
+  pinnedBuildingName = true
+}
+function enterPlace(place) {
+  const code = buildingCode(place)
+  if (code) window.location.assign(compassUrl(code))
+  else openPlace(place)
+}
 function openPlace(place) {
   const code = buildingCode(place)
-  if (code) { window.location.assign(compassUrl(code)); return }
+  cleanMap?.selectPlace(place.id)
   const card = showPanel(place.name)
+  if (code) {
+    const explore = document.createElement('a')
+    explore.className = 'clean-explore-link'
+    explore.textContent = 'Explore building'
+    explore.href = compassUrl(code)
+    card.append(explore)
+    return
+  }
   const text = document.createElement('p')
   text.textContent = 'This location has no interior model in the Trojan Compass demo.'
   const official = document.createElement('a')
@@ -95,8 +147,8 @@ function openPlace(place) {
 }
 
 let zoom = 1, panX = 0, panY = 0
-function updateMap() { surface.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})` }
-function zoomMap(delta) { zoom = Math.min(3, Math.max(1, zoom + delta)); updateMap() }
+function updateMap() { surface.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`; cleanMap?.setZoom(zoom) }
+function zoomMap(delta) { zoom = Math.min(5, Math.max(1, zoom + delta)); updateMap() }
 function resetMap() { zoom = 1; panX = 0; panY = 0; updateMap() }
 document.querySelector('.zoom-in').onclick = () => zoomMap(.25)
 document.querySelector('.zoom-out').onclick = () => zoomMap(-.25)
@@ -114,20 +166,59 @@ document.querySelector('[data-cy="top-bar-btn-1"]').onclick = () => {
   card.append(text, link)
 }
 map.addEventListener('wheel', e => { e.preventDefault(); zoomMap(e.deltaY < 0 ? .1 : -.1) }, { passive: false })
-let drag
+let drag, pinch
+const touches = new Map()
+let suppressClickUntil = 0
+const limit = (value, max) => Math.max(-max, Math.min(max, value))
+function touchPair() {
+  const [a, b] = [...touches.values()]
+  const rect = map.getBoundingClientRect()
+  return { distance: Math.hypot(a.x - b.x, a.y - b.y), x: (a.x + b.x) / 2 - rect.left - rect.width / 2, y: (a.y + b.y) / 2 - rect.top - rect.height / 2 }
+}
 map.addEventListener('pointerdown', e => {
-  if (e.button !== 0 || e.target.closest('button,a,path,gmp-advanced-marker')) return
+  if (e.pointerType === 'touch') {
+    touches.set(e.pointerId, { x: e.clientX, y: e.clientY })
+    if (touches.size === 2) {
+      pinch = { ...touchPair(), zoom, panX, panY }
+      drag = null
+      for (const id of touches.keys()) map.setPointerCapture(id)
+      suppressClickUntil = Date.now() + 500
+      return
+    }
+  }
+  if (e.button !== 0 || (e.pointerType !== 'touch' && e.target.closest('button,a,path,gmp-advanced-marker'))) return
   drag = { x: e.clientX, y: e.clientY, panX, panY }
-  map.setPointerCapture(e.pointerId)
+  if (e.pointerType !== 'touch') map.setPointerCapture(e.pointerId)
 })
 map.addEventListener('pointermove', e => {
+  if (touches.has(e.pointerId)) touches.set(e.pointerId, { x: e.clientX, y: e.clientY })
+  if (pinch && touches.size >= 2) {
+    const next = touchPair()
+    zoom = Math.min(5, Math.max(1, pinch.zoom * next.distance / Math.max(1, pinch.distance)))
+    const ratio = zoom / pinch.zoom
+    panX = limit(next.x - (pinch.x - pinch.panX) * ratio, 500)
+    panY = limit(next.y - (pinch.y - pinch.panY) * ratio, 300)
+    suppressClickUntil = Date.now() + 500
+    updateMap()
+    return
+  }
   if (!drag) return
-  panX = Math.max(-500, Math.min(500, drag.panX + e.clientX - drag.x))
-  panY = Math.max(-300, Math.min(300, drag.panY + e.clientY - drag.y))
+  if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 6) return
+  if (e.pointerType === 'touch') map.setPointerCapture(e.pointerId)
+  suppressClickUntil = Date.now() + 500
+  panX = limit(drag.panX + e.clientX - drag.x, 500)
+  panY = limit(drag.panY + e.clientY - drag.y, 300)
   updateMap()
 })
-map.addEventListener('pointerup', () => { drag = null })
-map.addEventListener('pointercancel', () => { drag = null })
+for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) map.addEventListener(type, e => {
+  touches.delete(e.pointerId)
+  if (pinch) suppressClickUntil = Date.now() + 500
+  pinch = null
+  drag = null
+})
+map.addEventListener('click', e => {
+  if (Date.now() < suppressClickUntil) { e.preventDefault(); e.stopPropagation() }
+}, true)
 map.addEventListener('keydown', e => {
   if (e.target !== map) return
   const directions = { ArrowLeft: [50, 0], ArrowRight: [-50, 0], ArrowUp: [0, 50], ArrowDown: [0, -50] }
@@ -171,49 +262,10 @@ document.querySelectorAll('.gm-style [aria-label="Location name"]').forEach(el =
 async function init() {
   const response = await fetch('./locations.json')
   if (!response.ok) throw new Error('Could not load the campus directory. Refresh to try again.')
-  const places = await response.json()
+  const places = (await response.json()).filter(onCleanCampus)
   const buildings = places.filter(p => p.category === 'Buildings')
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-  svg.classList.add('demo-footprints')
-  svg.setAttribute('width', '1')
-  svg.setAttribute('height', '1')
-  svg.setAttribute('aria-label', 'Campus buildings')
-  // Share the saved map's center with the original markers and map tiles.
-  const origin = document.querySelector('gmp-advanced-marker').parentElement.parentElement
-  const markerOrigin = origin.parentElement
-  const footprintPane = document.createElement('div')
-  footprintPane.style.cssText = 'position:absolute;left:0;top:0;z-index:105'
-  footprintPane.append(svg)
-  markerOrigin.insertBefore(footprintPane, origin)
-  for (const place of places) {
-    if (!place.paths?.length) continue
-    const rings = typeof place.paths[0][0] === 'number' ? [place.paths] : place.paths
-    const path = document.createElementNS(svg.namespaceURI, 'path')
-    path.setAttribute('d', rings.map(ring => ring.map(([lat, lng], i) => `${i ? 'L' : 'M'}${mapPoint(lat, lng).join(',')}`).join(' ') + ' Z').join(' '))
-    path.setAttribute('fill', place.color)
-    path.setAttribute('fill-rule', 'evenodd')
-    path.dataset.category = place.category === 'Buildings' ? 'buildings' : 'parking'
-    path.dataset.placeName = place.name
-    path.dataset.supported = String(!!buildingCode(place))
-    path.setAttribute('role', 'link')
-    path.setAttribute('aria-label', `${place.name}${buildingCode(place) ? ' — Explore in Trojan Compass' : ''}`)
-    // Buildings can also be reached from the searchable directory, without hundreds of tab stops.
-    if (buildingCode(place)) path.setAttribute('tabindex', '0')
-    path.addEventListener('click', e => { e.stopPropagation(); openPlace(place) })
-    path.addEventListener('keydown', e => { if (e.key === 'Enter') openPlace(place) })
-    svg.append(path)
-  }
-
-  for (const marker of document.querySelectorAll('gmp-advanced-marker')) {
-    const button = marker.querySelector('[aria-label^="Open Location:"]')
-    if (!button) continue
-    const name = button.getAttribute('aria-label').replace('Open Location: ', '')
-    const place = places.find(p => p.name === name)
-    if (!place) continue
-    marker.dataset.category = place.category === 'Buildings' ? 'buildings' : 'parking'
-    marker.addEventListener('click', e => { e.stopPropagation(); openPlace(place) })
-    marker.dataset.placeName = name
-  }
+  cleanMap = createCleanMap(map, places, showPlaceName, enterPlace)
+  surface = cleanMap.surface
 
   const search = document.createElement('div')
   search.className = 'demo-search'
@@ -235,23 +287,18 @@ async function init() {
       results.append(empty)
     }
     for (const place of list) {
-      const code = buildingCode(place)
-      const item = document.createElement(code ? 'a' : 'button')
-      item.textContent = place.name.replace('LEED Certified Building: ', '')
-      if (code) {
-        item.href = compassUrl(code)
-        const hint = document.createElement('small')
-        hint.textContent = 'EXPLORE INSIDE · TROJAN COMPASS ↗'
-        item.append(hint)
-      } else item.onclick = () => openPlace(place)
+      const item = document.createElement('button')
+      renderPlaceName(item, place.name)
+      item.onclick = () => openPlace(place)
       results.append(item)
     }
+    document.dispatchEvent(new Event('campus:results'))
   }
   const categories = document.querySelector('.category-location-list')
   input.addEventListener('input', () => {
     const query = input.value.trim().toLowerCase()
     categories.hidden = !!query
-    if (!query) { results.replaceChildren(); return }
+    if (!query) { showResults(buildings.filter(b => /\((LAW|THH|TCC|VKC)\)/.test(b.name)).slice(0, 4)); return }
     showResults(places.filter(p => `${p.name} ${p.code}`.toLowerCase().includes(query)))
   })
   document.querySelector('#cat-53722').addEventListener('click', () => showResults(buildings.toSorted((a, b) => Number(!!buildingCode(b)) - Number(!!buildingCode(a)) || a.name.localeCompare(b.name))))
@@ -297,6 +344,7 @@ async function init() {
     })
   })
   toggleSidebar(false)
+  setupMobileCampus({ search, categories, panel, resetMap, showResults, buildings, notify })
 }
 
 init().catch(error => notify(error.message))

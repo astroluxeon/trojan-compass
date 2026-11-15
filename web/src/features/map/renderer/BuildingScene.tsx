@@ -1,10 +1,10 @@
+import { StairsIcon } from "./StairsIcon";
 import { Edges, Line } from "@react-three/drei";
 import { MapHtml } from "./MapHtml";
 import {
   Accessibility,
   ArrowUpDown,
   DoorOpen,
-  Footprints,
   TriangleAlert,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
@@ -40,6 +40,7 @@ interface Props {
   code: BuildingCode;
   floor: number;
   allFloors?: boolean;
+  showRoomLabels?: boolean;
   layers: Set<LayerKey>;
   highlights: Map<string, string>;
   selectedCell?: string;
@@ -301,6 +302,7 @@ function GhostFloor({
 }
 
 function ActiveFloor({
+  showRoomLabels = true,
   code,
   floor,
   layers,
@@ -445,6 +447,7 @@ function ActiveFloor({
         );
       })}
       <FloorMarkers
+        showRoomLabels={showRoomLabels}
         layout={layout}
         layers={layers}
         highlights={highlights}
@@ -492,6 +495,7 @@ function Stairs({ c }: { c: Cell }) {
 }
 
 function FloorMarkers({
+  showRoomLabels = true,
   layout,
   layers,
   highlights,
@@ -499,6 +503,7 @@ function FloorMarkers({
   onSelectCell,
   onSelectLocation,
 }: {
+  showRoomLabels?: boolean;
   layout: FloorLayout;
   layers: Set<LayerKey>;
   highlights: Map<string, string>;
@@ -519,7 +524,7 @@ function FloorMarkers({
     if (c.kind === "room") {
       const hl = highlights.get(c.id);
       const selected = selectedCell === c.id;
-      if (layers.has("classrooms") || hl || selected) {
+      if ((showRoomLabels && layers.has("classrooms")) || hl || selected) {
         markers.push({
           key: c.id,
           pos: [cx, 1.3, cz],
@@ -603,7 +608,7 @@ function FloorMarkers({
       if (layers.has("stairs"))
         badges.push(
           <MapBadge key="s" color="#3f3f46" title={c.name}>
-            <Footprints className={icon} />
+            <StairsIcon className={icon} />
           </MapBadge>,
         );
       if (

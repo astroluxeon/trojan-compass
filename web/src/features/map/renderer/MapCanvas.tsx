@@ -1,11 +1,11 @@
 import { CameraControls } from "@react-three/drei";
-import { Canvas, useThree } from "@react-three/fiber";
-import { useEffect, useRef } from "react";
+import { Canvas, events, useThree } from "@react-three/fiber";
+import { useEffect, useRef, useState } from "react";
 import type { BuildingCode } from "../data/campus-display";
 import type { Cell } from "../data/viewer-data";
 import type { Route } from "../../routing/viewer-route";
 import type { Route as ApiRoute } from "@trojan-compass/shared/api";
-import { buildingFrame, roomFacingAngle } from "../camera";
+import { buildingFrame, roomFacingAngle, roomLabelsVisible } from "../camera";
 import type { LayerKey, MapLocation, View } from "../types";
 import { BuildingScene } from "./BuildingScene";
 import { LabelLayerContext } from "./MapHtml";
@@ -66,6 +66,7 @@ function frame(
 export function MapCanvas(props: Props) {
   const { view, route, layers } = props;
   const controls = useRef<CameraControls>(null);
+  const [showRoomLabels, setShowRoomLabels] = useState(true);
   const labelLayer = useRef<HTMLDivElement>(null);
 
   const indoorLegs = route?.legs.filter((l) => l.kind === "indoor") ?? [];
@@ -86,6 +87,15 @@ export function MapCanvas(props: Props) {
     >
       <LabelLayerContext.Provider value={labelLayer}>
         <Canvas
+          events={(state) => ({
+            ...events(state),
+            filter: (hits) =>
+              hits.sort(
+                (a, b) =>
+                  Number(!!b.object.userData.locationGuide) -
+                  Number(!!a.object.userData.locationGuide),
+              ),
+          })}
           shadows="percentage"
           dpr={[1, 2]}
           flat
@@ -117,6 +127,7 @@ export function MapCanvas(props: Props) {
             <BuildingScene
               apiRoute={props.apiRoute}
               activeLegId={props.activeLegId}
+              showRoomLabels={showRoomLabels}
               code={view.code}
               floor={view.floor}
               allFloors={view.allFloors}
@@ -135,6 +146,13 @@ export function MapCanvas(props: Props) {
           )}
           <CameraControls
             ref={controls}
+            onUpdate={() => {
+              const c = controls.current;
+              if (c)
+                setShowRoomLabels((visible) =>
+                  roomLabelsVisible(c.distance, c.maxDistance, visible),
+                );
+            }}
             enabled={!props.placingCurrentLocation}
             makeDefault
             minDistance={12}
