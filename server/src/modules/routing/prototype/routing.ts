@@ -19,7 +19,7 @@ export type RouteMode = 'fastest' | 'stairs' | 'elevator'
 export const MODE_LABELS: Record<RouteMode, string> = {
   fastest: 'Fastest',
   stairs: 'Stairs',
-  elevator: 'Elevator · step-free',
+  elevator: 'Elevator · demo route',
 }
 
 type NodeKind = 'corridor' | 'door' | 'room' | 'stairs' | 'elevator' | 'restroom' | 'entrance'
@@ -33,6 +33,7 @@ interface GNode {
   label?: string
   title?: string
   stepFree?: boolean
+  inferred?: boolean
 }
 interface GEdge {
   to: string
@@ -82,7 +83,7 @@ function buildGraph(code: BuildingCode): Graph {
     for (const c of L.cells) {
       if (c.kind === 'block') continue
       const [x, z] = cellCenter(c)
-      add({ id: c.node, x, z, floor: f, kind: c.kind, label: c.name, title: cellTitle(c) })
+      add({ id: c.node, x, z, floor: f, kind: c.kind, label: c.name, title: cellTitle(c), inferred: c.evidence?.positionStatus === 'inferred' })
       const door = `${c.node}:door`
       add({ id: door, x: c.door[0], z: c.door[1], floor: f, kind: 'door' })
       // Elevator access includes a wait penalty so short trips prefer stairs in "fastest".
@@ -95,7 +96,7 @@ function buildGraph(code: BuildingCode): Graph {
       }
     }
     for (const e of L.entrances) {
-      add({ id: e.id, x: e.x, z: e.z, floor: f, kind: 'entrance', label: e.label, stepFree: e.stepFree })
+      add({ id: e.id, x: e.x, z: e.z, floor: f, kind: 'entrance', label: e.label, stepFree: e.stepFree, inferred: e.evidence?.positionStatus === 'inferred' })
       link(e.id, nearest(e.x, e.z))
     }
   }
@@ -198,10 +199,13 @@ export interface Route {
   usesStairs: boolean
   /** True when the route enters or exits through a door with steps. */
   entranceSteps: boolean
+  /** Any reconstructed indoor leg, or the unverified outdoor connector. */
+  inferred: boolean
+  accessibilityStatus: 'inferred' | 'existing-demo'
 }
 
 const CAMPUS_METERS_PER_UNIT = 6
-const floorPhrase = (f: number) => (f === 0 ? 'the basement' : `floor ${f}`)
+const floorPhrase = (f: number, code: BuildingCode) => f === 0 ? 'the basement' : floorName(f, code).toLowerCase()
 
 function describeIndoor(code: BuildingCode, path: GNode[], steps: Step[]) {
   const g = graphFor(code)
@@ -217,14 +221,14 @@ function describeIndoor(code: BuildingCode, path: GNode[], steps: Step[]) {
   if (first.kind === 'entrance') {
     steps.push({
       icon: 'start',
-      text: `Enter ${code} through the ${first.label}${first.stepFree ? ' (step-free)' : ' (has steps)'}.`,
+      text: `Enter ${code} through the ${first.label}${first.inferred ? ' (position and accessibility inferred)' : first.stepFree ? ' (step-free)' : ' (has steps)'}.`,
       building: code,
       floor: first.floor,
     })
   } else if (first.kind === 'room') {
     steps.push({ icon: 'start', text: `Leave ${first.title} and step into the corridor.`, building: code, floor: first.floor })
   } else {
-    steps.push({ icon: 'start', text: `Start at the ${first.label?.toLowerCase()} on ${floorPhrase(first.floor)}.`, building: code, floor: first.floor })
+    steps.push({ icon: 'start', text: `Start at the ${first.label?.toLowerCase()} on ${floorPhrase(first.floor, code)}.`, building: code, floor: first.floor })
   }
 
   // Restroom and elevator doors on a floor, used as "passing the ..." landmarks.
@@ -244,11 +248,11 @@ function describeIndoor(code: BuildingCode, path: GNode[], steps: Step[]) {
       if (a.kind === 'elevator') {
         usesElevator = true
         seconds += 35 + n * 6
-        steps.push({ icon: 'elevator', text: `Take the ${a.label?.toLowerCase()} ${dir} to ${floorPhrase(end.floor)}.`, building: code, floor: end.floor })
+        steps.push({ icon: 'elevator', text: `Take the ${a.inferred ? 'inferred ' : ''}${a.label?.toLowerCase()} ${dir} to ${floorPhrase(end.floor, code)}.`, building: code, floor: end.floor })
       } else {
         usesStairs = true
         seconds += n * 18
-        steps.push({ icon: 'stairs', text: `Take the ${a.label?.toLowerCase()} ${dir} ${n} ${n > 1 ? 'flights' : 'flight'} to ${floorPhrase(end.floor)}.`, building: code, floor: end.floor })
+        steps.push({ icon: 'stairs', text: `Take the ${a.inferred ? 'inferred ' : ''}${a.label?.toLowerCase()} ${dir} ${n} ${n > 1 ? 'flights' : 'flight'} to ${floorPhrase(end.floor, code)}.`, building: code, floor: end.floor })
       }
       lastDir = null
       i = j
@@ -293,7 +297,7 @@ function describeIndoor(code: BuildingCode, path: GNode[], steps: Step[]) {
   }
 
   if (last.kind === 'entrance') {
-    steps.push({ icon: 'exit', text: `Exit ${code} through the ${last.label}${last.stepFree ? '' : ' (has steps)'}.`, building: code, floor: last.floor })
+    steps.push({ icon: 'exit', text: `Exit ${code} through the ${last.label}${last.inferred ? ' (position and exit suitability inferred)' : last.stepFree ? '' : ' (has steps)'}.`, building: code, floor: last.floor })
   } else {
     let where = 'straight ahead'
     const lastCorr = [...path].reverse().find((n) => n.kind === 'corridor')
@@ -370,12 +374,13 @@ export function computeRoute(from: Place, to: Place, mode: RouteMode): Route | n
     legs.push({ kind: 'outdoor', from: from.building, to: to.building, points: pts })
     steps.push({
       icon: 'outdoor',
-      text: `Walk about ${m} m (${Math.max(1, Math.round(m / 80))} min) via Childs Way to ${B.name} (${B.code}). The path is paved and step-free.`,
+      text: `Walk about ${m} m (${Math.max(1, Math.round(m / 80))} min) via Childs Way to ${B.name} (${B.code}). Outdoor path and accessibility are inferred.`,
     })
     if (!indoor(to.building, entB, to.node)) return null
     if (to.node === entB && !isStepFreeEntrance(entB)) entranceSteps = true
   }
-  return { from, to, mode, legs, steps, meters, seconds: Math.round(seconds), usesElevator, usesStairs, entranceSteps }
+  const inferred = legs.some(leg => leg.kind === 'outdoor' || getLayout(leg.building, leg.floors[0] ?? 1).evidence?.positionStatus === 'inferred')
+  return { from, to, mode, legs, steps, meters, seconds: Math.round(seconds), usesElevator, usesStairs, entranceSteps, inferred, accessibilityStatus: inferred ? 'inferred' : 'existing-demo' }
 }
 
 export function formatDuration(seconds: number) {
@@ -386,7 +391,7 @@ export function isStepFreePlace(place: Place): boolean {
   const entrance = accessibleEntrancePlace(place.building)
   if (!isStepFreeEntrance(entrance.node)) return false
   const route = computeRoute(entrance, place, 'elevator')
-  return !!route && !route.usesStairs && !route.entranceSteps
+  return !!route && !route.inferred && !route.usesStairs && !route.entranceSteps
 }
 
 export { floorName }

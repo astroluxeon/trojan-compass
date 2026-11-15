@@ -1,3 +1,11 @@
-// TODO (Eddie): Mount validated HTTP handlers when implemented.
-// See docs/ownership.md and src/ports/service-ports.ts; no endpoint is implemented here yet.
-export {};
+import type { Operation } from '../../bootstrap/http-types.js';
+import type { ChatPort } from '../../ports/service-ports.js';
+export function mountChat(operation: Operation, chat: ChatPort) {
+  operation(
+    'post',
+    '/chat',
+    'ChatResponse',
+    async (s, q, p, r) => chat.respond(s, r.body),
+    'ChatTextRequest'
+  );
+}

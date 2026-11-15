@@ -1,4 +1,6 @@
-// Preserved prototype logic; not the canonical HTTP contract. See docs/migration.md.
+// Preserved prototype source; canonical runtime data is exported to server/data/snapshots/.
+import { INTERIORS } from './interiors/index.js'
+
 export type BuildingCode = 'DML' | 'LVL' | 'THH' | 'VKC' | 'TCC' | 'SGM' | 'SAL' | 'KAP' | 'LAW'
 
 export interface Building {
@@ -150,6 +152,25 @@ export const BUILDINGS: Building[] = [
     featured: true,
   },
 ]
+
+// Reconstruction metadata supersedes the original generic floor counts.
+for (const building of BUILDINGS) {
+  const reconstruction = INTERIORS[building.code]
+  if (!reconstruction) continue
+  building.name = reconstruction.name
+  building.levels = reconstruction.floors.map(f => f.level)
+  building.floors = Math.max(...building.levels)
+  building.footprint = reconstruction.footprint
+  if (building.code === 'VKC') building.blurb = 'Medicine Crow Center (legacy code VKC): classrooms, offices and a lower-level library around an open courtyard.'
+  if (building.code === 'TCC') building.blurb = 'Student commons, meeting rooms and offices. Adjacent Sample Hall (SKS) is a separate building.'
+}
+
+/** Keep VKC URLs/room IDs stable while accepting the current USC code DMC. */
+export function resolveBuildingCode(value: string): BuildingCode | undefined {
+  const code = value.trim().toUpperCase()
+  if (code === 'DMC') return 'VKC'
+  return BUILDINGS.find(building => building.code === code)?.code
+}
 
 export const BUILDING_BY_CODE = Object.fromEntries(BUILDINGS.map((b) => [b.code, b])) as Record<
   BuildingCode,

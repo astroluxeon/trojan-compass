@@ -1,5 +1,4 @@
-// Derived from the copied OpenAPI contract. Compile-time types only.
-// Runtime JSON Schema and domain validation remain required.
+// Generated from shared/contracts/openapi.yaml. Do not edit. Compile-time types only.
 
 export type Id = string;
 export type DataVersion = string;
@@ -46,7 +45,7 @@ export type Route = { "id": Id; "origin": ResolvedEndpoint; "destination": Resol
 export type ChatHistoryMessage = { "role": "user" | "assistant"; "content": string; };
 export type ChatContext = { "buildingId": (Id | null); "floorId": (Id | null); "origin": (LocationRef | null); "selectedPlace": (PlaceLocation | null); };
 export type ChatPayload = { "clientRequestId": string; "dataVersion": DataVersion; "message"?: string; "history": Array<ChatHistoryMessage>; "context": ChatContext; "preferences": { "mode": RouteMode; "stepFree": boolean; "accessProfile": "public"; }; };
-export type ChatTextRequest = (ChatPayload & { "message": unknown; });
+export type ChatTextRequest = (ChatPayload & unknown);
 export type ChatMultipartRequest = { "request": ChatPayload; "image": string; };
 export type FocusBuildingAction = { "type": "focus_building"; "buildingId": Id; };
 export type FocusFloorAction = { "type": "focus_floor"; "buildingId": Id; "floorId": Id; };
@@ -61,7 +60,7 @@ export type Citation = { "sourceId": Id; "url": string; "pageReference": (string
 export type ChatResponse = { "requestId": string; "clientRequestId": string; "dataVersion": DataVersion; "status": "resolved" | "needs_clarification" | "not_found" | "no_route" | "unsupported"; "message": string; "actions": Array<MapAction>; "clarification": (Clarification | null); "citations": Array<Citation>; };
 export type Event = { "id": Id; "title": string; "description": string; "kind": "class" | "club" | "general" | "exam"; "status": "scheduled" | "cancelled" | "postponed"; "startsAt": string; "endsAt": string; "displayTimeZone": "America/Los_Angeles"; "destination": PlaceLocation; "sourceUrl": (string | null); "provenance": Provenance; };
 export type FieldError = { "field": string; "message": string; };
-export type APIError = { "error": { "code": string; "message": string; "requestId": string; "fieldErrors"?: Array<FieldError>; "details"?: Record<string, unknown>; }; };
+export type APIError = { "error": { "code": string; "message": string; "requestId": string; "fieldErrors"?: Array<FieldError>; "details"?: {  }; }; };
 export type Health = { "status": "ok"; "service": "trojan-compass-api"; };
 export type BuildingListResponse = { "requestId": string; "dataVersion": DataVersion; "items": Array<BuildingSummary>; "nextCursor": (string | null); };
 export type BuildingResponse = { "requestId": string; "dataVersion": DataVersion; "building": Building; };

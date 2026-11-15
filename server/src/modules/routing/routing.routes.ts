@@ -1,3 +1,14 @@
-// TODO (Eddie): Mount validated HTTP handlers when implemented.
-// See docs/ownership.md and src/ports/service-ports.ts; no endpoint is implemented here yet.
-export {};
+import type { Operation } from '../../bootstrap/http-types.js';
+import type { RoutingPort } from '../../ports/service-ports.js';
+export function mountRouting(operation: Operation, routing: RoutingPort) {
+  operation(
+    'post',
+    '/routes',
+    'RouteResponse',
+    async (s, q, p, r) => ({
+      clientRequestId: r.body.clientRequestId,
+      route: await routing.calculateRoute(s, r.body),
+    }),
+    'RouteRequest'
+  );
+}

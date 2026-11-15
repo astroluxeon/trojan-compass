@@ -1,9 +1,23 @@
 // Proposed in-process integration seam. No new HTTP endpoints.
 import type {
-  Building, BuildingSummary, Floor, Place, Scene, PlaceSearchResult,
-  PlaceKind, GraphNode, GraphEdge, Provenance, RouteRequest, Route,
-  ChatTextRequest, ChatResponse, FieldError,
-} from "@trojan-compass/shared/api";
+  Building,
+  BuildingSummary,
+  Floor,
+  Place,
+  Scene,
+  PlaceSearchResult,
+  PlaceKind,
+  GraphNode,
+  GraphEdge,
+  Provenance,
+  RouteRequest,
+  Route,
+  ChatTextRequest,
+  ChatResponse,
+  FieldError,
+  FloorGeometry,
+  Vector3,
+} from '@trojan-compass/shared/api';
 
 export interface RequestScope {
   requestId: string;
@@ -19,6 +33,10 @@ export interface NavigationSource {
   nodes: GraphNode[];
   edges: GraphEdge[];
   provenance: Provenance;
+  // Source centerlines and room regions, in canonical meters. Not a derived graph cache.
+  walkable: { floorId: string; from: Vector3; to: Vector3; radius: number }[];
+  barriers: { floorId: string; min: Vector3; max: Vector3 }[];
+  connectors: { id: string; nodeIds: string[]; kind: 'stairs' | 'elevator' | 'ramp' }[];
 }
 
 // Teammate implements these methods over the canonical pinned dataset.
@@ -27,6 +45,11 @@ export interface DatasetPort {
   listBuildings(scope: RequestScope): Promise<BuildingSummary[]>;
   getBuilding(scope: RequestScope, buildingId: string): Promise<Building>;
   getFloor(scope: RequestScope, buildingId: string, floorId: string): Promise<Floor>;
+  getFloorGeometry(
+    scope: RequestScope,
+    buildingId: string,
+    floorId: string
+  ): Promise<FloorGeometry | null>;
   listPlaces(scope: RequestScope, buildingId?: string): Promise<Place[]>;
   getPlace(scope: RequestScope, buildingId: string, placeId: string): Promise<Place>;
   getScene(scope: RequestScope, buildingId: string): Promise<Scene>;
@@ -47,11 +70,11 @@ export interface PlaceSearchInput {
 export interface SearchPort {
   searchBuildings(
     scope: RequestScope,
-    input: { query: string; limit: number; cursor?: string },
+    input: { query: string; limit: number; cursor?: string }
   ): Promise<{ buildings: BuildingSummary[]; nextCursor: string | null }>;
   searchPlaces(
     scope: RequestScope,
-    input: PlaceSearchInput,
+    input: PlaceSearchInput
   ): Promise<{ results: PlaceSearchResult[]; nextCursor: string | null }>;
 }
 

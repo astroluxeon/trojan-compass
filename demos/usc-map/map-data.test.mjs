@@ -15,6 +15,7 @@ test('official building records link to every supported interior, with no false 
   }
   assert.equal(buildingCode({ name: 'Bovard Administration Building (ADM)', code: 'ADM' }), null)
   assert.equal(compassUrl('ADM'), null)
+  assert.equal(buildingCode({ name: 'Medicine Crow Center (DMC)', code: 'DMC' }), 'VKC')
 })
 
 test('map projection aligns with saved Taper Hall marker', () => {

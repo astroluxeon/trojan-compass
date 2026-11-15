@@ -1,18 +1,40 @@
-import type { BuildingCode } from './data/generated/campus'
+import type { BuildingCode } from './data/campus-display';
 
-export type LayerKey = 'classrooms' | 'events' | 'mensRestrooms' | 'womensRestrooms' | 'accessible' | 'ramps' | 'stairs' | 'elevators' | 'exits' | 'entrances'
+export type LayerKey =
+  | 'classrooms'
+  | 'events'
+  | 'mensRestrooms'
+  | 'womensRestrooms'
+  | 'accessible'
+  | 'ramps'
+  | 'stairs'
+  | 'elevators'
+  | 'exits'
+  | 'entrances';
 
-export type View = { type: 'campus' } | { type: 'building'; code: BuildingCode; floor: number; allFloors?: boolean }
+export type View =
+  { type: 'campus' } | { type: 'building'; code: BuildingCode; floor: number; allFloors?: boolean };
 
 export interface MapLocation {
-  label: string
-  building: BuildingCode
-  floor: number
-  x: number
-  z: number
+  label: string;
+  building: BuildingCode;
+  floor: number;
+  x: number;
+  z: number;
 }
 
-export const ALL_LAYERS: LayerKey[] = ['classrooms', 'events', 'mensRestrooms', 'womensRestrooms', 'accessible', 'ramps', 'stairs', 'elevators', 'exits', 'entrances']
+export const ALL_LAYERS: LayerKey[] = [
+  'classrooms',
+  'events',
+  'mensRestrooms',
+  'womensRestrooms',
+  'accessible',
+  'ramps',
+  'stairs',
+  'elevators',
+  'exits',
+  'entrances',
+];
 
 export const COLORS = {
   cardinal: '#990000',
@@ -25,4 +47,4 @@ export const COLORS = {
   model: '#d6d6da',
   modelHover: '#c5c5ca',
   edge: '#a8a8ae',
-}
+};

@@ -1,6 +1,8 @@
-// Preserved prototype logic; not the canonical HTTP contract. See docs/migration.md.
-import { BUILDING_BY_CODE, type BuildingCode } from './campus.js'
+// Preserved prototype source; canonical runtime data is exported to server/data/snapshots/.
+import { BUILDING_BY_CODE, resolveBuildingCode, type BuildingCode } from './campus.js'
 import { LAW_SPEC, type Rect, type Side } from './law.js'
+import { INTERIORS } from './interiors/index.js'
+import type { Evidence, ReconstructedFloorSpec } from './interiors/types.js'
 
 export const FLOOR_GAP = 3.4
 
@@ -12,7 +14,7 @@ export interface Cell {
   floor: number
   kind: CellKind
   restroom?: 'men' | 'women' | 'both'
-  /** Room number as printed on the plan (may be empty for named spaces). */
+  /** Room number (consult evidence.numberStatus; may be empty for named spaces). */
   number: string
   name: string
   /** Short text for the 3D map pill when there is no number. */
@@ -29,6 +31,7 @@ export interface Cell {
   /** Stairs/elevators sharing a core id connect vertically. */
   core?: string
   node: string
+  evidence?: Evidence
 }
 
 export interface Entrance {
@@ -40,6 +43,7 @@ export interface Entrance {
   ramp?: boolean
   /** False for exit-only doors. */
   entrance: boolean
+  evidence?: Evidence
 }
 
 export interface FloorLayout {
@@ -50,14 +54,18 @@ export interface FloorLayout {
   walkNodes: { id: string; x: number; z: number }[]
   walkEdges: [string, string][]
   entrances: Entrance[]
+  evidence?: Evidence
+  voids?: ReconstructedFloorSpec['voids']
 }
 
 export const floorY = (floor: number) => (floor - 1) * FLOOR_GAP
-export const floorName = (floor: number) => (floor === 0 ? 'Basement' : `Floor ${floor}`)
+export const floorName = (floor: number, building?: BuildingCode) =>
+  (building && INTERIORS[building]?.floors.find(s => s.level === floor)?.name) || (floor === 0 ? 'Basement' : `Floor ${floor}`)
 export const floorShort = (floor: number) => (floor === 0 ? 'B' : String(floor))
 
 export function getLevels(code: BuildingCode): number[] {
   const b = BUILDING_BY_CODE[code]
+  if (INTERIORS[code]) return INTERIORS[code]!.floors.map(s => s.level)
   return b.levels ?? Array.from({ length: b.floors }, (_, i) => i + 1)
 }
 
@@ -65,80 +73,12 @@ export function metersPerUnit(code: BuildingCode) {
   return code === 'LAW' ? 2.4 : 2
 }
 
-// ---------- Template layout (generic classroom building) ----------
-
-const NORTH: [number, number, CellKind, number | string][] = [
-  [-12, -9, 'stairs', 'A'],
-  [-9, -5, 'room', 1],
-  [-5, -1.5, 'room', 3],
-  [-1.5, 1.5, 'elevator', 'E'],
-  [1.5, 5, 'room', 5],
-  [5, 9, 'room', 7],
-  [9, 12, 'room', 9],
-]
-const SOUTH: [number, number, CellKind, number | string][] = [
-  [-12, -9, 'room', 2],
-  [-9, -5, 'room', 4],
-  [-5, -1.5, 'room', 6],
-  [-1.5, 1.5, 'restroom', 'R'],
-  [1.5, 5, 'room', 8],
-  [5, 9, 'room', 10],
-  [9, 12, 'stairs', 'B'],
-]
-const ROOM_TYPES = [
-  ['Lecture Hall', 120],
-  ['Seminar Room', 18],
-  ['Classroom', 40],
-  ['Study Lounge', 30],
-  ['Classroom', 36],
-  ['Computer Lab', 32],
-  ['Lecture Hall', 90],
-  ['Classroom', 28],
-  ['Faculty Offices', 0],
-  ['Seminar Room', 20],
-] as const
-const CORRIDOR_XS = [-12, -10.5, -7, -3.25, 0, 3.25, 7, 10.5, 12]
-const hash = (s: string) => [...s].reduce((a, c) => a + c.charCodeAt(0), 0)
-
+/** Stable generic IDs remain valid where no evidence contradicted the old floor count. */
 export function roomNumber(floor: number, index: number) {
   return String(floor * 100 + index)
 }
 
-function templateLayout(building: BuildingCode, floor: number): FloorLayout {
-  const offset = hash(building) + floor * 3
-  const cells: Cell[] = []
-  const make = (side: 'north' | 'south') => ([x0, x1, kind, n]: (typeof NORTH)[number]) => {
-    const z0 = side === 'north' ? -6 : 1
-    const z1 = side === 'north' ? -1 : 6
-    const cx = (x0 + x1) / 2
-    const base = { building, floor, kind, x0, x1, z0, z1, door: [cx, side === 'north' ? -1 : 1] as [number, number] }
-    if (kind === 'room') {
-      const [name, cap] = ROOM_TYPES[((n as number) - 1 + offset) % ROOM_TYPES.length]!
-      const num = roomNumber(floor, n as number)
-      cells.push({ ...base, id: `${building}-${num}`, number: num, name, capacity: cap || undefined, node: `${building}:${floor}:room:${num}` })
-    } else if (kind === 'stairs') {
-      cells.push({ ...base, id: `${building}-${floor}-S${n}`, number: String(n), name: `Stairwell ${n}`, core: `S${n}`, node: `${building}:${floor}:stairs:${n}` })
-    } else if (kind === 'elevator') {
-      cells.push({ ...base, id: `${building}-${floor}-EL`, number: 'EL', name: 'Elevator', core: 'E', node: `${building}:${floor}:elevator` })
-    } else {
-      cells.push({ ...base, id: `${building}-${floor}-RR`, number: 'RR', name: 'Restrooms (all-gender, accessible)', restroom: 'both', node: `${building}:${floor}:restroom` })
-    }
-  }
-  NORTH.forEach(make('north'))
-  SOUTH.forEach(make('south'))
-  const walkNodes = CORRIDOR_XS.map((x, i) => ({ id: `${building}:${floor}:c:${i}`, x, z: 0 }))
-  const walkEdges = walkNodes.slice(1).map((n, i) => [walkNodes[i]!.id, n.id] as [string, string])
-  const entrances: Entrance[] =
-    floor === 1
-      ? [
-          { id: `${building}:1:entrance`, x: -13, z: 0, label: 'main west entrance', stepFree: true, entrance: true },
-          { id: `${building}:1:exit`, x: 13, z: 0, label: 'east exit', stepFree: true, entrance: false },
-        ]
-      : []
-  return { building, floor, cells, slabs: [[-12.3, -6.3, 12.3, 6.3]], walkNodes, walkEdges, entrances }
-}
-
-// ---------- Traced layout (Musick Law Building) ----------
+// ---------- Shared LAW-format loader ----------
 
 const PX_C = 630
 const PY_C = 930
@@ -151,12 +91,15 @@ const rectToScene = ([px0, py0, px1, py1]: Rect): [number, number, number, numbe
   -(px0 - PX_C) / SCALE,
 ]
 
-function lawLayout(floor: number): FloorLayout {
-  const spec = LAW_SPEC.find((s) => s.level === floor)!
-  const building: BuildingCode = 'LAW'
+function specLayout(building: BuildingCode, floor: number): FloorLayout {
+  const reconstruction = INTERIORS[building]?.floors.find(s => s.level === floor)
+  const spec = building === 'LAW' ? LAW_SPEC.find(s => s.level === floor) : reconstruction
+  if (!spec) throw new RangeError(`No floor ${floor} configured for ${building}`)
   const cells: Cell[] = []
   const used = new Set<string>()
-  for (const [number, name, kindCode, rect, side, area, label] of spec.rooms) {
+  for (const [index, [number, name, kindCode, rect, side, area, label]] of spec.rooms.entries()) {
+    const record = reconstruction?.records[index]
+    if (reconstruction && !record) throw new Error(`Missing evidence record for ${building} floor ${floor} room ${index}`)
     const [x0, z0, x1, z1] = rectToScene(rect)
     const cx = (x0 + x1) / 2
     const cz = (z0 + z1) / 2
@@ -166,7 +109,8 @@ function lawLayout(floor: number): FloorLayout {
     const kind: CellKind = k === 's' ? 'stairs' : k === 'e' ? 'elevator' : k === 'w' ? 'restroom' : k === 'b' ? 'block' : 'room'
     const slug =
       number || label?.replace(/\s+/g, '') || `${kind}${core ?? ''}`
-    let id = kind === 'room' && number ? `LAW-${number}` : `LAW-${floor}-${slug}`
+    let id = record?.id ?? (kind === 'room' && number ? `LAW-${number}` : `LAW-${floor}-${slug}`)
+    if (record && used.has(id)) throw new Error(`Duplicate reconstructed feature ID ${id}`)
     for (let i = 2; used.has(id); i++) id = `LAW-${floor}-${slug}-${i}`
     used.add(id)
     cells.push({
@@ -174,11 +118,13 @@ function lawLayout(floor: number): FloorLayout {
       building,
       floor,
       kind,
-      restroom: kind === 'restroom' ? 'both' : undefined,
+      restroom: record?.restroom ?? (kind === 'restroom' ? 'both' : undefined),
       number: number.replace(/-(IT|LAB)$/, ''),
       name,
       label,
       area,
+      capacity: record?.capacity,
+      evidence: record?.evidence,
       x0,
       x1,
       z0,
@@ -186,18 +132,18 @@ function lawLayout(floor: number): FloorLayout {
       door,
       open: k === 'o',
       core,
-      node: `LAW:${floor}:cell:${id}`,
+      node: `${building}:${floor}:cell:${id}`,
     })
   }
   // Subdivide corridor polylines so nearby doors attach to close nodes.
   const nodes = new Map<string, { id: string; x: number; z: number }>()
   const edges: [string, string][] = []
   const nodeAt = (px: number, py: number) => {
-    const key = `${Math.round(px)},${Math.round(py)}`
+    const key = building === 'LAW' ? `${Math.round(px)},${Math.round(py)}` : `${px.toFixed(3)},${py.toFixed(3)}`
     let n = nodes.get(key)
     if (!n) {
       const [x, z] = toScene(px, py)
-      n = { id: `LAW:${floor}:w:${key}`, x, z }
+      n = { id: `${building}:${floor}:w:${key}`, x, z }
       nodes.set(key, n)
     }
     return n
@@ -214,7 +160,7 @@ function lawLayout(floor: number): FloorLayout {
         const t = ((vx - ax) * (bx - ax) + (vy - ay) * (by - ay)) / (len * len)
         if (t <= 0 || t >= 1) continue
         const off = Math.hypot(ax + (bx - ax) * t - vx, ay + (by - ay) * t - vy)
-        if (off < 1.5) ts.push(t)
+        if (off < (building === 'LAW' ? 1.5 : 0.01)) ts.push(t)
       }
       ts.sort((p, q) => p - q)
       let prev = nodeAt(ax, ay)
@@ -233,9 +179,9 @@ function lawLayout(floor: number): FloorLayout {
   }
   const entrances: Entrance[] = (spec.entrances ?? []).map((e) => {
     const [x, z] = toScene(e.at[0], e.at[1])
-    return { id: `LAW:${floor}:${e.id}`, x, z, label: e.label, stepFree: e.stepFree, ramp: e.ramp, entrance: e.entrance }
+    return { id: `${building}:${floor}:${e.id}`, x, z, label: e.label, stepFree: e.stepFree, ramp: e.ramp, entrance: e.entrance, evidence: reconstruction?.entranceEvidence[e.id] }
   })
-  return { building, floor, cells, slabs: spec.slabs.map(rectToScene), walkNodes: [...nodes.values()], walkEdges: edges, entrances }
+  return { building, floor, cells, slabs: spec.slabs.map(rectToScene), walkNodes: [...nodes.values()], walkEdges: edges, entrances, evidence: reconstruction?.evidence, voids: reconstruction?.voids }
 }
 
 // ---------- Public API ----------
@@ -246,7 +192,7 @@ export function getLayout(building: BuildingCode, floor: number): FloorLayout {
   const key = `${building}-${floor}`
   let l = cache.get(key)
   if (!l) {
-    l = building === 'LAW' ? lawLayout(floor) : templateLayout(building, floor)
+    l = specLayout(building, floor)
     cache.set(key, l)
   }
   return l
@@ -280,13 +226,14 @@ export interface Place {
   sub: string
   node: string
   kind: CellKind | 'entrance'
+  evidence?: Evidence
 }
 
 export function cellTitle(c: Cell) {
   if (c.kind === 'room') return c.number ? `${c.building} ${c.number}` : `${c.building} ${c.name}`
-  if (c.kind === 'restroom') return `${c.building} restrooms, ${floorName(c.floor).toLowerCase()}`
-  if (c.kind === 'elevator') return `${c.building} ${c.name.toLowerCase()}, ${floorName(c.floor).toLowerCase()}`
-  return `${c.building} ${c.name.toLowerCase()}, ${floorName(c.floor).toLowerCase()}`
+  if (c.kind === 'restroom') return `${c.building} restrooms, ${floorName(c.floor, c.building).toLowerCase()}`
+  if (c.kind === 'elevator') return `${c.building} ${c.name.toLowerCase()}, ${floorName(c.floor, c.building).toLowerCase()}`
+  return `${c.building} ${c.name.toLowerCase()}, ${floorName(c.floor, c.building).toLowerCase()}`
 }
 
 export function placeFromCell(c: Cell): Place {
@@ -295,27 +242,29 @@ export function placeFromCell(c: Cell): Place {
     building: c.building,
     floor: c.floor,
     label: cellTitle(c),
-    sub: c.kind === 'room' ? `${c.number ? `${c.name} · ` : ''}${floorName(c.floor)}` : BUILDING_BY_CODE[c.building].name,
+    sub: (c.kind === 'room' ? `${c.number ? `${c.name} · ` : ''}${floorName(c.floor, c.building)}` : BUILDING_BY_CODE[c.building].name) + (c.evidence ? ` · ${c.evidence.numberStatus === 'inferred' ? 'number and position inferred' : 'position inferred'}` : ''),
+    evidence: c.evidence,
     node: c.node,
     kind: c.kind,
   }
 }
 
-function entranceToPlace(code: BuildingCode, e: Entrance, main: boolean): Place {
+function entranceToPlace(code: BuildingCode, e: Entrance, main: boolean, floor = 1): Place {
   return {
     id: main ? `${code}-ENT` : `${code}-ENT-${e.id.split(':').pop()!.toUpperCase()}`,
     building: code,
-    floor: 1,
+    floor,
     label: `${code} ${e.label}`,
-    sub: `${e.stepFree ? 'Step-free' : 'Has steps'} · Floor 1`,
+    sub: `${e.evidence ? 'Entrance and accessibility inferred' : e.stepFree ? 'Step-free' : 'Has steps'} · ${floorName(floor, code)}`,
+    evidence: e.evidence,
     node: e.id,
     kind: 'entrance',
   }
 }
 
 export function entrancePlaces(code: BuildingCode): Place[] {
-  const ents = getLayout(code, 1).entrances.filter((e) => e.entrance)
-  return ents.map((e) => entranceToPlace(code, e, e.id === `${code}:1:entrance`))
+  return getLevels(code).flatMap(f => getLayout(code, f).entrances.filter(e => e.entrance)
+    .map(e => entranceToPlace(code, e, e.id === `${code}:1:entrance`, f)))
 }
 
 export function entrancePlace(code: BuildingCode): Place {
@@ -331,7 +280,8 @@ export function accessibleEntrancePlace(code: BuildingCode): Place {
 
 export function isStepFreeEntrance(nodeId: string) {
   const code = nodeId.slice(0, 3) as BuildingCode
-  return !!getLayout(code, 1).entrances.find((e) => e.id === nodeId)?.stepFree
+  const e = getLevels(code).flatMap(f => getLayout(code, f).entrances).find((e) => e.id === nodeId)
+  return !!e?.stepFree && e.evidence?.accessibilityStatus !== 'inferred'
 }
 
 const placeCache = new Map<BuildingCode, Place[]>()
@@ -351,14 +301,18 @@ export function getBuildingPlaces(building: BuildingCode): Place[] {
 }
 
 export function findPlace(id: string): Place | undefined {
-  const code = id.slice(0, 3).toUpperCase() as BuildingCode
+  const code = resolveBuildingCode(id.slice(0, 3))
+  if (!code) return undefined
+  id = code + id.slice(3)
   if (!BUILDING_BY_CODE[code]) return undefined
   return getBuildingPlaces(code).find((p) => p.id.toLowerCase() === id.toLowerCase())
 }
 
 export function findRoom(query: string): Place | undefined {
-  const compact = query.toUpperCase().replace(/[\s-]+/g, '')
-  const code = compact.slice(0, 3) as BuildingCode
+  let compact = query.toUpperCase().replace(/[\s-]+/g, '')
+  const code = resolveBuildingCode(compact.slice(0, 3))
+  if (!code) return undefined
+  compact = code + compact.slice(3)
   if (!BUILDING_BY_CODE[code]) return undefined
   return getBuildingPlaces(code).find((place) => place.kind === 'room' && place.id.toUpperCase().replace(/-/g, '') === compact)
 }

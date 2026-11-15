@@ -69,7 +69,8 @@ test('accessibility suggestions have step-free entrances and routes without stai
   assert.equal(isStepFreePlace({ ...room, node: 'unreachable' }), false)
   for (const building of BUILDINGS) {
     const options = searchLocationCodes(building.code, Infinity, false, true)
-    assert.ok(options.length)
+    if (building.code === 'LAW') assert.ok(options.length)
+    else assert.equal(options.length, 0, 'Inferred reconstruction geometry must not imply step-free access')
     for (const option of options) {
       const place = findRoom(option.value) ?? accessibleEntrancePlace(building.code)
       assert.ok(isStepFreePlace(place), option.value)
