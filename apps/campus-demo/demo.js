@@ -1,3 +1,4 @@
+import { setupMobileCampus } from './mobile.js'
 import { buildingCode, compassUrl, mapPoint } from './map-data.js'
 
 const sidebar = document.querySelector('#sidebar')
@@ -72,6 +73,7 @@ function showPanel(title, trigger = document.activeElement) {
   panel.append(close, heading)
   panel.hidden = false
   close.focus()
+  document.dispatchEvent(new CustomEvent('campus:panel-open', { detail: { title } }))
   return panel
 }
 function closePanel() {
@@ -114,20 +116,59 @@ document.querySelector('[data-cy="top-bar-btn-1"]').onclick = () => {
   card.append(text, link)
 }
 map.addEventListener('wheel', e => { e.preventDefault(); zoomMap(e.deltaY < 0 ? .1 : -.1) }, { passive: false })
-let drag
+let drag, pinch
+const touches = new Map()
+let suppressClickUntil = 0
+const limit = (value, max) => Math.max(-max, Math.min(max, value))
+function touchPair() {
+  const [a, b] = [...touches.values()]
+  const rect = map.getBoundingClientRect()
+  return { distance: Math.hypot(a.x - b.x, a.y - b.y), x: (a.x + b.x) / 2 - rect.left - rect.width / 2, y: (a.y + b.y) / 2 - rect.top - rect.height / 2 }
+}
 map.addEventListener('pointerdown', e => {
-  if (e.button !== 0 || e.target.closest('button,a,path,gmp-advanced-marker')) return
+  if (e.pointerType === 'touch') {
+    touches.set(e.pointerId, { x: e.clientX, y: e.clientY })
+    if (touches.size === 2) {
+      pinch = { ...touchPair(), zoom, panX, panY }
+      drag = null
+      for (const id of touches.keys()) map.setPointerCapture(id)
+      suppressClickUntil = Date.now() + 500
+      return
+    }
+  }
+  if (e.button !== 0 || (e.pointerType !== 'touch' && e.target.closest('button,a,path,gmp-advanced-marker'))) return
   drag = { x: e.clientX, y: e.clientY, panX, panY }
-  map.setPointerCapture(e.pointerId)
+  if (e.pointerType !== 'touch') map.setPointerCapture(e.pointerId)
 })
 map.addEventListener('pointermove', e => {
+  if (touches.has(e.pointerId)) touches.set(e.pointerId, { x: e.clientX, y: e.clientY })
+  if (pinch && touches.size >= 2) {
+    const next = touchPair()
+    zoom = Math.min(3, Math.max(1, pinch.zoom * next.distance / Math.max(1, pinch.distance)))
+    const ratio = zoom / pinch.zoom
+    panX = limit(next.x - (pinch.x - pinch.panX) * ratio, 500)
+    panY = limit(next.y - (pinch.y - pinch.panY) * ratio, 300)
+    suppressClickUntil = Date.now() + 500
+    updateMap()
+    return
+  }
   if (!drag) return
-  panX = Math.max(-500, Math.min(500, drag.panX + e.clientX - drag.x))
-  panY = Math.max(-300, Math.min(300, drag.panY + e.clientY - drag.y))
+  if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 6) return
+  if (e.pointerType === 'touch') map.setPointerCapture(e.pointerId)
+  suppressClickUntil = Date.now() + 500
+  panX = limit(drag.panX + e.clientX - drag.x, 500)
+  panY = limit(drag.panY + e.clientY - drag.y, 300)
   updateMap()
 })
-map.addEventListener('pointerup', () => { drag = null })
-map.addEventListener('pointercancel', () => { drag = null })
+for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) map.addEventListener(type, e => {
+  touches.delete(e.pointerId)
+  if (pinch) suppressClickUntil = Date.now() + 500
+  pinch = null
+  drag = null
+})
+map.addEventListener('click', e => {
+  if (Date.now() < suppressClickUntil) { e.preventDefault(); e.stopPropagation() }
+}, true)
 map.addEventListener('keydown', e => {
   if (e.target !== map) return
   const directions = { ArrowLeft: [50, 0], ArrowRight: [-50, 0], ArrowUp: [0, 50], ArrowDown: [0, -50] }
@@ -246,6 +287,7 @@ async function init() {
       } else item.onclick = () => openPlace(place)
       results.append(item)
     }
+    document.dispatchEvent(new Event('campus:results'))
   }
   const categories = document.querySelector('.category-location-list')
   input.addEventListener('input', () => {
@@ -297,6 +339,7 @@ async function init() {
     })
   })
   toggleSidebar(false)
+  setupMobileCampus({ search, categories, panel, resetMap, showResults, buildings, notify })
 }
 
 init().catch(error => notify(error.message))

@@ -69,6 +69,19 @@ Native interactive checks using the bundle origin (not localhost):
 - These are Mac/browser checks; iPhone keyboard, touch gestures, and safe areas
   still require device verification.
 
+## Campus mobile layout update
+
+- Built the bundled campus UI with a slim left-aligned USC header and bottom
+  Search/Filters/Campus/Share/More controls; removed mobile +/− buttons.
+- Browser at 393 × 759 checked search results, building-filter off state, browsing
+  buildings from Filters, Share, HSC's official-map fallback, and More actions.
+- Final native 393 × 852 preview verified the clean filter layout and Campus sheet
+  with UPC/HSC/Recenter; selecting UPC closed the sheet and restored the map.
+- Campus directory/projection tests: **2 passed**. JavaScript syntax, bundle asset
+  checks, and generated Mac preview signature verification passed.
+- Added two-pointer pinch/pan handling and drag-click suppression. No automated or
+  physical multi-touch test was available; verify this gesture on an iPhone.
+
 ## Shared foundation checks retained from the preceding implementation
 
 All **46 positive handoff fixtures** decoded, including unknown-action and

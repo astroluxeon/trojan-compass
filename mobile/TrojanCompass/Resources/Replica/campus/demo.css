@@ -45,3 +45,108 @@ body.demo-sidebar-open #hamburger-portal-root #hamburger { position: fixed !impo
   #header .maplink-button { max-width: 105px; padding: 5px; margin: 0; white-space: normal; font-size: 10px; line-height: 1.2; }
   .demo-label { font-size: 9px; bottom: 30px; }
 }
+
+.campus-mobile-header, .campus-mobile-dock { display: none; }
+@media (max-width: 767px) {
+  body.mobile-campus { --campus-dock-height: 69px; --campus-header-height: 44px; overflow: hidden; }
+  .mobile-campus #header-wrapper, .mobile-campus #hamburger-portal-root,
+  .mobile-campus #sidebar, .mobile-campus .map-controls-wrapper,
+  .mobile-campus .gm-svpc, .mobile-campus .demo-label { display: none !important; }
+  .mobile-campus .campus-mobile-header {
+    display: flex; position: fixed; z-index: 1200; top: 0; left: 0; right: 0;
+    height: var(--campus-header-height); box-sizing: border-box;
+    align-items: center; justify-content: flex-start; padding: 0 16px;
+    background: #990000; color: white;
+  }
+  .campus-mobile-header > a { display: flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; }
+  .campus-mobile-header img { display: block; width: 46px; height: auto; }
+  .campus-switcher { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .campus-switcher button { min-height: 44px; border: 1px solid #e9e5e5; border-radius: 12px; color: #555; background: white; font: 600 13px Arial,sans-serif; }
+  .campus-switcher button[aria-current] { background: #fbefed; border-color: #990000; color: #990000; }
+  .campus-recenter { width: 100%; min-height: 44px; margin-top: 10px; border: 0; border-radius: 12px; color: white; background: #990000; font: 600 13px Arial,sans-serif; }
+  .mobile-campus #map-section {
+    position: fixed !important; top: var(--campus-header-height) !important;
+    bottom: var(--campus-dock-height) !important; left: 0 !important; right: 0 !important;
+    width: 100% !important; height: auto !important; margin: 0 !important;
+    overflow: hidden;
+  }
+  .mobile-campus #map { position: absolute !important; inset: 0 !important; width: 100% !important; height: 100% !important; }
+  .mobile-campus #atlas3d {
+    position: fixed !important; left: 6px !important; right: auto !important;
+    bottom: calc(var(--campus-dock-height) + 16px) !important; width: auto !important;
+    height: auto !important; min-height: 0 !important; padding: 3px 5px !important;
+    background: #ffffffe8; z-index: 1000; border-radius: 4px;
+  }
+  .mobile-campus #atlas3d > .terms-privacy { display: none; }
+  .mobile-campus .campus-mobile-dock {
+    display: flex; position: fixed; z-index: 1300; left: 0; right: 0; bottom: 0;
+    flex-direction: column; color: #262626; font: 14px/1.4 Arial, sans-serif;
+  }
+  .campus-bottom-nav {
+    display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 2px;
+    padding: 6px 8px 8px; border-top: 1px solid #e9e5e5; background: white;
+  }
+  .campus-bottom-nav button {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 2px; min-height: 54px; padding: 0; border: 0; border-radius: 12px;
+    color: #6b6262; background: transparent; font: 600 11px/15px Arial, sans-serif;
+  }
+  .campus-tab-icon { display: grid; place-items: center; width: 46px; height: 30px; border-radius: 10px; }
+  .campus-tab-icon svg { width: 22px; height: 22px; }
+  .campus-bottom-nav button[aria-expanded="true"] { color: #990000; }
+  .campus-bottom-nav button[aria-expanded="true"] .campus-tab-icon { background: #fbefed; box-shadow: inset 0 -2px #ffcc00; }
+  .campus-mobile-dock button:focus-visible, .campus-mobile-header button:focus-visible { outline: 2px solid #990000; outline-offset: -2px; }
+  .campus-mobile-header button:focus-visible { outline-color: #ffcc00; }
+  .campus-mobile-sheet {
+    display: flex; flex-direction: column; min-height: 0; height: 244px;
+    max-height: min(320px, 42dvh); box-sizing: border-box; overflow: hidden;
+    border: 1px solid #e9e5e5; border-bottom: 0; border-radius: 20px 20px 0 0;
+    box-shadow: 0 -6px 24px #3c151508; background: white;
+    animation: campus-sheet-enter 180ms ease-out;
+  }
+  .campus-mobile-sheet[data-tool="filters"] { height: 280px; }
+  .campus-mobile-sheet[data-tool="campus"] { height: 142px; }
+  .campus-mobile-sheet[data-tool="share"] { height: 148px; }
+  .campus-mobile-sheet[data-tool="info"] { height: 210px; }
+  .campus-sheet-grip {
+    display: grid; place-items: center; align-self: center; width: 80px; min-height: 22px;
+    flex-shrink: 0; padding: 0; border: 0; background: white; touch-action: none;
+  }
+  .campus-sheet-grip span { width: 32px; height: 4px; border-radius: 4px; background: #d6cece; }
+  .campus-sheet-content { min-height: 0; flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: 0 16px 12px; }
+  .campus-sheet-content .demo-search { padding: 0; border: 0; }
+  .campus-sheet-content .demo-search input { min-height: 44px; border: 1px solid #d4d4d4; border-radius: 12px; font-size: 16px; }
+  .campus-sheet-content .demo-results { max-height: none; margin-top: 8px; }
+  .campus-sheet-content .demo-results a, .campus-sheet-content .demo-results button { min-height: 44px; padding: 11px 6px; font-size: 13px; }
+  .campus-sheet-content .demo-results small { font-size: 9px; letter-spacing: .03em; }
+  .campus-clear-filters { display: block; min-height: 44px; margin-left: auto; border: 0; padding: 0 8px; color: #990000; font-weight: 600; background: white; }
+  .campus-sheet-content .demo-panel { position: static; box-sizing: border-box; width: 100%; max-width: none; padding: 4px 0; border: 0; box-shadow: none; background: white; }
+  .campus-sheet-content .demo-panel [data-close], .campus-sheet-content .demo-panel[data-mobile-title="hidden"] h2 { display: none; }
+  .campus-sheet-content .demo-panel input { box-sizing: border-box; min-height: 44px; border: 1px solid #ddd; border-radius: 10px; padding: 8px; font-size: 16px; }
+  .campus-sheet-content .demo-panel button { min-height: 44px; margin-top: 8px; width: 100%; border: 0; border-radius: 10px; background: #990000; color: white; font-weight: 600; }
+  .campus-more-actions { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+  .campus-more-actions button { min-height: 44px; border: 1px solid #e9e5e5; border-radius: 10px; background: white; color: #990000; font: 600 12px Arial,sans-serif; }
+  .campus-mobile-credits { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 18px 0 0; font: 11px/16px Arial,sans-serif; }
+  .campus-mobile-credits a, .campus-mobile-credits button { display: inline-flex; align-items: center; min-height: 34px; color: #666; background: none; border: 0; font: inherit; }
+  .mobile-campus .demo-status { bottom: calc(var(--campus-dock-height) + 12px); font-size: 12px; padding: 9px 12px; border-radius: 10px; }
+}
+@keyframes campus-sheet-enter { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .campus-mobile-sheet { animation: none; } }
+@media (max-width: 767px) {
+  .mobile-campus #atlas3d { filter: none !important; }
+}
+@media (max-width: 767px) {
+  .mobile-campus #map button[aria-label="Keyboard shortcuts"] { display: none !important; }
+}
+
+@media (max-width: 767px) {
+  .campus-filter-list { display: flex; flex-direction: column; }
+  .campus-filter-row { display: flex; align-items: center; min-height: 46px; gap: 8px; border-bottom: 1px solid #f1eeee; }
+  .campus-filter-name { flex: 1; min-width: 0; min-height: 46px; display: flex; align-items: center; gap: 10px; padding: 0 4px; border: 0; background: white; text-align: left; color: #333; font: 600 13px/18px Arial, sans-serif; }
+  .campus-filter-name img { flex-shrink: 0; width: 22px; height: 22px; object-fit: contain; }
+  .campus-filter-switch { display: grid; place-items: center; flex-shrink: 0; width: 44px; height: 44px; border: 0; padding: 0; background: white; }
+  .campus-filter-switch > span { display: block; position: relative; width: 28px; height: 17px; border-radius: 10px; background: #ddd; }
+  .campus-filter-switch > span::after { content: ''; position: absolute; width: 13px; height: 13px; left: 2px; top: 2px; border-radius: 50%; background: white; box-shadow: 0 1px 2px #0002; }
+  .campus-filter-switch[aria-checked="true"] > span { background: #990000; }
+  .campus-filter-switch[aria-checked="true"] > span::after { left: 13px; }
+}
