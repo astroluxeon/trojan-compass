@@ -105,7 +105,7 @@ struct MapLayer: Identifiable {
         .init(id: "entrances", title: "Entrances", symbol: "door.left.hand.open"),
         .init(id: "exits", title: "Emergency exits", symbol: "rectangle.portrait.and.arrow.right")
     ]
-    static let defaults = Set(all.filter { $0.id != "exits" }.map(\.id))
+    static let defaults = Set(all.map(\.id))
 }
 enum CompassFailure: LocalizedError {
     case message(String)

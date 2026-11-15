@@ -470,7 +470,7 @@ function ActiveFloor({
       })}
       <FloorMarkers
         showRoomLabels={showRoomLabels}
-        layout={layout}
+        layout={source}
         layers={layers}
         highlights={highlights}
         selectedCell={selectedCell}

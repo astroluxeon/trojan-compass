@@ -11,6 +11,7 @@ import {
 import { renderToStaticMarkup } from "react-dom/server";
 import "./viewer-fixtures";
 import { BuildingScene } from "../src/features/map/renderer/BuildingScene";
+import { getLayout } from "../src/features/map/data/viewer-data";
 
 function scene(floor: number, allFloors = false) {
   return BuildingScene({
@@ -27,6 +28,47 @@ function scene(floor: number, allFloors = false) {
     onSelectFloor() {},
   });
 }
+
+test("stairs and exit markers remain available without an active route", () => {
+  const floor = Children.toArray(scene(1).props.children).find(
+    (child) =>
+      isValidElement<{ onSelectCell?: unknown }>(child) &&
+      "onSelectCell" in child.props,
+  ) as ReactElement<ComponentProps<typeof BuildingScene>>;
+  const expected = getLayout("LAW", 1).cells.filter((c) => c.kind === "stairs");
+  assert.ok(expected.length > 0);
+  function Probe() {
+    const Component = floor.type as FunctionComponent<typeof floor.props>;
+    const group = Component({
+      ...floor.props,
+      layers: new Set(["stairs", "exits"]),
+    }) as ReactElement<{ children: React.ReactNode }>;
+    const markers = Children.toArray(group.props.children).find(
+      (child) =>
+        isValidElement<{ showRoomLabels?: boolean }>(child) &&
+        "showRoomLabels" in child.props,
+    ) as ReactElement<{ layout: ReturnType<typeof getLayout> }>;
+    assert.deepEqual(
+      markers.props.layout.cells.filter((c) => c.kind === "stairs"),
+      expected,
+    );
+    const Markers = markers.type as FunctionComponent<typeof markers.props>;
+    const labels = Markers(markers.props) as ReactElement<{
+      children: React.ReactNode;
+    }>;
+    const html = Children.toArray(labels.props.children)
+      .map((child) =>
+        renderToStaticMarkup(
+          (child as ReactElement<{ children: React.ReactNode }>).props.children,
+        ),
+      )
+      .join("");
+    assert.match(html, /Emergency exit stair/);
+    for (const stair of expected) assert.ok(html.includes(stair.name));
+    return null;
+  }
+  renderToStaticMarkup(createElement(Probe));
+});
 
 test("faint floors above the selected floor cannot intercept clicks", () => {
   const floors = Children.toArray(scene(2).props.children).filter(

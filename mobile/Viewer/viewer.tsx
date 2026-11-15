@@ -91,6 +91,7 @@ const defaults: State = {
     "elevators",
     "stairs",
     "entrances",
+    "exits",
   ],
   reset: 0,
   reduceMotion: false,
@@ -319,8 +320,6 @@ function LiveViewer({ s }: { s: State }) {
           {f.places
             .filter(
               (p) =>
-                (p.kind !== "stairs" ||
-                  routeUsesStair(s.route, s.buildingId, f.id, p.position)) &&
                 (p.id === s.selectedPlaceId || layerVisible(p, s.layers)),
             )
             .map((p) => (

@@ -50,6 +50,7 @@ const DEFAULT_LAYERS: LayerKey[] = [
   "elevators",
   "stairs",
   "entrances",
+  "exits",
 ];
 export default function Wayfinder({ bundled = false }: { bundled?: boolean }) {
   const params = useSearchParams();
