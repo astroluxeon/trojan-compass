@@ -48,7 +48,7 @@ export function LocationAutocomplete({ id, value, onChange, includeOutside = fal
           }
         }} />
       {expanded && (
-        <div className="scrollbar-thin absolute inset-x-0 top-full z-50 mt-1 max-h-64 overflow-y-auto rounded-2xl border border-neutral-200 bg-white shadow-xl">
+        <div className="location-suggestions scrollbar-thin absolute inset-x-0 top-full z-50 mt-1 max-h-64 overflow-y-auto rounded-2xl border border-neutral-200 bg-white shadow-xl">
           <ul id={`${id}-options`} role="listbox" aria-label="Building and room suggestions">
             {results.map((option, index) => (
               <li key={option.value} ref={active === index ? activeOption : undefined} id={`${id}-option-${index}`} role="option" aria-selected={active === index}

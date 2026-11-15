@@ -18,7 +18,14 @@ its error and query; reopening Search retains the previous query.
 3. Press **⌘R**. No npm command or running backend is required for the bundled UI.
 
 The macOS preview uses a **393 × 852** content area. The iOS app adapts to the real
-device screen and retains the website's existing responsive layouts. For a phone,
+device screen. Below 768px, the interior uses the requested mobile layout: a 44px
+header with a 42px USC logo, and a five-button bottom bar (Search, Chat, Directions,
+Floors, Layers) with icons above labels. Compact, scrollable sheets reserve space
+above the toolbar; the 3D canvas resizes and refits above them. The floor icon is
+a custom vector of architectural floor plates. Tap the active tool
+or grab handle to collapse a sheet; dragging the handle down also closes it.
+Directions retains its inputs between tools and keeps its primary action pinned.
+The desktop interior retains its sidebar and map overlays. For a phone,
 select your Apple development Team under Signing & Capabilities, use a unique
 bundle identifier if necessary, connect/trust the device, and run. Signing
 credentials are not committed.

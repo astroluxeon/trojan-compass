@@ -33,6 +33,26 @@ Native interactive checks using the bundle origin (not localhost):
   retained the gold room highlight, and removed the Search panel so the map
   occupies the screen again. `LAW 99999` left the query and no-match error visible.
 
+## Mobile bottom toolbar revision
+
+- Reduced the interior header to 44px and the USC logo to 42px on phone widths.
+- Moved Search, Chat, Directions, Floors, and Layers into a persistent bottom bar,
+  with icons above labels and a custom architectural floor icon.
+- Compact sheets resize the actual canvas above them; they are capped to leave
+  map space. The Directions action remains pinned while its form can scroll.
+- Rebuilt the checked-in Swift resources and verified the final native preview's
+  signature. No Swift source or Xcode project change was needed for this UI update.
+- TypeScript checks and bundle/source checks passed; web regression tests remained
+  **28 passed, 0 failed**.
+- Exercised Search, floor selection, and layer toggles in the native 393 × 852
+  preview. `LAW 205` still closes Search and highlights the room on Floor 2.
+- Checked the responsive layout at 393 × 759 and 320 × 568 in Chrome. Verified
+  chat submission, Directions input persistence, accessibility mode selecting
+  elevators, and unsuccessful search remaining editable. The smallest viewport
+  scrolls the form while retaining the bottom bar and Directions action.
+- The refreshed bundled UI was opened in the native Mac preview and a screenshot
+  saved. Real iPhone keyboard/safe-area/touch checks still require Xcode/device.
+
 ## Shared foundation checks retained from the preceding implementation
 
 All **46 positive handoff fixtures** decoded, including unknown-action and

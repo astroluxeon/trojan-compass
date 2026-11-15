@@ -1,7 +1,8 @@
-import { Accessibility, ArrowUpDown, ChevronDown, ChevronRight, MapPin, MessageCircle, Route, Search, Send, Sparkles, X } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { Accessibility, ArrowUpDown, ChevronDown, ChevronRight, Layers, MapPin, MessageCircle, Route, Search, Send, Sparkles, X } from 'lucide-react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import type { RouteMode } from '../../lib/routing'
 import { LocationAutocomplete } from './LocationAutocomplete'
+import { FloorIcon } from './FloorIcon'
 import { StairsIcon } from '../map/StairsIcon'
 
 const TOOLS = [
@@ -10,12 +11,18 @@ const TOOLS = [
   { id: 'directions', label: 'Directions', description: 'Plan your way there', icon: Route },
 ] as const
 
-type Tool = typeof TOOLS[number]['id']
+const MOBILE_TOOLS = [...TOOLS,
+  { id: 'floors', label: 'Floors', description: 'Choose a level or see them all', icon: FloorIcon },
+  { id: 'layers', label: 'Layers', description: 'Choose what appears on the map', icon: Layers },
+] as const
+type Tool = typeof MOBILE_TOOLS[number]['id']
 export type LocationField = 'from' | 'to'
 const INPUT = 'mt-1.5 w-full rounded-lg border border-neutral-300 bg-white px-3 py-2.5 text-[14px] font-normal outline-none transition placeholder:text-neutral-400 focus:border-cardinal focus:ring-2 focus:ring-cardinal/15'
 const ACTION = 'flex w-full items-center justify-center gap-2 rounded-lg bg-cardinal px-3 py-2.5 text-[13px] font-bold text-white transition hover:bg-cardinal-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cardinal'
 
-export function FloorTools({ locations, onLocationChange, picking, onPick, onSearch }: {
+export function FloorTools({ locations, onLocationChange, picking, onPick, onSearch, floors, layers }: {
+  floors: ReactNode
+  layers: ReactNode
   locations: Record<LocationField, string>
   onLocationChange: (field: LocationField, value: string) => void
   picking: LocationField | null
@@ -37,7 +44,9 @@ export function FloorTools({ locations, onLocationChange, picking, onPick, onSea
   const menu = useRef<HTMLDetailsElement>(null)
   const sidebar = useRef<HTMLElement>(null)
   const conversation = useRef<HTMLDivElement>(null)
-  const tool = TOOLS.find((item) => item.id === active)
+  const toolbar = useRef<HTMLElement>(null)
+  const swipeStart = useRef<number | null>(null)
+  const tool = MOBILE_TOOLS.find((item) => item.id === active)
 
   useEffect(() => {
     if (picking) setActive('directions')
@@ -45,7 +54,12 @@ export function FloorTools({ locations, onLocationChange, picking, onPick, onSea
 
   useEffect(() => {
     if (active && !picking) {
-      sidebar.current?.querySelector<HTMLInputElement | HTMLTextAreaElement>(lastPick.current ? `#directions-${lastPick.current}` : 'input, textarea')?.focus()
+      if (window.matchMedia('(max-width: 767px)').matches) {
+        // Open the compact sheet without raising the keyboard until an input is tapped.
+        sidebar.current?.querySelector<HTMLElement>('h2')?.focus({ preventScroll: true })
+      } else {
+        sidebar.current?.querySelector<HTMLInputElement | HTMLTextAreaElement>(lastPick.current ? `#directions-${lastPick.current}` : 'input, textarea')?.focus()
+      }
       lastPick.current = null
     }
   }, [active, picking])
@@ -62,7 +76,6 @@ export function FloorTools({ locations, onLocationChange, picking, onPick, onSea
   }, [messages, active])
 
   function selectTool(next: Tool | null) {
-    if (active === 'directions' && next !== 'directions') onLocationChange('from', '')
     onPick(null)
     lastPick.current = null
     setActive(next)
@@ -71,12 +84,14 @@ export function FloorTools({ locations, onLocationChange, picking, onPick, onSea
   function close() {
     selectTool(null)
     if (menu.current) menu.current.open = false
-    menu.current?.querySelector('summary')?.focus()
+    if (window.matchMedia('(max-width: 767px)').matches) {
+      toolbar.current?.querySelector<HTMLButtonElement>(`[data-tool="${active}"]`)?.focus({ preventScroll: true })
+    } else menu.current?.querySelector('summary')?.focus()
   }
 
   return (
-    <div style={{ width: active ? width : 0 }} className={`relative order-first z-50 shrink-0 max-w-[calc(100%-16rem)] max-md:absolute max-md:inset-y-0 max-md:left-0 max-md:max-w-[calc(100%-4.75rem)] ${picking ? 'max-md:top-[60%]' : ''}`}>
-      <details ref={menu} className={`group absolute bottom-4 left-full z-[60] ml-4 w-56 rounded-xl border border-neutral-200 bg-white/95 shadow-[0_4px_16px_rgba(0,0,0,0.08)] backdrop-blur ${active ? 'max-md:w-11' : 'max-md:w-52'}`}
+    <div data-active-tool={active ?? undefined} data-picking={!!picking} style={{ width: active ? width : 0 }} className={`tool-dock relative order-first z-50 shrink-0 max-w-[calc(100%-16rem)] max-md:absolute max-md:inset-y-0 max-md:left-0 max-md:max-w-[calc(100%-4.75rem)] ${picking ? 'max-md:top-[60%]' : ''}`}>
+      <details ref={menu} className={`desktop-tool-menu group absolute bottom-4 left-full z-[60] ml-4 w-56 rounded-xl border border-neutral-200 bg-white/95 shadow-[0_4px_16px_rgba(0,0,0,0.08)] backdrop-blur ${active ? 'max-md:w-11' : 'max-md:w-52'}`}
         onKeyDown={(event) => { if (event.key === 'Escape') close() }}>
         <summary aria-label="Search & tools" className="flex cursor-pointer list-none items-center justify-between px-3 py-2.5 text-[13px] font-bold focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-cardinal [&::-webkit-details-marker]:hidden">
           <span className="flex items-center gap-2"><Search className="h-4 w-4 shrink-0 text-cardinal" /><span className={active ? 'max-md:hidden' : ''}>Search & tools</span></span>
@@ -100,10 +115,24 @@ export function FloorTools({ locations, onLocationChange, picking, onPick, onSea
         </div>
       </details>
 
+      <nav ref={toolbar} className="mobile-tool-bar" aria-label="Map tools">
+        {MOBILE_TOOLS.map(({ id, label, icon: Icon }) => (
+          <button key={id} type="button" data-tool={id} aria-label={label} aria-controls={active === id ? 'floor-tools-sidebar' : undefined} aria-expanded={active === id}
+            onClick={() => { if (active === id) close(); else { selectTool(id); setNotice('') } }}>
+            <span className="mobile-tool-icon"><Icon className="h-[22px] w-[22px]" /></span>
+            <span>{label}</span>
+          </button>
+        ))}
+      </nav>
+
       {tool && (
         <aside ref={sidebar} id="floor-tools-sidebar" aria-labelledby="floor-tools-title"
           onKeyDown={(event) => { if (event.key === 'Escape') close() }}
-          className="absolute inset-0 flex flex-col border-r border-neutral-200 bg-white max-md:shadow-xl">
+          className="tool-sheet absolute inset-0 flex flex-col border-r border-neutral-200 bg-white max-md:shadow-xl">
+          <button type="button" className="sheet-grip" aria-label="Collapse panel" onClick={close}
+            onPointerDown={(event) => { swipeStart.current = event.clientY; event.currentTarget.setPointerCapture(event.pointerId) }}
+            onPointerUp={(event) => { if (swipeStart.current !== null && event.clientY - swipeStart.current > 32) close(); swipeStart.current = null }}
+            onPointerCancel={() => { swipeStart.current = null }}><span /></button>
           <div role="separator" tabIndex={0} aria-label="Resize tools sidebar" aria-orientation="vertical" aria-valuemin={240} aria-valuemax={640} aria-valuenow={width}
             onPointerDown={(event) => {
               if (event.button !== 0) return
@@ -124,15 +153,17 @@ export function FloorTools({ locations, onLocationChange, picking, onPick, onSea
               event.preventDefault()
               setWidth((current) => event.key === 'Home' ? 240 : event.key === 'End' ? 640 : Math.max(240, Math.min(640, current + (event.key === 'ArrowRight' ? 16 : -16))))
             }}
-            className="group absolute inset-y-0 -right-1 z-10 flex w-2 cursor-col-resize touch-none select-none items-center justify-center outline-none hover:bg-cardinal/10 focus-visible:bg-cardinal/10">
+            className="desktop-sheet-resize group absolute inset-y-0 -right-1 z-10 flex w-2 cursor-col-resize touch-none select-none items-center justify-center outline-none hover:bg-cardinal/10 focus-visible:bg-cardinal/10">
             <span className="h-10 w-1 rounded-full bg-neutral-300 transition group-hover:bg-cardinal group-focus-visible:bg-cardinal" />
           </div>
-          <div className="flex items-center gap-3 border-b border-neutral-100 px-5 py-4">
+          <div className="tool-sheet-heading flex items-center gap-3 border-b border-neutral-100 px-5 py-4">
             <span className="grid h-9 w-9 place-items-center rounded-xl bg-cardinal-50 text-cardinal"><tool.icon className="h-4 w-4" /></span>
-            <div className="min-w-0 flex-1"><h2 id="floor-tools-title" className="text-[16px] font-bold">{tool.label}</h2><p className="text-[12px] text-neutral-500">{tool.description}</p></div>
-            <button onClick={close} aria-label="Close tools sidebar" className="rounded-lg p-2 text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-900"><X className="h-4 w-4" /></button>
+            <div className="min-w-0 flex-1"><h2 id="floor-tools-title" tabIndex={-1} className="text-[16px] font-bold">{tool.label}</h2><p className="text-[12px] text-neutral-500">{tool.description}</p></div>
+            <button onClick={close} aria-label="Close tools panel" className="rounded-lg p-2 text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-900"><X className="h-4 w-4" /></button>
           </div>
-          <div className={active === 'chat' ? 'flex min-h-0 flex-1 flex-col px-5 pb-3 pt-5' : 'min-h-0 flex-1 overflow-y-auto p-5'}>
+          <div className={'tool-sheet-body ' + (active === 'chat' ? 'flex min-h-0 flex-1 flex-col px-5 pb-3 pt-5' : 'min-h-0 flex-1 overflow-y-auto p-5')}>
+            {active === 'floors' && floors}
+            {active === 'layers' && layers}
             {active === 'search' && (
               <form className="space-y-4" onSubmit={(event) => {
                 event.preventDefault()
@@ -143,7 +174,7 @@ export function FloorTools({ locations, onLocationChange, picking, onPick, onSea
                   setNotice('No matching building or room. Try LAW 101 or THH 201.')
                 }
               }}>
-                <p className="text-[13px] leading-relaxed text-neutral-500">Find your next class, meeting, or study spot.</p>
+                <p className="search-description text-[13px] leading-relaxed text-neutral-500">Find your next class, meeting, or study spot.</p>
                 <div>
                   <label htmlFor="room-search" className="block text-[12px] font-semibold text-neutral-700">Building and room code</label>
                   <LocationAutocomplete id="room-search" value={query} onChange={(value) => { setQuery(value); setNotice('') }} placeholder="e.g. LAW 101" required className={INPUT} />
@@ -152,7 +183,7 @@ export function FloorTools({ locations, onLocationChange, picking, onPick, onSea
               </form>
             )}
             {active === 'directions' && (
-              <form className="space-y-4" onSubmit={(event) => { event.preventDefault(); setNotice('Route planning is coming soon. Your locations are ready to try.') }}>
+              <form id="directions-form" className="directions-form space-y-4" onSubmit={(event) => { event.preventDefault(); setNotice('Route planning is coming soon. Your locations are ready to try.') }}>
                 <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-neutral-200 p-3">
                   <input type="checkbox" checked={accessibleOnly} onChange={(event) => {
                     setAccessibleOnly(event.target.checked)
@@ -172,7 +203,7 @@ export function FloorTools({ locations, onLocationChange, picking, onPick, onSea
                   { field: 'from', label: 'Current location', placeholder: 'e.g. LAW 101 or OUTSIDE' },
                   { field: 'to', label: 'Destination', placeholder: 'e.g. TCC 201' },
                 ] as const).map(({ field, label, placeholder }) => (
-                  <div key={field}>
+                  <div key={field} className="directions-location">
                     <label htmlFor={`directions-${field}`} className="block text-[12px] font-semibold text-neutral-700">{label}</label>
                     <div className="relative mt-1.5">
                       <LocationAutocomplete id={`directions-${field}`} value={locations[field]} includeOutside={field === 'from'} accessibleOnly={accessibleOnly}
@@ -189,9 +220,10 @@ export function FloorTools({ locations, onLocationChange, picking, onPick, onSea
                         onClick={() => { lastPick.current = field; onPick(field); setNotice('') }}
                         className={`absolute inset-y-1 right-1 grid w-9 touch-none place-items-center rounded-md text-cardinal transition hover:bg-cardinal-50 focus-visible:outline-2 focus-visible:outline-cardinal ${picking === field ? 'bg-cardinal-50 ring-1 ring-cardinal/30' : ''}`}><MapPin className="h-4 w-4" /></button>
                     </div>
-                    {field === 'from' && <p id="current-location-hint" className="mt-1.5 text-[12px] leading-relaxed text-neutral-500">Outside? Type “outside” or choose “Outside the building” to start at an entrance.</p>}
+
                   </div>
                 ))}
+                <p id="current-location-hint" className="directions-hint text-[12px] leading-relaxed text-neutral-500">Outside? Type “outside” or choose “Outside the building” to start at an entrance.</p>
                 <fieldset>
                   <legend className="mb-1.5 text-[12px] font-semibold text-neutral-700">Travel between floors</legend>
                   <div className="grid grid-cols-2 gap-2">
@@ -206,7 +238,7 @@ export function FloorTools({ locations, onLocationChange, picking, onPick, onSea
                     ))}
                   </div>
                 </fieldset>
-                <button className={ACTION}><MapPin className="h-4 w-4" /> Get directions</button>
+                <button className={`desktop-directions-action ${ACTION}`}><MapPin className="h-4 w-4" /> Get directions</button>
               </form>
             )}
             {active === 'chat' && (
@@ -240,7 +272,8 @@ export function FloorTools({ locations, onLocationChange, picking, onPick, onSea
             )}
             {notice && <p role="status" className="mt-4 rounded-lg bg-cardinal-50 p-3 text-[12px] leading-relaxed text-cardinal">{notice}</p>}
           </div>
-          {active !== 'chat' && <p className="px-5 pb-4 pt-3 text-[11px] text-neutral-400">Preview · AI and routes aren’t connected yet.</p>}
+          {active === 'directions' && <div className="mobile-directions-action"><button form="directions-form" className={ACTION}><MapPin className="h-4 w-4" /> Get directions</button></div>}
+          {(active === 'directions') && <p className="tool-sheet-footer px-5 pb-4 pt-3 text-[11px] text-neutral-400">Preview · AI and routes aren’t connected yet.</p>}
         </aside>
       )}
     </div>

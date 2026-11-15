@@ -42,19 +42,19 @@ const LAYER_META: { key: LayerKey; label: string; icon: ComponentType<{ classNam
   { key: 'exits', label: 'Emergency exits', icon: DoorOpen, color: COLORS.exit },
 ]
 
-export function LayerPanel({ layers, onToggle, view }: { layers: Set<LayerKey>; onToggle: (k: LayerKey) => void; view: View }) {
+export function LayerPanel({ layers, onToggle, view, inline = false }: { layers: Set<LayerKey>; onToggle: (k: LayerKey) => void; view: View; inline?: boolean }) {
   const [open, setOpen] = useState(false)
   if (view.type !== 'building') return null
   return (
-    <div className="absolute right-4 top-4 z-40 w-56 overflow-hidden rounded-xl border border-neutral-200 bg-white/95 shadow-[0_4px_16px_rgba(0,0,0,0.08)] backdrop-blur max-md:top-16 max-md:w-52">
-      <button onClick={() => setOpen(!open)} aria-expanded={open} className="flex w-full items-center justify-between px-3 py-2.5 text-[13px] font-bold">
+    <div className={inline ? 'mobile-layer-options' : 'desktop-map-control absolute right-4 top-4 z-40 w-56 overflow-hidden rounded-xl border border-neutral-200 bg-white/95 shadow-[0_4px_16px_rgba(0,0,0,0.08)] backdrop-blur max-md:top-16 max-md:w-52'}>
+      {!inline && <button onClick={() => setOpen(!open)} aria-expanded={open} className="flex w-full items-center justify-between px-3 py-2.5 text-[13px] font-bold">
         <span className="flex items-center gap-2">
           <Layers className="h-4 w-4 text-cardinal" /> Map layers
         </span>
         <ChevronDown className={`h-4 w-4 text-neutral-400 transition ${open ? '' : '-rotate-90'}`} />
-      </button>
-      {open && (
-        <div className="border-t border-neutral-100 px-1.5 pb-2 pt-1">
+      </button>}
+      {(inline || open) && (
+        <div className={inline ? 'mobile-layer-grid' : 'border-t border-neutral-100 px-1.5 pb-2 pt-1'}>
           {LAYER_META.map(({ key, label, icon: Icon, color }) => {
             const on = layers.has(key)
             return (
@@ -89,6 +89,7 @@ export function FloorSelector({
   currentFloor,
   onSelect,
   onSelectAll,
+  inline = false,
 }: {
   levels: number[]
   floor: number
@@ -97,10 +98,11 @@ export function FloorSelector({
   currentFloor?: number
   onSelect: (f: number) => void
   onSelectAll: () => void
+  inline?: boolean
 }) {
   return (
-    <div className="absolute right-4 top-1/2 z-30 flex -translate-y-1/2 flex-col items-center gap-1 rounded-xl border border-neutral-200 bg-white p-1 shadow-[0_4px_16px_rgba(0,0,0,0.08)]">
-      <span className="px-1 pb-0.5 pt-1 text-[9px] font-bold uppercase tracking-[0.14em] text-neutral-400">Floor</span>
+    <div className={inline ? 'mobile-floor-options' : 'desktop-map-control absolute right-4 top-1/2 z-30 flex -translate-y-1/2 flex-col items-center gap-1 rounded-xl border border-neutral-200 bg-white p-1 shadow-[0_4px_16px_rgba(0,0,0,0.08)]'}>
+      {!inline && <span className="px-1 pb-0.5 pt-1 text-[9px] font-bold uppercase tracking-[0.14em] text-neutral-400">Floor</span>}
       <button
         onClick={onSelectAll}
         aria-label="All floors"
@@ -109,7 +111,7 @@ export function FloorSelector({
       >
         All
       </button>
-      {[...levels].reverse().map((f) => (
+      {(inline ? levels : [...levels].reverse()).map((f) => (
         <button
           key={f}
           onClick={() => onSelect(f)}
@@ -121,7 +123,7 @@ export function FloorSelector({
           } ${f === currentFloor ? 'ring-2 ring-inset ring-gold' : ''}`}
         >
           {floorShort(f)}
-          {f === currentFloor && <span className="absolute right-full mr-2 whitespace-nowrap rounded-full bg-gold px-2 py-1 text-[10px] font-bold text-neutral-900 shadow-sm">Current location</span>}
+          {f === currentFloor && !inline && <span className="absolute right-full mr-2 whitespace-nowrap rounded-full bg-gold px-2 py-1 text-[10px] font-bold text-neutral-900 shadow-sm">Current location</span>}
           {routeFloors.includes(f) && f !== floor && <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-cardinal" />}
         </button>
       ))}
@@ -132,7 +134,7 @@ export function FloorSelector({
 export function Breadcrumb({ view, onCampus }: { view: View; onCampus: () => void }) {
   if (view.type === 'campus') return null
   return (
-    <div className="absolute left-4 top-4 z-30 flex max-w-[calc(100%-21rem)] items-center gap-2 rounded-full border border-neutral-200 bg-white/95 px-3 py-2 text-[13px] shadow-sm backdrop-blur max-md:max-w-[calc(100%-5.5rem)]">
+    <div className="map-breadcrumb absolute left-4 top-4 z-30 flex max-w-[calc(100%-21rem)] items-center gap-2 rounded-full border border-neutral-200 bg-white/95 px-3 py-2 text-[13px] shadow-sm backdrop-blur max-md:max-w-[calc(100%-5.5rem)]">
       <button onClick={onCampus} className="shrink-0 font-semibold text-cardinal hover:underline">All buildings</button>
       <ChevronRight className="h-3.5 w-3.5 shrink-0 text-neutral-300" />
       <span className="rounded bg-cardinal px-1.5 py-0.5 text-[11px] font-bold text-white">{view.code}</span>

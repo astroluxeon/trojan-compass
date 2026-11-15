@@ -2,5 +2,5 @@
   "reference": "trojan-compass-main (1).zip",
   "referenceCommit": "c04a38a332bcdd89cc0d8c5d0624c628a1750b07",
   "campusHTMLSHA256": "cccb8b9a2c1b653aff42e4fbca1d5fe0c799eb55b9ba5025592c3687e530a613",
-  "description": "Original web UI bundled for Swift, with adapted Next.js loading and automatic search dismissal after successful results."
+  "description": "Original web assets bundled for Swift, with a compact mobile header, five-tool bottom dock, resizing 3D viewport, and automatic dismissal after successful search."
 }

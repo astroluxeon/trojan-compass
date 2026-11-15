@@ -99,13 +99,30 @@ export default function Wayfinder() {
     return true
   }
 
+  const toggleLayer = (key: LayerKey) => setLayers((current) => {
+    const next = new Set(current)
+    if (next.has(key)) next.delete(key)
+    else next.add(key)
+    return next
+  })
+  const floorControls = (inline = false) => view.type === 'building' && (
+    <FloorSelector inline={inline} levels={getLevels(view.code)} floor={view.floor} allFloors={view.allFloors} routeFloors={routeFloors}
+      currentFloor={currentLocation?.building === view.code ? currentLocation.floor : undefined}
+      onSelect={selectFloor}
+      onSelectAll={() => {
+        setPicking(null)
+        setView({ ...view, allFloors: true })
+        setSelectedCell(undefined)
+      }} />
+  )
+
   if (link.view.type === 'campus' && !link.route) return <AppShellFallback />
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="compass-app flex h-full flex-col">
       <Header />
-      <main id="main" className="relative flex min-h-0 flex-1 bg-white">
-        <div className="relative min-w-0 flex-1">
+      <main id="main" className="compass-main relative flex min-h-0 flex-1 bg-white">
+        <div className="map-viewport relative min-w-0 flex-1">
         <MapCanvas
           view={view}
           layers={layers}
@@ -141,24 +158,10 @@ export default function Wayfinder() {
           setRoute(null)
           setActiveStep(0)
         }} />}
-        {view.type === 'building' && (
-          <FloorSelector levels={getLevels(view.code)} floor={view.floor} allFloors={view.allFloors} routeFloors={routeFloors}
-            currentFloor={currentLocation?.building === view.code ? currentLocation.floor : undefined}
-            onSelect={selectFloor}
-            onSelectAll={() => {
-              setPicking(null)
-              setView({ ...view, allFloors: true })
-              setSelectedCell(undefined)
-            }} />
-        )}
-        <LayerPanel layers={layers} view={view} onToggle={(key) => setLayers((current) => {
-          const next = new Set(current)
-          if (next.has(key)) next.delete(key)
-          else next.add(key)
-          return next
-        })} />
+        {floorControls()}
+        <LayerPanel layers={layers} view={view} onToggle={toggleLayer} />
         </div>
-        {view.type === 'building' && <FloorTools locations={locations} picking={picking} onPick={startPicking} onSearch={searchLocation}
+        {view.type === 'building' && <FloorTools floors={floorControls(true)} layers={<LayerPanel inline layers={layers} view={view} onToggle={toggleLayer} />} locations={locations} picking={picking} onPick={startPicking} onSearch={searchLocation}
           onLocationChange={(field, value) => {
             setLocations((current) => ({ ...current, [field]: value }))
             if (field === 'from') {
