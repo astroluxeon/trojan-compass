@@ -22,8 +22,16 @@ assert.equal(
   ),
 );
 assert.deepEqual(
-  readFileSync(bundle + "images/usc-monogram.png"),
-  readFileSync(root + "web/public/images/usc-monogram.png"),
+  readFileSync(bundle + "images/trojan-compass.png"),
+  readFileSync(root + "web/public/images/trojan-compass.png"),
+);
+assert.deepEqual(
+  readFileSync(bundle + "campus/assets/trojan-compass.png"),
+  readFileSync(root + "web/public/images/trojan-compass.png"),
+);
+assert.deepEqual(
+  readFileSync(root + "mobile/TrojanCompass/Assets.xcassets/AppIcon.appiconset/AppIcon.png"),
+  readFileSync(root + "web/public/images/trojan-compass.png"),
 );
 assert.deepEqual(
   readFileSync(bundle + "campus/demo.css"),

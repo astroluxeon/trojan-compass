@@ -107,7 +107,10 @@ struct DirectionsPanel: View {
                     HStack { if store.routeLoading { ProgressView().tint(.white) }; Text(store.routeLoading ? "Finding your route…" : "Get directions").fontWeight(.semibold); Image(systemName: "arrow.right") }.frame(maxWidth: .infinity).padding(16)
                 }.buttonStyle(.plain).foregroundStyle(.white).background(CompassTheme.cardinal, in: RoundedRectangle(cornerRadius: 15)).disabled(store.routeLoading)
                 if let error = store.routeError { InlineNotice(text: error) }
-                if let route = store.route { RouteInstructions(store: store, route: route) }
+                if let route = store.route {
+                    Button("Clear route") { store.invalidateRoute() }
+                    ForEach(route.warnings, id: \.code) { InlineNotice(text: $0.message) }
+                }
                 if !store.canRoute { Label("Routing preview — endpoints and preferences work. A connected routing service is required for directions.", systemImage: "info.circle").font(.caption).foregroundStyle(.secondary) }
             }.padding(20)
         }.onChange(of: focused) { _, field in
@@ -128,31 +131,6 @@ struct DirectionsPanel: View {
             }
             Button { focused = nil; store.startPicking(field) } label: { Image(systemName: "hand.tap").frame(width: 44, height: 44) }.accessibilityLabel("Pick \(title.lowercased()) on map")
         }.padding(.leading, 14).padding(.trailing, 4).padding(.vertical, 7)
-    }
-}
-
-struct RouteInstructions: View {
-    @ObservedObject var store: CompassStore
-    let route: Route
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack { Text(route.distanceMeters == 0 ? "You’ve arrived" : "\(Int(route.distanceMeters)) m · \(max(1, Int(ceil(route.durationSeconds / 60)))) min").font(.headline); Spacer(); Button("End route") { store.invalidateRoute() } }
-            if route.metricsEstimated { Text("Estimated distance and time").font(.caption).foregroundStyle(.secondary) }
-            ForEach(Array(route.steps.enumerated()), id: \.element.id) { index, step in
-                Button { Task { await store.goToStep(index) } } label: {
-                    HStack(alignment: .top) {
-                        Text("\(index + 1)").font(.caption.weight(.bold)).frame(width: 26, height: 26).background(index == store.activeStep ? CompassTheme.gold : CompassTheme.paper, in: Circle())
-                        Text(step.text).font(.subheadline).frame(maxWidth: .infinity, alignment: .leading)
-                    }.padding(10).background(index == store.activeStep ? Color.white : .clear, in: RoundedRectangle(cornerRadius: 12))
-                }.buttonStyle(.plain)
-            }
-            HStack {
-                Button("Previous", systemImage: "chevron.left") { Task { await store.goToStep(store.activeStep - 1) } }.disabled(store.activeStep == 0)
-                Spacer()
-                Button("Next", systemImage: "chevron.right") { Task { await store.goToStep(store.activeStep + 1) } }.disabled(store.activeStep + 1 >= route.steps.count)
-            }
-            ForEach(route.warnings, id: \.code) { InlineNotice(text: $0.message) }
-        }
     }
 }
 

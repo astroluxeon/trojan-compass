@@ -65,8 +65,8 @@ export function FloorTools({
   onDirections,
   onChat,
   onDraftChange,
-  onRoutePreferenceChange,
-  routeInstructions,
+  onClearRoute,
+  hasRoute,
 }: {
   floors: ReactNode;
   layers: ReactNode;
@@ -81,8 +81,8 @@ export function FloorTools({
     request: Pick<ChatTextRequest, "message" | "history" | "preferences">,
   ) => Promise<ChatResponse>;
   onDraftChange: () => void;
-  onRoutePreferenceChange: () => void;
-  routeInstructions: ReactNode;
+  onClearRoute: () => void;
+  hasRoute: boolean;
 }) {
   const [active, setActive] = useState<Tool | null>(null);
   const [width, setWidth] = useState(336);
@@ -393,7 +393,7 @@ export function FloorTools({
                 onPick={onPick}
                 accessibleOnly={accessibleOnly}
                 setAccessibleOnly={(value) => {
-                  onRoutePreferenceChange();
+                  onClearRoute();
                   setAccessibleOnly(value);
                 }}
                 dataVersion={dataVersion}
@@ -401,14 +401,22 @@ export function FloorTools({
                 onDirections={onDirections}
                 travelMode={travelMode}
                 setTravelMode={(value) => {
-                  onRoutePreferenceChange();
+                  onClearRoute();
                   setTravelMode(value);
                 }}
                 lastPick={lastPick}
                 setNotice={setNotice}
               />
             )}
-            {active === "directions" && routeInstructions}
+            {active === "directions" && hasRoute && (
+              <button
+                type="button"
+                onClick={onClearRoute}
+                className="mt-3 min-h-11 text-sm font-semibold text-cardinal"
+              >
+                Clear route
+              </button>
+            )}
             {active === "chat" && (
               <ChatPanel
                 conversation={conversation}

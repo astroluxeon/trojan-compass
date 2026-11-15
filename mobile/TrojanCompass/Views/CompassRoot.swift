@@ -26,23 +26,6 @@ struct CompassRoot: View {
                         Label(error, systemImage: "exclamationmark.triangle").font(.subheadline).padding().background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16)).padding(.horizontal)
                     }
                     Spacer()
-                    if let route = store.route {
-                        VStack(alignment: .leading, spacing: 10) {
-                            HStack {
-                                Image(systemName: "arrow.triangle.turn.up.right.diamond.fill").foregroundStyle(CompassTheme.cardinal)
-                                Text(route.steps.indices.contains(store.activeStep) ? route.steps[store.activeStep].text : "You’ve arrived").font(.subheadline.weight(.semibold))
-                                Spacer(minLength: 4)
-                                Button { store.invalidateRoute() } label: { Image(systemName: "xmark.circle.fill") }.accessibilityLabel("End route")
-                            }
-                            HStack {
-                                Button("Previous") { Task { await store.goToStep(store.activeStep - 1) } }.disabled(store.activeStep == 0)
-                                Spacer()
-                                Text("\(Int(route.distanceMeters)) m\(route.metricsEstimated ? " · estimated" : "")").font(.caption).foregroundStyle(.secondary)
-                                Spacer()
-                                Button("Next") { Task { await store.goToStep(store.activeStep + 1) } }.disabled(store.activeStep + 1 >= route.steps.count)
-                            }.font(.caption.weight(.semibold))
-                        }.padding(16).background(.regularMaterial, in: RoundedRectangle(cornerRadius: 18)).padding(.horizontal, 16)
-                    }
                     if let p = store.selectedPlace, store.picking == nil {
                         HStack(spacing: 12) {
                             Image(systemName: "door.left.hand.open").font(.title2).foregroundStyle(CompassTheme.cardinal)
