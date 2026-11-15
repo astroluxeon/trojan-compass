@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
-import { cellCenter, cellTitle, findCell, getLevels, metersPerUnit } from '../data/generated/floorplan'
+import { cellCenter, cellTitle, findCell, getLevels } from '../data/generated/floorplan'
 import { readDeepLink } from '../map-link'
 import { mapLocationFromQuery } from '../map-location'
 import type { Route } from '../../routing/legacy/routing.generated'
@@ -12,7 +12,7 @@ import { AppShellFallback, MapLoading } from '../../../components/layout/AppShel
 import { Header } from '../../../components/layout/Header'
 import { FloorTools, type LocationField } from './FloorTools'
 import { Breadcrumb, CampusHint, FloorSelector, LayerPanel, RouteBar } from './MapOverlays'
-import { prototypeMapAction } from '@/features/chat/map-action-adapter'
+import { prototypeMapAction, routeMapLocation } from '@/features/chat/map-action-adapter'
 import { useRoute } from '@/features/routing/hooks/useRoute'
 import { directionsInput, mapLocationRef } from '@/features/routing/directions-input'
 import type { RouteMode } from '@trojan-compass/shared/api'
@@ -56,8 +56,10 @@ export default function Wayfinder() {
   useEffect(() => {
     if (!directions.route) return
     const { origin, destination } = directions.route
-    const code = origin.buildingId as BuildingCode, scale = metersPerUnit(code)
-    setCurrentLocation({ building: code, floor: Number(origin.floorId), x: origin.position.x / scale, z: origin.position.z / scale, label: 'Current location' })
+    const from = routeMapLocation(origin), to = routeMapLocation(destination)
+    setCurrentLocation(from)
+    setSelections({ from, to })
+    setLocations({ from: from.label, to: to.label })
     if (destination.placeId && findCell(destination.placeId)) setSelectedCell(destination.placeId)
     setView({ type: 'building', code: destination.buildingId as BuildingCode, floor: Number(destination.floorId) })
   }, [directions.route])
@@ -193,6 +195,7 @@ export default function Wayfinder() {
             if (!updates.length) return
             const update = updates.at(-1)!
             clearDirections(); setPicking(null); setView(update.view); setSelectedCell(update.selectedCell)
+            if (update.route) directions.accept(update.route)
           }}
           onLocationChange={(field, value) => {
             clearDirections()

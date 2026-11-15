@@ -25,5 +25,6 @@ export function useRoute(dataVersion: string, source: 'published' | 'preview' = 
       if (current === generation.current && !controller.signal.aborted) setError(failure instanceof Error ? failure.message : 'Route unavailable.')
     } finally { if (current === generation.current) { active.current = null; setLoading(false) } }
   }, [dataVersion, source])
-  return { route, error, loading, calculate, clear }
+  const accept = useCallback((next: Route) => { clear(); setRoute(next) }, [clear])
+  return { route, error, loading, calculate, clear, accept }
 }

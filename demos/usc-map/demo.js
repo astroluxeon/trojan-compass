@@ -1,4 +1,4 @@
-import { buildingCode, compassUrl, mapPoint } from './map-data.js'
+import { buildingCode, compassUrl, mapPoint } from './map-data.js?v=2'
 
 const sidebar = document.querySelector('#sidebar')
 const menu = document.querySelector('#hamburger')

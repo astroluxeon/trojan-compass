@@ -1,18 +1,19 @@
 import { Send, Sparkles } from 'lucide-react'
 import { useEffect, useRef, useState, type Dispatch, type RefObject, type SetStateAction } from 'react'
-import type { Candidate, ChatContext, ChatResponse, MapAction } from '@trojan-compass/shared/api'
+import type { Candidate, ChatContext, ChatResponse, ChatTextRequest, MapAction } from '@trojan-compass/shared/api'
 import { clientRequestId, compassApi, CompassApiError } from '@/lib/api-client'
 import { INPUT } from '@/components/ui/form-styles'
 
 export type ChatMessage = { role: 'assistant' | 'user'; text: string }
 
-export function ChatPanel({ conversation, messages, setMessages, draft, setDraft, context, onActions }: {
+export function ChatPanel({ conversation, messages, setMessages, draft, setDraft, context, preferences, onActions }: {
   conversation: RefObject<HTMLDivElement | null>
   messages: ChatMessage[]
   setMessages: Dispatch<SetStateAction<ChatMessage[]>>
   draft: string
   setDraft: (value: string) => void
   context: ChatContext
+  preferences: ChatTextRequest['preferences']
   onActions: (actions: MapAction[], dataVersion: string) => void
 }) {
   const [pending, setPending] = useState(false)
@@ -21,7 +22,7 @@ export function ChatPanel({ conversation, messages, setMessages, draft, setDraft
   const activeRequest = useRef<AbortController | null>(null)
   const sequence = useRef(0)
   const dataVersion = useRef<string | null>(null)
-  const contextKey = JSON.stringify(context)
+  const contextKey = JSON.stringify({context, preferences})
   useEffect(() => {
     sequence.current++; activeRequest.current?.abort(); activeRequest.current = null
     setPending(false); setClarification(null)
@@ -37,7 +38,7 @@ export function ChatPanel({ conversation, messages, setMessages, draft, setDraft
     try {
       if (!dataVersion.current) dataVersion.current = (await compassApi.building(context.buildingId!, undefined, controller.signal)).dataVersion
       const requestContext = choice?.kind === 'place' ? { ...context, selectedPlace: choice.location } : choice?.kind === 'building' ? { ...context, buildingId: choice.buildingId, floorId: null, selectedPlace: null } : context
-      const result = await compassApi.chat({ clientRequestId: clientRequestId(), dataVersion: dataVersion.current, message: text, history, context: requestContext, preferences: { mode: 'fastest', stepFree: false, accessProfile: 'public' } }, controller.signal)
+      const result = await compassApi.previewChat({ clientRequestId: clientRequestId(), dataVersion: dataVersion.current, message: text, history, context: requestContext, preferences }, controller.signal)
       if (current !== sequence.current || controller.signal.aborted) return
       if (result.status === 'resolved') onActions(result.actions, result.dataVersion)
       setMessages(previous => [...previous, { role: 'assistant', text: result.message }]); setClarification(result.clarification)
@@ -51,6 +52,7 @@ export function ChatPanel({ conversation, messages, setMessages, draft, setDraft
   }
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
+      <p className="shrink-0 text-[11px] leading-relaxed text-neutral-500">Demo classes & events · Ask to highlight a place or get directions. Times and venues are illustrative.</p>
       <div ref={conversation} role="log" aria-label="Compass conversation" aria-live="polite" className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
         {messages.map((message, index) => (
           <div key={index} className={`rounded-xl px-3 py-2.5 text-[13px] leading-relaxed ${message.role === 'user' ? 'ml-6 bg-cardinal text-white' : 'mr-3 bg-neutral-100 text-neutral-700'}`}>
@@ -64,7 +66,7 @@ export function ChatPanel({ conversation, messages, setMessages, draft, setDraft
         const id = candidate.kind === 'building' ? candidate.buildingId : candidate.location.placeId
         void send(`For my previous request: ${previous.slice(0, 2800)}. I choose ${id}.`, candidate)
       }}>{candidate.label}</button>)}
-      {pending && <p role="status" className="text-xs text-neutral-500">Finding your location…</p>}
+      {pending && <p role="status" className="text-xs text-neutral-500">Checking locations and routes…</p>}
       {error && <p role="alert" className="rounded-lg bg-cardinal-50 p-3 text-xs text-cardinal">{error}</p>}
       <form className="flex shrink-0 items-end gap-2" onSubmit={(event) => {
         event.preventDefault()

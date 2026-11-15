@@ -9,7 +9,7 @@ test('official building records link to every supported interior, with no false 
   for (const code of SUPPORTED_CODES) {
     assert.ok(places.some(place => buildingCode(place) === code), `${code} has an official map location`)
     const url = new URL(compassUrl(code))
-    assert.equal(url.port, '3000')
+    assert.equal(url.port, '3100')
     assert.equal(url.searchParams.get('building'), code)
     assert.equal(url.searchParams.get('floor'), '1')
   }

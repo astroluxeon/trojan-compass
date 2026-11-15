@@ -268,6 +268,8 @@ export class DemoCatalog {
       .map((x) => structuredClone(x.r));
   }
   describe(r: CatalogRecord) {
-    return `[Demo] ${r.title}: ${r.startsAt} to ${r.endsAt} (${r.timeZone}), ${r.location.label}.`;
+    const date = new Intl.DateTimeFormat('en-US', { timeZone: r.timeZone, month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(r.startsAt));
+    const time = new Intl.DateTimeFormat('en-US', { timeZone: r.timeZone, hour: 'numeric', minute: '2-digit' });
+    return `[Demo] ${r.title}: ${date}, ${time.format(new Date(r.startsAt))}–${time.format(new Date(r.endsAt))} Pacific, ${r.location.label}.`;
   }
 }

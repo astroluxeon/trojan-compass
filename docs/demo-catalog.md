@@ -103,7 +103,13 @@ Provider configuration is unchanged: AI_PROVIDER=openai, OPENAI_API_KEY and OPEN
 
 ## Client handoff and remaining work
 
-This change implements backend endpoints and retrieval integration. The web ChatPanel still calls canonical /api/chat and its prototype action adapter rejects show_route. Connecting preview chat and accepting returned routes are separate frontend work. Mobile should consume the same ChatResponse actions and clarification states. Manual Directions already uses the same preview router. The agreed production OpenAPI schema is unchanged.
+The web ChatPanel now calls /api/preview/chat. The backend retrieves from the same DemoCatalog service exposed by GET /api/preview/catalog, avoiding a redundant HTTP call back to itself. Retrieved records go to the AI interpreter; validated server actions control the viewer. The model does not fetch arbitrary URLs or invent route geometry.
+
+The client sends the visible building/floor, selected destination, separately confirmed origin, bounded conversation history, and current Directions preferences. A selected destination is never treated as the origin. The adapter validates all actions before changing the map, accepts known prototype highlights and indoor routes, and rejects incompatible map versions or invalid references. Chat routes use the same green arrows and blue floor markers as manual Directions. Returned origins/destinations update the Directions inputs and become context for follow-ups. A route-ready card opens the instructions; clearing/editing routes cancels stale work. Context or preference changes also cancel in-flight chat requests.
+
+Live GPT-6.1 Sol browser verification: “Show me BUAD 298 AI Essentials” highlighted LAW 303; “Take me there using elevators” asked for a start; “I am at LAW 101” drew an elevator route; “Use stairs instead” retained the endpoints and redrew the stairs route. View directions showed LAW 101 → LAW 303 and matching stairs preferences. These examples passed; they are not a comprehensive model-accuracy evaluation.
+
+Mobile should consume the same ChatResponse actions and clarification states. The agreed production OpenAPI schema is unchanged; the preview endpoints require non-production prototype mode.
 
 Fixtures/types: server/src/modules/catalog/demo-catalog.ts. Startup verifies map references. Bump catalogVersion when replacing fixtures. Once the actual schedule is supplied, confirm code, section, meeting dates/days, times, zone and room. Expand recurring meetings into occurrences. Preserve the original source venue separately from any intentional LAW demo relocation. Real feeds need their own adapter/provenance type; do not relabel synthetic fixtures as official. Unknown/hidden venues remain unresolved. Screenshot ingestion and real source adapters are not implemented.
 

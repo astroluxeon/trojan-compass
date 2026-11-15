@@ -206,6 +206,18 @@ test("HTTP catalog is opt-in, validates filters/versions, and does not masquerad
     );
   }
 });
+test("context-selected catalog destinations route from the actual origin with current preferences", async () => {
+  const { chat } = setup({ interpret: async () => intent({kind:'route', query:null, reference:'selected_place'}) });
+  const response = await chat.respond(scope(), chatRequest({ dataVersion:'prototype-v1', message:'Take me there', context:{buildingId:'LAW',floorId:'2',selectedPlace:{kind:'place',buildingId:'LAW',placeId:'LAW-201'},origin:{kind:'place',buildingId:'LAW',placeId:'LAW-101'}}, preferences:{mode:'elevator',stepFree:true,accessProfile:'public'} }));
+  const action=response.actions[0];
+  assert.equal(action?.type,'show_route');
+  if(action?.type !== 'show_route') throw new Error('Missing route');
+  assert.equal(action.route.origin.placeId,'LAW-101');
+  assert.equal(action.route.destination.placeId,'LAW-201');
+  assert.equal(action.route.usesElevator,true);
+  assert.equal(action.route.stepFreeRequested,true);
+});
+
 test("provider receives bounded retrieved records as reference data", async () => {
   let captured: any;
   const adapter = new OpenAIIntentAdapter(

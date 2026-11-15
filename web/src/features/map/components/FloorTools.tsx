@@ -35,13 +35,19 @@ export function FloorTools({ locations, onLocationChange, picking, onPick, chatC
   const lastPick = useRef<LocationField | null>(null)
   const [draft, setDraft] = useState('')
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: 'assistant', text: 'Hi, Trojan! I’m Compass. Looking for a room or planning your next stop? Ask me anything about getting around campus.' },
+    { role: 'assistant', text: 'Hi, Trojan! I can highlight rooms, demo classes and events, or draw a route. Try “Show me WRIT 340” or “I’m at LAW 101. Take me to Navratri using elevators.”' },
   ])
   const [notice, setNotice] = useState('')
   const menu = useRef<HTMLDetailsElement>(null)
   const sidebar = useRef<HTMLElement>(null)
   const conversation = useRef<HTMLDivElement>(null)
   const tool = TOOLS.find((item) => item.id === active)
+
+  useEffect(() => {
+    if (!directions.route) return
+    setTravelMode(directions.route.mode)
+    setAccessibleOnly(directions.route.stepFreeRequested)
+  }, [directions.route])
 
   useEffect(() => {
     if (picking) setActive('directions')
@@ -143,7 +149,8 @@ export function FloorTools({ locations, onLocationChange, picking, onPick, chatC
               onSubmit={() => directions.onCalculate(travelMode, accessibleOnly)} loading={directions.loading} />}
             {active === 'directions' && directions.error && <p role="alert" className="mt-4 rounded-lg bg-cardinal-50 p-3 text-[12px] leading-relaxed text-cardinal">{directions.error}</p>}
             {active === 'directions' && directions.route && <RouteInstructions route={directions.route} activeStep={directions.activeStep} onStep={directions.onStep} onClear={directions.onClear} />}
-            {active === 'chat' && <ChatPanel conversation={conversation} messages={messages} setMessages={setMessages} draft={draft} setDraft={setDraft} context={chatContext} onActions={onChatActions} />}
+            {active === 'chat' && <ChatPanel conversation={conversation} messages={messages} setMessages={setMessages} draft={draft} setDraft={setDraft} context={chatContext} preferences={{ mode: travelMode, stepFree: accessibleOnly, accessProfile: 'public' }} onActions={onChatActions} />}
+            {active === 'chat' && directions.route && <div role="status" className="mt-3 shrink-0 rounded-lg bg-green-50 p-3 text-xs text-green-900"><p className="font-semibold">Route ready · Follow the green line</p><p className="mt-1">{Math.round(directions.route.distanceMeters)} m · {directions.route.usesElevator ? 'Elevators' : directions.route.usesStairs ? 'Stairs' : 'Same floor'} · Illustrative route</p><button type="button" onClick={() => selectTool('directions')} className="mt-2 font-bold underline">View directions</button></div>}
             {notice && <p role="status" className="mt-4 rounded-lg bg-cardinal-50 p-3 text-[12px] leading-relaxed text-cardinal">{notice}</p>}
           </div>
           {active !== 'chat' && <p className="px-5 pb-4 pt-3 text-[11px] text-neutral-400">Illustrative map · Routes are previews of this floor plan.</p>}

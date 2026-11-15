@@ -29,3 +29,7 @@ See [the backend guide](backend-guide.md) for parameters, service workflow diagr
 ## Development route previews
 
 `POST /api/preview/routes` uses the existing `RouteRequest` / `RouteResponse` shapes for the current illustrated model. It is available only with non-production `DATASET_MODE=prototype`. It returns demo/unverified provenance and never sets `verifiedStepFree` to true. The main Directions panel explicitly selects this endpoint for its prototype model; there is no fallback from `/api/routes`. This extension is not part of the production/mobile navigation contract.
+
+## Demo catalog and AI map actions
+
+The prototype web chat uses `POST /api/preview/chat` to retrieve synthetic class/event records and return validated highlights or indoor routes. `GET /api/preview/catalog` and `GET /api/preview/catalog/:recordId` expose the same catalog. These development-only extensions leave the production contract unchanged. See [demo catalog documentation](demo-catalog.md) for fields, context, examples, and limitations.

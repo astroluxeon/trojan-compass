@@ -15,7 +15,8 @@ const object = (value: unknown): value is Record<string, unknown> => !!value && 
 export function createApiClient(baseUrl = '/api', transport: typeof fetch = fetch) {
   const request = async <T>(path: string, params: Parameters = {}, body?: RouteRequest | ChatTextRequest, signal?: AbortSignal): Promise<T> => {
     const controller = new AbortController()
-    const timer = setTimeout(() => controller.abort(new CompassApiError('TIMEOUT', 'The request took too long. Try again.')), path === '/chat' ? 60000 : 15000)
+    const isChat = path === '/chat' || path === '/preview/chat'
+    const timer = setTimeout(() => controller.abort(new CompassApiError('TIMEOUT', 'The request took too long. Try again.')), isChat ? 60000 : 15000)
     const abort = () => controller.abort(signal?.reason)
     signal?.addEventListener('abort', abort, { once: true }); if (signal?.aborted) abort()
     const query = new URLSearchParams(Object.entries(params).filter(([, value]) => value !== undefined).map(([key, value]) => [key, String(value)]))
@@ -30,7 +31,7 @@ export function createApiClient(baseUrl = '/api', transport: typeof fetch = fetc
       if (!object(value) || typeof value.requestId !== 'string' || typeof value.dataVersion !== 'string') throw new CompassApiError('INVALID_RESPONSE', 'The response is missing its data version.')
       if (body && value.clientRequestId !== body.clientRequestId) throw new CompassApiError('STALE_RESPONSE', 'A response belongs to a different request.')
       if ((body?.dataVersion ?? params.dataVersion) && value.dataVersion !== (body?.dataVersion ?? params.dataVersion)) throw new CompassApiError('DATA_VERSION_MISMATCH', 'The map data changed. Reopen the building before continuing.')
-      if (path === '/chat' && (typeof value.message !== 'string' || !Array.isArray(value.actions) || !['resolved', 'needs_clarification', 'not_found', 'no_route', 'unsupported'].includes(String(value.status)))) throw new CompassApiError('INVALID_RESPONSE', 'The assistant response is incomplete.')
+      if (isChat && (typeof value.message !== 'string' || !Array.isArray(value.actions) || !['resolved', 'needs_clarification', 'not_found', 'no_route', 'unsupported'].includes(String(value.status)))) throw new CompassApiError('INVALID_RESPONSE', 'The assistant response is incomplete.')
       return value as T
     } catch (error) {
       if (controller.signal.aborted) throw controller.signal.reason
@@ -51,6 +52,7 @@ export function createApiClient(baseUrl = '/api', transport: typeof fetch = fetc
     route: (body: RouteRequest, signal?: AbortSignal) => request<RouteResponse>('/routes', {}, body, signal),
     previewRoute: (body: RouteRequest, signal?: AbortSignal) => request<RouteResponse>('/preview/routes', {}, body, signal),
     chat: (body: ChatTextRequest, signal?: AbortSignal) => request<ChatResponse>('/chat', {}, body, signal),
+    previewChat: (body: ChatTextRequest, signal?: AbortSignal) => request<ChatResponse>('/preview/chat', {}, body, signal),
   }
 }
 export const compassApi = createApiClient()
