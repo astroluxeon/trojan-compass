@@ -1,10 +1,17 @@
-import { Edges, Line } from '@react-three/drei';
-import { MapHtml } from './MapHtml';
-import { Accessibility, ArrowUpDown, DoorOpen, Footprints, TriangleAlert } from 'lucide-react';
-import { useState, type ReactNode } from 'react';
-import type { BuildingCode } from '../data/campus-display';
+import { Edges, Line } from "@react-three/drei";
+import { MapHtml } from "./MapHtml";
+import {
+  Accessibility,
+  ArrowUpDown,
+  DoorOpen,
+  Footprints,
+  TriangleAlert,
+} from "lucide-react";
+import { useState, type ReactNode } from "react";
+import type { BuildingCode } from "../data/campus-display";
 import {
   cellCenter,
+  cellTitle,
   floorName,
   floorY,
   getLayout,
@@ -13,14 +20,21 @@ import {
   getPlaces,
   type Cell,
   type FloorLayout,
-} from '../data/viewer-data';
-import type { IndoorLeg } from '../../routing/viewer-route';
-import { COLORS, type LayerKey, type MapLocation } from '../types';
-import { MapBadge } from './Badge';
-import { RestroomIcon } from './RestroomIcon';
-import { WheelchairIcon } from './WheelchairIcon';
-import { EndPin, RouteLine, StartDot } from './RouteLine';
-import { CurrentLocationPin, TommyTrojanMarker, TommyTrojanPlacement } from './TommyTrojan';
+} from "../data/viewer-data";
+import type { IndoorLeg } from "../../routing/viewer-route";
+import { COLORS, type LayerKey, type MapLocation } from "../types";
+import { MapBadge } from "./Badge";
+import { RestroomIcon } from "./RestroomIcon";
+import { WheelchairIcon } from "./WheelchairIcon";
+import { EndPin, RouteLine, StartDot } from "./RouteLine";
+import { FloorTransitionBeacon } from "./FloorTransitionBeacon";
+import { sceneRoute, scenePosition } from "@/features/routing/route-scene";
+import type { Route as ApiRoute } from "@trojan-compass/shared/api";
+import {
+  CurrentLocationPin,
+  TommyTrojanMarker,
+  TommyTrojanPlacement,
+} from "./TommyTrojan";
 
 interface Props {
   code: BuildingCode;
@@ -34,20 +48,25 @@ interface Props {
   onMoveCurrentLocation: () => void;
   onSelectLocation?: (location: MapLocation) => void;
   leg?: IndoorLeg;
+  apiRoute?: ApiRoute | null;
+  activeLegId?: string | null;
   isFinalLeg: boolean;
   onSelectCell: (cell: Cell) => void;
   onSelectFloor: (floor: number) => void;
 }
 
 const WALL_H = 0.85;
-const WALL_COLOR = '#c9c9ce';
+const WALL_COLOR = "#c9c9ce";
 
 export function BuildingScene(props: Props) {
   const { code, floor, leg, isFinalLeg, currentLocation } = props;
   const levels = getLevels(code);
-  const routePts = leg?.points.map((p) => [p.x, p.y + 0.35, p.z] as [number, number, number]);
+  const routePts = leg?.points.map(
+    (p) => [p.x, p.y + 0.35, p.z] as [number, number, number],
+  );
   const last = routePts?.at(-1);
   const focusedPlace = selectedPlace(props);
+  const apiSegments = props.apiRoute ? sceneRoute(props.apiRoute, code) : [];
   return (
     <group>
       <mesh
@@ -71,7 +90,7 @@ export function BuildingScene(props: Props) {
             interactive={!props.onSelectLocation}
             onClick={() => props.onSelectFloor(f)}
           />
-        )
+        ),
       )}
       {!props.placingCurrentLocation &&
         currentLocation?.building === code &&
@@ -88,23 +107,67 @@ export function BuildingScene(props: Props) {
           />
         ))}
       {props.placingCurrentLocation && props.onSelectLocation && (
-        <TommyTrojanPlacement layout={getLayout(code, floor)} onDrop={props.onSelectLocation} />
+        <TommyTrojanPlacement
+          layout={getLayout(code, floor)}
+          onDrop={props.onSelectLocation}
+        />
       )}
       {focusedPlace && !leg && (
         <EndPin
-          position={[focusedPlace.position.x, focusedPlace.position.y, focusedPlace.position.z]}
+          position={[
+            focusedPlace.position.x,
+            focusedPlace.position.y,
+            focusedPlace.position.z,
+          ]}
         />
       )}
-      {routePts && last && (
+      {!props.apiRoute && routePts && last && (
         <>
           {routePts.length > 1 && <RouteLine points={routePts} />}
-          <StartDot position={[routePts[0]![0], routePts[0]![1] - 0.33, routePts[0]![2]]} />
+          <StartDot
+            position={[
+              routePts[0]![0],
+              routePts[0]![1] - 0.33,
+              routePts[0]![2],
+            ]}
+          />
           {isFinalLeg ? (
             <EndPin position={[last[0], last[1] - 0.35, last[2]]} />
           ) : (
             <StartDot position={[last[0], last[1] - 0.33, last[2]]} />
           )}
         </>
+      )}
+      {apiSegments.map((segment) =>
+        segment.kind === "vertical" ? (
+          <FloorTransitionBeacon
+            key={segment.id}
+            transition={segment}
+            active={!props.activeLegId || props.activeLegId === segment.id}
+            onSelectFloor={props.onSelectFloor}
+          />
+        ) : (
+          <RouteLine
+            key={segment.id}
+            points={segment.points}
+            active={!props.activeLegId || props.activeLegId === segment.id}
+            overlay
+          />
+        ),
+      )}
+      {props.apiRoute?.origin.buildingId === code && (
+        <StartDot
+          position={scenePosition(code, props.apiRoute.origin.position, 0.03)}
+        />
+      )}
+      {props.apiRoute?.destination.buildingId === code && (
+        <EndPin
+          position={scenePosition(
+            code,
+            props.apiRoute.destination.position,
+            0.03,
+          )}
+        />
       )}
     </group>
   );
@@ -115,7 +178,7 @@ function selectedPlace(props: Props) {
     (p) =>
       p.id === props.selectedCell &&
       !p.sceneObjectKey &&
-      (props.allFloors || p.floorId === String(props.floor))
+      (props.allFloors || p.floorId === String(props.floor)),
   );
 }
 
@@ -195,25 +258,39 @@ function GhostFloor({
         if (!interactive) return;
         e.stopPropagation();
         setHover(true);
-        document.body.style.cursor = 'pointer';
+        document.body.style.cursor = "pointer";
       }}
       onPointerOut={() => {
         setHover(false);
-        document.body.style.cursor = '';
+        document.body.style.cursor = "";
       }}
     >
       <Slabs
         layout={layout}
-        color={hover ? '#e9d6d6' : '#e4e4e7'}
+        color={hover ? "#e9d6d6" : "#e4e4e7"}
         opacity={above ? (hover ? 0.35 : 0.07) : hover ? 0.8 : 0.55}
         depthWrite={!above}
-        edge={inRoute ? (above ? '#e2b4b4' : COLORS.cardinal) : above ? '#d4d4d8' : '#b8b8be'}
+        edge={
+          inRoute
+            ? above
+              ? "#e2b4b4"
+              : COLORS.cardinal
+            : above
+              ? "#d4d4d8"
+              : "#b8b8be"
+        }
       />
-      <MapHtml position={[b.x0 + 1.4, 0, b.z1 + 0.9]} center zIndexRange={[20, 0]}>
+      <MapHtml
+        position={[b.x0 + 1.4, 0, b.z1 + 0.9]}
+        center
+        zIndexRange={[20, 0]}
+      >
         <button
           onClick={onClick}
           className={`whitespace-nowrap rounded-full border bg-white px-2 py-0.5 text-[11px] font-semibold shadow-sm transition hover:border-[#990000] hover:text-[#990000] ${
-            inRoute ? 'border-[#990000] text-[#990000]' : 'border-neutral-200 text-neutral-500'
+            inRoute
+              ? "border-[#990000] text-[#990000]"
+              : "border-neutral-200 text-neutral-500"
           }`}
         >
           {floorName(floor, code)}
@@ -234,7 +311,7 @@ function ActiveFloor({
 }: Props) {
   const layout = getLayout(code, floor);
   const [hover, setHover] = useState<string | null>(null);
-  const accessibleOn = layers.has('accessible');
+  const accessibleOn = layers.has("accessible");
   const nodeById = new Map(layout.walkNodes.map((n) => [n.id, n]));
   return (
     <group position={[0, floorY(floor, code), 0]}>
@@ -256,13 +333,17 @@ function ActiveFloor({
         }
       />
       {layout.objects
-        .filter((o) => o.role === 'wall' && o.kind === 'box')
+        .filter((o) => o.role === "wall" && o.kind === "box")
         .map(
           (o) =>
-            o.kind === 'box' && (
+            o.kind === "box" && (
               <mesh
                 key={o.objectKey}
-                position={[o.center.x, o.center.y - floorY(floor, code), o.center.z]}
+                position={[
+                  o.center.x,
+                  o.center.y - floorY(floor, code),
+                  o.center.z,
+                ]}
                 rotation={[0, o.yawRadians, 0]}
                 castShadow
                 receiveShadow
@@ -270,7 +351,7 @@ function ActiveFloor({
                 <boxGeometry args={[o.size.x, o.size.y, o.size.z]} />
                 <meshStandardMaterial color={WALL_COLOR} roughness={0.9} />
               </mesh>
-            )
+            ),
         )}
       {accessibleOn &&
         layout.walkEdges.map(([a, b], i) => {
@@ -297,20 +378,22 @@ function ActiveFloor({
         const hl = highlights.get(c.id);
         const selected = selectedCell === c.id;
         const hovered = hover === c.id;
-        const interactive = c.kind !== 'block';
+        const interactive = c.kind !== "block";
         const base =
-          c.kind === 'block'
-            ? '#dcdce0'
+          c.kind === "block"
+            ? "#dcdce0"
             : c.open
-              ? '#ededf0'
-              : c.kind === 'restroom'
-                ? '#e1e7ef'
-                : c.kind === 'elevator'
-                  ? '#d8d8dc'
-                  : c.kind === 'stairs'
-                    ? '#e6e6e9'
-                    : '#e9e9ec';
-        const color = selected ? COLORS.gold : (hl ?? (hovered ? '#e6d3d3' : base));
+              ? "#ededf0"
+              : c.kind === "restroom"
+                ? "#e1e7ef"
+                : c.kind === "elevator"
+                  ? "#d8d8dc"
+                  : c.kind === "stairs"
+                    ? "#e6e6e9"
+                    : "#e9e9ec";
+        const color = selected
+          ? COLORS.gold
+          : (hl ?? (hovered ? "#e6d3d3" : base));
         return (
           <group key={c.id}>
             <mesh
@@ -322,7 +405,7 @@ function ActiveFloor({
                   ? (e) => {
                       e.stopPropagation();
                       setHover(c.id);
-                      document.body.style.cursor = 'pointer';
+                      document.body.style.cursor = "pointer";
                     }
                   : undefined
               }
@@ -330,7 +413,7 @@ function ActiveFloor({
                 interactive
                   ? () => {
                       setHover((h) => (h === c.id ? null : h));
-                      document.body.style.cursor = '';
+                      document.body.style.cursor = "";
                     }
                   : undefined
               }
@@ -350,8 +433,8 @@ function ActiveFloor({
                 opacity={hl && !selected ? (c.open ? 0.45 : 0.85) : 1}
               />
             </mesh>
-            {c.kind === 'stairs' && <Stairs c={c} />}
-            {c.kind === 'elevator' && (
+            {c.kind === "stairs" && <Stairs c={c} />}
+            {c.kind === "elevator" && (
               <mesh position={[cx, 0.6, cz]} castShadow>
                 <boxGeometry args={[w * 0.6, 1.2, d * 0.6]} />
                 <meshStandardMaterial color="#b6b6bc" roughness={0.6} />
@@ -391,14 +474,18 @@ function Stairs({ c }: { c: Cell }) {
           return (
             <mesh
               key={`${sideSign}-${i}`}
-              position={alongX ? [along, h / 2, across] : [across, h / 2, along]}
+              position={
+                alongX ? [along, h / 2, across] : [across, h / 2, along]
+              }
               castShadow
             >
-              <boxGeometry args={alongX ? [stepLen, h, flightW] : [flightW, h, stepLen]} />
+              <boxGeometry
+                args={alongX ? [stepLen, h, flightW] : [flightW, h, stepLen]}
+              />
               <meshStandardMaterial color="#d4d4d8" />
             </mesh>
           );
-        })
+        }),
       )}
     </group>
   );
@@ -419,34 +506,46 @@ function FloorMarkers({
   onSelectCell: (c: Cell) => void;
   onSelectLocation?: (location: MapLocation) => void;
 }) {
-  const icon = 'h-3.5 w-3.5';
-  const markers: { key: string; pos: [number, number, number]; node: ReactNode }[] = [];
+  const icon = "h-3.5 w-3.5";
+  const markers: {
+    key: string;
+    pos: [number, number, number];
+    node: ReactNode;
+  }[] = [];
   for (const c of layout.cells) {
     const [cx, cz] = cellCenter(c);
     const badges: ReactNode[] = [];
-    if (c.kind === 'block') continue;
-    if (c.kind === 'room') {
+    if (c.kind === "block") continue;
+    if (c.kind === "room") {
       const hl = highlights.get(c.id);
       const selected = selectedCell === c.id;
-      if (layers.has('classrooms') || hl || selected) {
+      if (layers.has("classrooms") || hl || selected) {
         markers.push({
           key: c.id,
           pos: [cx, 1.3, cz],
           node: (
             <button
               onClick={() => onSelectCell(c)}
-              title={[c.name, c.provenanceNote].filter(Boolean).join(' · ')}
+              title={[c.name, c.provenanceNote].filter(Boolean).join(" · ")}
               className="whitespace-nowrap rounded-md border px-1.5 py-0.5 text-[11px] font-bold tabular-nums shadow-sm transition hover:-translate-y-0.5"
               style={
                 selected
-                  ? { background: COLORS.gold, borderColor: COLORS.gold, color: '#3b2f00' }
+                  ? {
+                      background: COLORS.gold,
+                      borderColor: COLORS.gold,
+                      color: "#3b2f00",
+                    }
                   : hl
                     ? {
                         background: hl,
                         borderColor: hl,
-                        color: hl === '#E8B400' ? '#3b2f00' : '#fff',
+                        color: hl === "#E8B400" ? "#3b2f00" : "#fff",
                       }
-                    : { background: '#fff', borderColor: '#d4d4d8', color: '#262626' }
+                    : {
+                        background: "#fff",
+                        borderColor: "#d4d4d8",
+                        color: "#262626",
+                      }
               }
             >
               {c.label ?? c.number}
@@ -456,9 +555,9 @@ function FloorMarkers({
       }
       continue;
     }
-    if (c.kind === 'restroom') {
-      const men = c.restroom !== 'women' && layers.has('mensRestrooms');
-      const women = c.restroom !== 'men' && layers.has('womensRestrooms');
+    if (c.kind === "restroom") {
+      const men = c.restroom !== "women" && layers.has("mensRestrooms");
+      const women = c.restroom !== "men" && layers.has("womensRestrooms");
       if (men || women)
         badges.push(
           <MapBadge
@@ -466,82 +565,107 @@ function FloorMarkers({
             color={COLORS.restroom}
             title={
               men && women
-                ? 'Men’s and women’s restrooms'
+                ? "Men’s and women’s restrooms"
                 : men
-                  ? 'Men’s restroom'
-                  : 'Women’s restroom'
+                  ? "Men’s restroom"
+                  : "Women’s restroom"
             }
           >
             <RestroomIcon men={men} women={women} className="h-5 w-5" />
-          </MapBadge>
+          </MapBadge>,
         );
-      if (layers.has('accessible') && c.stepFree)
+      if (layers.has("accessible") && c.stepFree)
         badges.push(
-          <MapBadge key="a" color={COLORS.accessible} title="Accessible restroom">
+          <MapBadge
+            key="a"
+            color={COLORS.accessible}
+            title="Accessible restroom"
+          >
             <Accessibility className={icon} />
-          </MapBadge>
+          </MapBadge>,
         );
     }
-    if (c.kind === 'elevator') {
-      if (layers.has('elevators'))
+    if (c.kind === "elevator") {
+      if (layers.has("elevators"))
         badges.push(
           <MapBadge key="e" color={COLORS.accessible} title={c.name}>
             <ArrowUpDown className={icon} />
-          </MapBadge>
+          </MapBadge>,
         );
-      if (layers.has('accessible') && c.stepFree)
+      if (layers.has("accessible") && c.stepFree)
         badges.push(
           <MapBadge key="a" color={COLORS.accessible} title="Step-free access">
             <Accessibility className={icon} />
-          </MapBadge>
+          </MapBadge>,
         );
     }
-    if (c.kind === 'stairs') {
-      if (layers.has('stairs'))
+    if (c.kind === "stairs") {
+      if (layers.has("stairs"))
         badges.push(
           <MapBadge key="s" color="#3f3f46" title={c.name}>
             <Footprints className={icon} />
-          </MapBadge>
+          </MapBadge>,
         );
-      if (layers.has('exits') && c.core !== 'SC' && !c.provenanceNote?.includes('position inferred'))
+      if (
+        layers.has("exits") &&
+        c.core !== "SC" &&
+        !c.provenanceNote?.includes("position inferred")
+      )
         badges.push(
           <MapBadge key="x" color={COLORS.exit} title="Emergency exit stair">
             <DoorOpen className={icon} />
-          </MapBadge>
+          </MapBadge>,
         );
     }
     if (badges.length)
       markers.push({
         key: c.id,
         pos: [cx, 1.5, cz],
-        node: <span className="flex gap-1">{badges}</span>,
+        node: (
+          <button
+            type="button"
+            aria-label={`Select ${cellTitle(c)} (${c.id})`}
+            onClick={() => onSelectCell(c)}
+            className="flex gap-1 rounded-full focus-visible:outline-2 focus-visible:outline-cardinal"
+          >
+            {badges}
+          </button>
+        ),
       });
   }
   for (const e of layout.entrances) {
     const b: ReactNode[] = [];
-    if (layers.has('ramps') && e.ramp)
+    if (layers.has("ramps") && e.ramp)
       b.push(
-        <MapBadge key="r" color={COLORS.accessible} title={`Wheelchair ramp · ${e.label}`}>
+        <MapBadge
+          key="r"
+          color={COLORS.accessible}
+          title={`Wheelchair ramp · ${e.label}`}
+        >
           <WheelchairIcon className={icon} />
-        </MapBadge>
+        </MapBadge>,
       );
-    if (layers.has(e.entrance ? 'entrances' : 'exits') || onSelectLocation)
+    if (layers.has(e.entrance ? "entrances" : "exits") || onSelectLocation)
       b.push(
-        <MapBadge key="x" color={e.entrance ? COLORS.entrance : COLORS.exit} title={e.label}>
+        <MapBadge
+          key="x"
+          color={e.entrance ? COLORS.entrance : COLORS.exit}
+          title={e.label}
+        >
           <DoorOpen className={icon} />
-        </MapBadge>
+        </MapBadge>,
       );
-    if (layers.has('accessible') && e.stepFree)
+    if (layers.has("accessible") && e.stepFree)
       b.push(
         <MapBadge key="a" color={COLORS.accessible} title="Step-free entrance">
           <Accessibility className={icon} />
-        </MapBadge>
+        </MapBadge>,
       );
-    if (layers.has('accessible') && e.hasSteps)
+    if (layers.has("accessible") && e.hasSteps)
       b.push(
         <MapBadge key="w" color="#B45309" title="Steps at this entrance">
           <TriangleAlert className={icon} />
-        </MapBadge>
+        </MapBadge>,
       );
     if (b.length)
       markers.push({
@@ -554,6 +678,7 @@ function FloorMarkers({
             className="flex gap-1 rounded-full outline-offset-2 focus-visible:outline-2 focus-visible:outline-cardinal"
             onClick={() =>
               onSelectLocation({
+                placeId: e.id,
                 label: `${layout.building} ${e.label}`,
                 building: layout.building,
                 floor: layout.floor,

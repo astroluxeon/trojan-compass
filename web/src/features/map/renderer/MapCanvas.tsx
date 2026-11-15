@@ -1,19 +1,22 @@
-import { CameraControls } from '@react-three/drei';
-import { Canvas, useThree } from '@react-three/fiber';
-import { useEffect, useRef } from 'react';
-import type { BuildingCode } from '../data/campus-display';
-import type { Cell } from '../data/viewer-data';
-import type { Route } from '../../routing/viewer-route';
-import { buildingFrame, roomFacingAngle } from '../camera';
-import type { LayerKey, MapLocation, View } from '../types';
-import { BuildingScene } from './BuildingScene';
-import { LabelLayerContext } from './MapHtml';
-import { CampusScene } from './CampusScene';
+import { CameraControls } from "@react-three/drei";
+import { Canvas, useThree } from "@react-three/fiber";
+import { useEffect, useRef } from "react";
+import type { BuildingCode } from "../data/campus-display";
+import type { Cell } from "../data/viewer-data";
+import type { Route } from "../../routing/viewer-route";
+import type { Route as ApiRoute } from "@trojan-compass/shared/api";
+import { buildingFrame, roomFacingAngle } from "../camera";
+import type { LayerKey, MapLocation, View } from "../types";
+import { BuildingScene } from "./BuildingScene";
+import { LabelLayerContext } from "./MapHtml";
+import { CampusScene } from "./CampusScene";
 
 interface Props {
   view: View;
   layers: Set<LayerKey>;
   route: Route | null;
+  apiRoute?: ApiRoute | null;
+  activeLegId?: string | null;
   highlights: Map<string, string>;
   selectedCell?: string;
   currentLocation: MapLocation | null;
@@ -31,17 +34,17 @@ function frame(
   animate = true,
   selectedCell?: string,
   aspect = 1,
-  fov = 32
+  fov = 32,
 ) {
   controls.maxDistance = 160;
-  if (view.type === 'campus') {
+  if (view.type === "campus") {
     controls.setLookAt(40, 62, 70, 0, 0, 3, animate);
   } else {
     const initialAngle = view.allFloors ? 0.08 : Math.atan2(4, 33);
     const azimuth = roomFacingAngle(
       view.code,
       selectedCell,
-      animate ? controls.azimuthAngle : initialAngle
+      animate ? controls.azimuthAngle : initialAngle,
     );
     const fitted = buildingFrame(
       view.code,
@@ -49,10 +52,14 @@ function frame(
       fov,
       azimuth,
       view.allFloors ? 1.18 : Math.atan2(33, 32),
-      view.allFloors ? undefined : view.floor
+      view.allFloors ? undefined : view.floor,
     );
     controls.maxDistance = Math.max(160, fitted.distance * 1.5);
-    controls.setLookAt(...fitted.position.toArray(), ...fitted.target.toArray(), animate);
+    controls.setLookAt(
+      ...fitted.position.toArray(),
+      ...fitted.target.toArray(),
+      animate,
+    );
   }
 }
 
@@ -61,9 +68,11 @@ export function MapCanvas(props: Props) {
   const controls = useRef<CameraControls>(null);
   const labelLayer = useRef<HTMLDivElement>(null);
 
-  const indoorLegs = route?.legs.filter((l) => l.kind === 'indoor') ?? [];
+  const indoorLegs = route?.legs.filter((l) => l.kind === "indoor") ?? [];
   const leg =
-    view.type === 'building' ? indoorLegs.find((l) => l.building === view.code) : undefined;
+    view.type === "building"
+      ? indoorLegs.find((l) => l.building === view.code)
+      : undefined;
   const isFinalLeg = !!leg && route?.to.building === leg.building;
   const emphasized: BuildingCode[] = route
     ? [...new Set([route.from.building, route.to.building])]
@@ -73,7 +82,7 @@ export function MapCanvas(props: Props) {
     <div
       data-floor-map
       className="relative h-full w-full"
-      style={{ cursor: props.placingCurrentLocation ? 'grabbing' : undefined }}
+      style={{ cursor: props.placingCurrentLocation ? "grabbing" : undefined }}
     >
       <LabelLayerContext.Provider value={labelLayer}>
         <Canvas
@@ -81,10 +90,10 @@ export function MapCanvas(props: Props) {
           dpr={[1, 2]}
           flat
           camera={{ position: [40, 62, 70], fov: 32, near: 0.5, far: 600 }}
-          onPointerMissed={() => (document.body.style.cursor = '')}
+          onPointerMissed={() => (document.body.style.cursor = "")}
         >
-          <color attach="background" args={['#ffffff']} />
-          <hemisphereLight args={['#ffffff', '#dcdce2', 1.0]} />
+          <color attach="background" args={["#ffffff"]} />
+          <hemisphereLight args={["#ffffff", "#dcdce2", 1.0]} />
           <ambientLight intensity={0.55} />
           <directionalLight
             position={[30, 60, 25]}
@@ -98,7 +107,7 @@ export function MapCanvas(props: Props) {
             shadow-camera-far={160}
             shadow-bias={-0.0004}
           />
-          {view.type === 'campus' ? (
+          {view.type === "campus" ? (
             <CampusScene
               emphasized={emphasized}
 
@@ -106,6 +115,8 @@ export function MapCanvas(props: Props) {
             />
           ) : (
             <BuildingScene
+              apiRoute={props.apiRoute}
+              activeLegId={props.activeLegId}
               code={view.code}
               floor={view.floor}
               allFloors={view.allFloors}
@@ -116,7 +127,7 @@ export function MapCanvas(props: Props) {
               placingCurrentLocation={props.placingCurrentLocation}
               onMoveCurrentLocation={props.onMoveCurrentLocation}
               onSelectLocation={props.onSelectLocation}
-              leg={leg?.kind === 'indoor' ? leg : undefined}
+              leg={leg?.kind === "indoor" ? leg : undefined}
               isFinalLeg={isFinalLeg}
               onSelectCell={props.onSelectCell}
               onSelectFloor={props.onSelectFloor}
@@ -131,11 +142,18 @@ export function MapCanvas(props: Props) {
             maxPolarAngle={Math.PI / 2.3}
             smoothTime={0.45}
           />
-          <CameraRig view={view} controls={controls} selectedCell={props.selectedCell} />
+          <CameraRig
+            view={view}
+            controls={controls}
+            selectedCell={props.selectedCell}
+          />
         </Canvas>
       </LabelLayerContext.Provider>
       {/* Labels opt back into pointer events individually, so the layer never blocks the canvas. */}
-      <div ref={labelLayer} className="pointer-events-none absolute inset-0 overflow-hidden" />
+      <div
+        ref={labelLayer}
+        className="pointer-events-none absolute inset-0 overflow-hidden"
+      />
     </div>
   );
 }
@@ -153,9 +171,11 @@ function CameraRig({
   const first = useRef(true);
   const size = useThree((state) => state.size);
   const camera = useThree((state) => state.camera);
-  const focusView = view.type === 'building' && selectedCell ? view : null;
+  const focusView = view.type === "building" && selectedCell ? view : null;
   const viewKey =
-    view.type === 'campus' ? 'campus' : `${view.code}-${view.allFloors ? 'all' : view.floor}`;
+    view.type === "campus"
+      ? "campus"
+      : `${view.code}-${view.allFloors ? "all" : view.floor}`;
   useEffect(() => {
     if (!controls.current) return;
     frame(
@@ -164,7 +184,7 @@ function CameraRig({
       !first.current,
       selectedCell,
       size.width / size.height,
-      'fov' in camera ? Number(camera.fov) : 32
+      "fov" in camera ? Number(camera.fov) : 32,
     );
     first.current = false;
     // eslint-disable-next-line react-hooks/exhaustive-deps

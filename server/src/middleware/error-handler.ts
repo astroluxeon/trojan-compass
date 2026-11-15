@@ -1,28 +1,54 @@
-import type { ErrorRequestHandler } from 'express';
-import { Failure } from './failure.js';
-export const errorHandler: ErrorRequestHandler = (error, _request, response, _next) => {
-  if (response.headersSent) return;
-  let failure = error instanceof Failure ? error : undefined;
-  if (!failure && error.type === 'entity.too.large')
-    failure = new Failure('PAYLOAD_TOO_LARGE', 413, 'JSON body exceeds 1 MiB.');
-  if (!failure && (error.type === 'entity.parse.failed' || error instanceof URIError))
-    failure = new Failure('INVALID_REQUEST', 400, 'Malformed request.');
-  if (!failure && (error.name === 'TimeoutError' || error.name === 'AbortError'))
-    failure = new Failure('DEPENDENCY_TIMEOUT', 504, 'Request timed out.');
-  failure ??= new Failure('INTERNAL_ERROR', 500, 'The server could not complete this request.');
-  if (failure.httpStatus === 500)
-    console.error(
-      'Request failed',
-      response.locals.requestId,
-      error instanceof Error ? error.message : 'Unknown error'
+import type { ErrorRequestHandler } from "express";
+import { AppError } from "../lib/errors.js";
+export const errorHandler: ErrorRequestHandler = (
+  error,
+  _request,
+  response,
+  _next,
+) => {
+  if (response.headersSent || response.destroyed) return;
+  let publicError: AppError;
+  if (error instanceof AppError) publicError = error;
+  else if (error?.type === "entity.too.large")
+    publicError = new AppError(
+      "PAYLOAD_TOO_LARGE",
+      413,
+      "The request exceeds the one MiB JSON limit.",
     );
-  response.status(failure.httpStatus).setHeader('Cache-Control', 'no-store');
-  response.json({
+  else if (error?.type === "entity.parse.failed" || error instanceof URIError)
+    publicError = new AppError(
+      "INVALID_REQUEST",
+      400,
+      "The request contains malformed JSON or URL encoding.",
+    );
+  else if (
+    error?.type === "encoding.unsupported" ||
+    error?.type === "charset.unsupported"
+  )
+    publicError = new AppError(
+      "UNSUPPORTED_MEDIA_TYPE",
+      415,
+      "Use uncompressed UTF-8 JSON.",
+    );
+  else
+    publicError = new AppError(
+      "INTERNAL_ERROR",
+      500,
+      "An internal error occurred. Use the request ID when reporting this issue.",
+    );
+  response.locals.errorCode = publicError.code;
+  if (publicError.code === "RATE_LIMITED" && !response.hasHeader("Retry-After"))
+    response.setHeader("Retry-After", "5");
+  response.setHeader("Cache-Control", "no-store");
+  response.status(publicError.httpStatus).json({
     error: {
-      code: failure.code,
-      message: failure.message,
-      requestId: response.locals.requestId,
-      ...(failure.fieldErrors ? { fieldErrors: failure.fieldErrors } : {}),
+      code: publicError.code,
+      message: publicError.message,
+      requestId: response.locals.scope.requestId,
+      ...(publicError.fieldErrors
+        ? { fieldErrors: publicError.fieldErrors }
+        : {}),
+      ...(publicError.details ? { details: publicError.details } : {}),
     },
   });
 };

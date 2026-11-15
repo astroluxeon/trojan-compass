@@ -20,8 +20,7 @@ import {
   computeRoute,
   isStepFreePlace,
 } from "../src/modules/routing/prototype/routing.js";
-import { SnapshotRepository } from "../src/infrastructure/datasets/snapshot-loader.js";
-import { RoutingService } from "../src/modules/routing/routing.service.js";
+import { publishedServices } from "./support/published-fixture.js";
 
 const eps = 0.0001;
 const contains = (L: FloorLayout, x: number, z: number) =>
@@ -233,10 +232,11 @@ test("LAW geometry stays unchanged while reconstructed aliases and floors are re
 });
 
 test("active snapshot preserves reconstructed floors, identities, evidence and usable routes to every destination", async () => {
-  const repo = new SnapshotRepository();
-  const version = await repo.currentVersion();
+  const services = await publishedServices();
+  const repo = services.datasets;
+  const version = services.currentVersion();
   const scope = { requestId: "interior-migration", dataVersion: version };
-  const routing = new RoutingService(repo);
+  const routing = services.routing;
   for (const [key, spec] of Object.entries(INTERIORS)) {
     const code = key as BuildingCode;
     const building = await repo.getBuilding(scope, code);
@@ -248,7 +248,7 @@ test("active snapshot preserves reconstructed floors, identities, evidence and u
     assert.equal(building.name, spec.name);
     assert.equal(building.capabilities.verifiedStepFreeRouting, false);
     for (const floor of spec.floors) {
-      const geometry = await repo.getFloorGeometry(
+      const geometry = await repo.getFloorGeometry!(
         scope,
         code,
         String(floor.level),

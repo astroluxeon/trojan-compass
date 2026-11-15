@@ -1,9 +1,9 @@
-import { Accessibility, ArrowUpDown, Footprints, MapPin } from 'lucide-react';
-import { useState, type RefObject } from 'react';
-import { LocationAutocomplete } from '@/features/search/components/LocationAutocomplete';
-import { INPUT, ACTION } from '@/components/ui/form-styles';
-import type { RouteMode } from '@trojan-compass/shared';
-import type { LocationField } from '../types';
+import { Accessibility, ArrowUpDown, Footprints, MapPin } from "lucide-react";
+import { useState, type RefObject } from "react";
+import { LocationAutocomplete } from "@/features/search/components/LocationAutocomplete";
+import { INPUT, ACTION } from "@/components/ui/form-styles";
+import type { RouteMode } from "@trojan-compass/shared";
+import type { LocationField } from "../types";
 
 export function RoutePlanner({
   dataVersion,
@@ -38,12 +38,17 @@ export function RoutePlanner({
       className="space-y-4"
       onSubmit={async (event) => {
         event.preventDefault();
+        if (pending) return;
         setPending(true);
         try {
           await onDirections(travelMode, accessibleOnly);
-          setNotice('');
+          setNotice("");
         } catch (error) {
-          setNotice(error instanceof Error ? error.message : 'Route request failed.');
+          if (error instanceof DOMException && error.name === "AbortError")
+            return;
+          setNotice(
+            error instanceof Error ? error.message : "Route request failed.",
+          );
         } finally {
           setPending(false);
         }
@@ -55,7 +60,7 @@ export function RoutePlanner({
           checked={accessibleOnly}
           onChange={(event) => {
             setAccessibleOnly(event.target.checked);
-            if (event.target.checked) setTravelMode('elevator');
+            if (event.target.checked) setTravelMode("elevator");
           }}
           className="h-4 w-4 shrink-0 accent-cardinal"
         />
@@ -68,14 +73,17 @@ export function RoutePlanner({
         </span>
       </label>
       {picking && (
-        <div role="status" className="rounded-lg bg-cardinal-50 p-3 text-[12px] text-cardinal">
+        <div
+          role="status"
+          className="rounded-lg bg-cardinal-50 p-3 text-[12px] text-cardinal"
+        >
           <p className="font-bold">
-            Select {picking === 'from' ? 'current location' : 'destination'}
+            Select {picking === "from" ? "current location" : "destination"}
           </p>
           <p className="mt-1">
-            {picking === 'from'
-              ? 'Carry the Trojan guide over a room, entrance, or open floor area. Release or click to put him down.'
-              : 'Click a room, entrance, or open floor area on the map.'}{' '}
+            {picking === "from"
+              ? "Carry the Trojan guide over a room, entrance, or open floor area. Release or click to put him down."
+              : "Click a room, entrance, or open floor area on the map."}{" "}
             You can change floors first.
           </p>
           <button
@@ -89,8 +97,12 @@ export function RoutePlanner({
       )}
       {(
         [
-          { field: 'from', label: 'Current location', placeholder: 'e.g. LAW 101 or OUTSIDE' },
-          { field: 'to', label: 'Destination', placeholder: 'e.g. TCC 201' },
+          {
+            field: "from",
+            label: "Current location",
+            placeholder: "e.g. LAW 101 or OUTSIDE",
+          },
+          { field: "to", label: "Destination", placeholder: "e.g. TCC 201" },
         ] as const
       ).map(({ field, label, placeholder }) => (
         <div key={field}>
@@ -105,14 +117,16 @@ export function RoutePlanner({
               dataVersion={dataVersion}
               id={`directions-${field}`}
               value={locations[field]}
-              includeOutside={field === 'from'}
+              includeOutside={field === "from"}
               accessibleOnly={accessibleOnly}
               onChange={(value) => {
                 onLocationChange(field, value);
                 onPick(null);
               }}
               placeholder={placeholder}
-              aria-describedby={field === 'from' ? 'current-location-hint' : undefined}
+              aria-describedby={
+                field === "from" ? "current-location-hint" : undefined
+              }
               className={`${INPUT} mt-0 pr-11`}
             />
             <button
@@ -121,38 +135,43 @@ export function RoutePlanner({
               aria-label={`Select ${label.toLowerCase()} on map`}
               title={`Select ${label.toLowerCase()} on map`}
               onPointerDown={
-                field === 'from'
+                field === "from"
                   ? (event) => {
                       if (
                         event.button !== 0 ||
-                        event.pointerType !== 'mouse' ||
-                        window.matchMedia('(max-width: 767px)').matches
+                        event.pointerType !== "mouse" ||
+                        window.matchMedia("(max-width: 767px)").matches
                       )
                         return;
                       lastPick.current = field;
                       onPick(field);
-                      setNotice('');
-                      if (event.currentTarget.hasPointerCapture(event.pointerId))
-                        event.currentTarget.releasePointerCapture(event.pointerId);
+                      setNotice("");
+                      if (
+                        event.currentTarget.hasPointerCapture(event.pointerId)
+                      )
+                        event.currentTarget.releasePointerCapture(
+                          event.pointerId,
+                        );
                     }
                   : undefined
               }
               onClick={() => {
                 lastPick.current = field;
                 onPick(field);
-                setNotice('');
+                setNotice("");
               }}
-              className={`absolute inset-y-1 right-1 grid w-9 touch-none place-items-center rounded-md text-cardinal transition hover:bg-cardinal-50 focus-visible:outline-2 focus-visible:outline-cardinal ${picking === field ? 'bg-cardinal-50 ring-1 ring-cardinal/30' : ''}`}
+              className={`absolute inset-y-1 right-1 grid w-9 touch-none place-items-center rounded-md text-cardinal transition hover:bg-cardinal-50 focus-visible:outline-2 focus-visible:outline-cardinal ${picking === field ? "bg-cardinal-50 ring-1 ring-cardinal/30" : ""}`}
             >
               <MapPin className="h-4 w-4" />
             </button>
           </div>
-          {field === 'from' && (
+          {field === "from" && (
             <p
               id="current-location-hint"
               className="mt-1.5 text-[12px] leading-relaxed text-neutral-500"
             >
-              Outside? Type “outside” or choose “Outside the building” to start at an entrance.
+              Outside? Type “outside” or choose “Outside the building” to start
+              at an entrance.
             </p>
           )}
         </div>
@@ -164,20 +183,20 @@ export function RoutePlanner({
         <div className="grid grid-cols-2 gap-2">
           {(
             [
-              { value: 'stairs', label: 'Stairs', icon: Footprints },
-              { value: 'elevator', label: 'Elevators', icon: ArrowUpDown },
+              { value: "stairs", label: "Stairs", icon: Footprints },
+              { value: "elevator", label: "Elevators", icon: ArrowUpDown },
             ] as const
           ).map(({ value, label, icon: Icon }) => (
             <label
               key={value}
-              className={`flex cursor-pointer items-center justify-center gap-2 rounded-lg border px-3 py-2.5 text-[13px] font-semibold transition focus-within:ring-2 focus-within:ring-cardinal/30 ${travelMode === value ? 'border-cardinal bg-cardinal-50 text-cardinal' : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50'} ${accessibleOnly && value === 'stairs' ? 'cursor-not-allowed opacity-40' : ''}`}
+              className={`flex cursor-pointer items-center justify-center gap-2 rounded-lg border px-3 py-2.5 text-[13px] font-semibold transition focus-within:ring-2 focus-within:ring-cardinal/30 ${travelMode === value ? "border-cardinal bg-cardinal-50 text-cardinal" : "border-neutral-200 text-neutral-600 hover:bg-neutral-50"} ${accessibleOnly && value === "stairs" ? "cursor-not-allowed opacity-40" : ""}`}
             >
               <input
                 type="radio"
                 name="directions-travel-mode"
                 value={value}
                 checked={travelMode === value}
-                disabled={accessibleOnly && value === 'stairs'}
+                disabled={accessibleOnly && value === "stairs"}
                 onChange={() => setTravelMode(value)}
                 className="sr-only"
               />
@@ -187,8 +206,9 @@ export function RoutePlanner({
           ))}
         </div>
       </fieldset>
-      <button disabled={pending} className={ACTION}>
-        <MapPin className="h-4 w-4" /> {pending ? 'Calculating…' : 'Get directions'}
+      <button id="directions-submit" disabled={pending} className={ACTION}>
+        <MapPin className="h-4 w-4" />{" "}
+        {pending ? "Calculating…" : "Get directions"}
       </button>
     </form>
   );
