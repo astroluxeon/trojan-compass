@@ -83,7 +83,7 @@ body.demo-sidebar-open #hamburger-portal-root #hamburger { position: fixed !impo
     flex-direction: column; color: #262626; font: 14px/1.4 Arial, sans-serif;
   }
   .campus-bottom-nav {
-    display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 2px;
+    display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 2px;
     padding: 6px 8px 8px; border-top: 1px solid #e9e5e5; background: white;
   }
   .campus-bottom-nav button {

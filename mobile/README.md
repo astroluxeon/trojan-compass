@@ -55,7 +55,7 @@ official resources. Copying the UI does not deploy a real routing or AI service.
 ## Campus map on phones
 
 The campus screen uses a slim USC header with the logo at the left and a bottom
-bar for Search, Filters, Campus, Share, and More. Campus contains UPC, HSC, and
+bar for Search, Filters, Campus, and More. Campus contains UPC, HSC, and
 Recenter; HSC keeps the existing official-map fallback. Sheets reserve map space
 above them and have a grab handle without repeated titles or X buttons. Filters
 reuse the original category actions and checked state, with Buildings and Parking

@@ -40,15 +40,13 @@ export function setupMobileCampus({ search, categories, panel, resetMap, showRes
     search: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/>',
     filters: '<path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="2.5" fill="white"/><circle cx="15" cy="17" r="2.5" fill="white"/>',
     campus: '<path d="m3 9 9-5 9 5H3Zm2 3v7m5-7v7m4-7v7m5-7v7M3 21h18"/>',
-    share: '<path d="M12 16V3m-4 4 4-4 4 4M6 11H4v10h16V11h-2"/>',
     more: '<circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>',
   }
   const tabs = new Map()
-  for (const [id, label] of [['search', 'Search'], ['filters', 'Filters'], ['campus', 'Campus'], ['share', 'Share'], ['more', 'More']]) {
+  for (const [id, label] of [['search', 'Search'], ['filters', 'Filters'], ['campus', 'Campus'], ['more', 'More']]) {
     const tab = button('', () => {
       if (active === id) { close(); return }
-      if (id === 'share') document.querySelector('[name="share-button"]').click()
-      else open(id)
+      open(id)
     })
     tab.setAttribute('aria-label', label)
     tab.setAttribute('aria-expanded', 'false')
