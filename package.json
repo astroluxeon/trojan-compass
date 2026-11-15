@@ -24,12 +24,17 @@
     "data:extract": "npm run build --workspace=@trojan-compass/api && node server/dist/infrastructure/datasets/export-snapshot.js",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "build": "npm run build --workspace=@trojan-compass/shared && npm run build --workspace=@trojan-compass/api && npm run build --workspace=@trojan-compass/web",
-    "dev:server": "npm run dev --workspace=@trojan-compass/api"
+    "dev:server": "npm run dev --workspace=@trojan-compass/api",
+    "build:mobile-viewer": "node mobile/Viewer/build.mjs",
+    "build:mobile-replica": "node mobile/Replica/build.mjs",
+    "check:mobile": "node scripts/check-mobile-replica.mjs && node --test mobile/Replica/api-bridge.test.mjs"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
     "concurrently": "^9.2.1",
     "prettier": "^3.10.1",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "esbuild": "^0.28.2",
+    "@tailwindcss/cli": "^4.3.5"
   }
 }

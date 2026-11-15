@@ -448,8 +448,38 @@ export default function Wayfinder() {
           .filter((l) => l.building === view.code)
           .flatMap((l) => l.floors) ?? [])
       : [];
+  const toggleLayer = (key: LayerKey) =>
+    setLayers((current) => {
+      const next = new Set(current);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  const floorControls = (inline = false) =>
+    view.type === "building" && (
+      <FloorSelector
+        inline={inline}
+        code={view.code}
+        levels={getLevels(view.code)}
+        floor={view.floor}
+        allFloors={view.allFloors}
+        routeFloors={routeFloors}
+        currentFloor={
+          currentLocation?.building === view.code
+            ? currentLocation.floor
+            : undefined
+        }
+        onSelect={selectFloor}
+        onSelectAll={() => {
+          invalidate();
+          setPicking(null);
+          setView({ ...view, allFloors: true });
+          setSelectedCell(undefined);
+        }}
+      />
+    );
   return (
-    <div className="flex h-full flex-col">
+    <div className="compass-app flex h-full flex-col">
       <Header />
       {error && (
         <div
@@ -474,8 +504,11 @@ export default function Wayfinder() {
       {!ready ? (
         <MapLoading />
       ) : (
-        <main id="main" className="relative flex min-h-0 flex-1 bg-white">
-          <div className="relative min-w-0 flex-1">
+        <main
+          id="main"
+          className="compass-main relative flex min-h-0 flex-1 bg-white"
+        >
+          <div className="map-viewport relative min-w-0 flex-1">
             <MapCanvas
               view={view}
               layers={layers}
@@ -528,44 +561,22 @@ export default function Wayfinder() {
                 setView({ type: "campus" });
               }}
             />
-            {view.type === "building" && (
-              <FloorSelector
-                code={view.code}
-                levels={getLevels(view.code)}
-                floor={view.floor}
-                allFloors={view.allFloors}
-                routeFloors={routeFloors}
-                currentFloor={
-                  currentLocation?.building === view.code
-                    ? currentLocation.floor
-                    : undefined
-                }
-                onSelect={selectFloor}
-                onSelectAll={() => {
-                  invalidate();
-                  setPicking(null);
-                  setView({ ...view, allFloors: true });
-                  setSelectedCell(undefined);
-                }}
-              />
-            )}
-            <LayerPanel
-              layers={layers}
-              view={view}
-              onToggle={(key) =>
-                setLayers((current) => {
-                  const next = new Set(current);
-                  if (next.has(key)) next.delete(key);
-                  else next.add(key);
-                  return next;
-                })
-              }
-            />
+            {floorControls()}
+            <LayerPanel layers={layers} view={view} onToggle={toggleLayer} />
             <p className="pointer-events-none absolute bottom-3 right-3 max-w-xs rounded bg-white/90 px-2 py-1 text-[10px] text-neutral-500">
               Illustrative USC map · access and navigation unverified
             </p>
           </div>
           <FloorTools
+            floors={floorControls(true)}
+            layers={
+              <LayerPanel
+                inline
+                layers={layers}
+                view={view}
+                onToggle={toggleLayer}
+              />
+            }
             dataVersion={version}
             directions={{
               route: apiRoute,

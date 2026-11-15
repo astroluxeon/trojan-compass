@@ -1,3 +1,4 @@
+import { StairsIcon } from "./StairsIcon";
 import { Edges, Line } from "@react-three/drei";
 import { MapHtml } from "./MapHtml";
 import {
@@ -25,7 +26,6 @@ import { COLORS, type LayerKey, type MapLocation } from "../types";
 import { MapBadge } from "./Badge";
 import { RestroomIcon } from "./RestroomIcon";
 import { WheelchairIcon } from "./WheelchairIcon";
-import { StairsIcon } from "./StairsIcon";
 import { EndPin, RouteLine, StartDot } from "./RouteLine";
 import { FloorTransitionBeacon } from "./FloorTransitionBeacon";
 import { sceneRoute, scenePosition } from "@/features/routing/route-scene";
@@ -40,8 +40,8 @@ interface Props {
   code: BuildingCode;
   floor: number;
   allFloors?: boolean;
+  showRoomLabels?: boolean;
   layers: Set<LayerKey>;
-  showRoomLabels: boolean;
   highlights: Map<string, string>;
   selectedCell?: string;
   currentLocation: MapLocation | null;
@@ -302,10 +302,10 @@ function GhostFloor({
 }
 
 function ActiveFloor({
+  showRoomLabels = true,
   code,
   floor,
   layers,
-  showRoomLabels,
   highlights,
   selectedCell,
   onSelectCell,
@@ -447,9 +447,9 @@ function ActiveFloor({
         );
       })}
       <FloorMarkers
+        showRoomLabels={showRoomLabels}
         layout={layout}
         layers={layers}
-        showRoomLabels={showRoomLabels}
         highlights={highlights}
         selectedCell={selectedCell}
         onSelectCell={onSelectCell}
@@ -495,17 +495,17 @@ function Stairs({ c }: { c: Cell }) {
 }
 
 function FloorMarkers({
+  showRoomLabels = true,
   layout,
   layers,
-  showRoomLabels,
   highlights,
   selectedCell,
   onSelectCell,
   onSelectLocation,
 }: {
+  showRoomLabels?: boolean;
   layout: FloorLayout;
   layers: Set<LayerKey>;
-  showRoomLabels: boolean;
   highlights: Map<string, string>;
   selectedCell?: string;
   onSelectCell: (c: Cell) => void;
@@ -524,7 +524,7 @@ function FloorMarkers({
     if (c.kind === "room") {
       const hl = highlights.get(c.id);
       const selected = selectedCell === c.id;
-      if (showRoomLabels && (layers.has("classrooms") || hl || selected)) {
+      if ((showRoomLabels && layers.has("classrooms")) || hl || selected) {
         markers.push({
           key: c.id,
           pos: [cx, 1.3, cz],

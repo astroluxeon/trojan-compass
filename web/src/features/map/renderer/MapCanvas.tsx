@@ -66,8 +66,8 @@ function frame(
 export function MapCanvas(props: Props) {
   const { view, route, layers } = props;
   const controls = useRef<CameraControls>(null);
-  const labelLayer = useRef<HTMLDivElement>(null);
   const [showRoomLabels, setShowRoomLabels] = useState(true);
+  const labelLayer = useRef<HTMLDivElement>(null);
 
   const indoorLegs = route?.legs.filter((l) => l.kind === "indoor") ?? [];
   const leg =
@@ -89,9 +89,12 @@ export function MapCanvas(props: Props) {
         <Canvas
           events={(state) => ({
             ...events(state),
-            filter: (intersections) => intersections.sort((a, b) =>
-              Number(!!b.object.userData.locationGuide) - Number(!!a.object.userData.locationGuide),
-            ),
+            filter: (hits) =>
+              hits.sort(
+                (a, b) =>
+                  Number(!!b.object.userData.locationGuide) -
+                  Number(!!a.object.userData.locationGuide),
+              ),
           })}
           shadows="percentage"
           dpr={[1, 2]}
@@ -124,11 +127,11 @@ export function MapCanvas(props: Props) {
             <BuildingScene
               apiRoute={props.apiRoute}
               activeLegId={props.activeLegId}
+              showRoomLabels={showRoomLabels}
               code={view.code}
               floor={view.floor}
               allFloors={view.allFloors}
               layers={layers}
-              showRoomLabels={showRoomLabels}
               highlights={props.highlights}
               selectedCell={props.selectedCell}
               currentLocation={props.currentLocation}
@@ -144,10 +147,11 @@ export function MapCanvas(props: Props) {
           <CameraControls
             ref={controls}
             onUpdate={() => {
-              const cameraControls = controls.current;
-              if (cameraControls) setShowRoomLabels((visible) =>
-                roomLabelsVisible(cameraControls.distance, cameraControls.maxDistance, visible),
-              );
+              const c = controls.current;
+              if (c)
+                setShowRoomLabels((visible) =>
+                  roomLabelsVisible(c.distance, c.maxDistance, visible),
+                );
             }}
             enabled={!props.placingCurrentLocation}
             makeDefault

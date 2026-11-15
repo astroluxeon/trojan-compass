@@ -2,7 +2,7 @@
 
 Trojan Compass is a USC building exploration application with a shared TypeScript backend for the website and iPhone app. Students search for buildings and rooms, explore floors, highlight destinations, and optionally request indoor directions through manual controls or AI chat.
 
-This document defines the architecture and ownership boundaries. The integration branch now connects Eddie's services to the teammate's published building data and API-backed viewer. See [integration review](integration-review.md) for acceptance evidence, known publication gaps and merge guidance, and [backend guide](backend-guide.md) for implementation details. The mobile pull request remains separate.
+This document defines the architecture and ownership boundaries. The integration branch now connects Eddie's services to the teammate's published building data and API-backed viewer. See [integration review](integration-review.md) for acceptance evidence, known publication gaps and merge guidance, and [backend guide](backend-guide.md) for implementation details. The mobile pull request integrates the Swift application under `mobile/`; see [mobile integration](mobile-integration.md).
 
 ## 1. Application boundaries
 
@@ -150,7 +150,7 @@ modules/<feature>/
 └── supporting modules       # Feature-specific algorithms and adapters
 ```
 
-**Integration state:** `bootstrap/services.ts` is the active composition root. Controllers, source validation and the expanded routing contract are connected to the published-file adapter. `LatestRequest` owns client cancellation; `ViewerSession` stages scene actions; `route-scene.ts` preserves separate walking/vertical legs and canonical units. The mobile branch's additional app changes remain a separate merge.
+**Integration state:** `bootstrap/services.ts` is the active composition root. Controllers, source validation and the expanded routing contract are connected to the published-file adapter. `LatestRequest` owns client cancellation; `ViewerSession` stages scene actions; `route-scene.ts` preserves separate walking/vertical legs and canonical units. The Swift app bundles the current web features and forwards API requests to the same backend through native transport.
 
 ## 4. Request and backend data flow
 

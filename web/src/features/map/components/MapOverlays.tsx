@@ -11,15 +11,15 @@ import {
   MapPin,
   TreePine,
   X,
-} from 'lucide-react';
-import { useEffect, useState, type ComponentType } from 'react';
-import { BUILDING_BY_CODE, type BuildingCode } from '../data/campus-display';
-import { floorName, floorShort } from '../data/viewer-data';
-import type { Route, StepIcon } from '../../routing/viewer-route';
-import { COLORS, type LayerKey, type View } from '../types';
-import { RestroomIcon } from '../renderer/RestroomIcon';
-import { WheelchairIcon } from '../renderer/WheelchairIcon';
-import { StairsIcon } from '../renderer/StairsIcon';
+} from "lucide-react";
+import { useEffect, useState, type ComponentType } from "react";
+import { BUILDING_BY_CODE, type BuildingCode } from "../data/campus-display";
+import { floorName, floorShort } from "../data/viewer-data";
+import type { Route, StepIcon } from "../../routing/viewer-route";
+import { COLORS, type LayerKey, type View } from "../types";
+import { RestroomIcon } from "../renderer/RestroomIcon";
+import { WheelchairIcon } from "../renderer/WheelchairIcon";
+import { StairsIcon } from "../renderer/StairsIcon";
 
 const STEP_ICONS: Record<StepIcon, ComponentType<{ className?: string }>> = {
   start: DoorOpen,
@@ -37,53 +37,89 @@ const LAYER_META: {
   icon: ComponentType<{ className?: string }>;
   color: string;
 }[] = [
-  { key: 'classrooms', label: 'Classrooms', icon: MapPin, color: '#262626' },
+  { key: "classrooms", label: "Classrooms", icon: MapPin, color: "#262626" },
   {
-    key: 'mensRestrooms',
-    label: 'Men’s restrooms',
+    key: "mensRestrooms",
+    label: "Men’s restrooms",
     icon: (props) => <RestroomIcon {...props} men />,
     color: COLORS.restroom,
   },
   {
-    key: 'womensRestrooms',
-    label: 'Women’s restrooms',
+    key: "womensRestrooms",
+    label: "Women’s restrooms",
     icon: (props) => <RestroomIcon {...props} women />,
     color: COLORS.restroom,
   },
-  { key: 'ramps', label: 'Wheelchair ramps', icon: WheelchairIcon, color: COLORS.accessible },
-  { key: 'elevators', label: 'Elevators', icon: ArrowUpDown, color: COLORS.accessible },
-  { key: 'stairs', label: 'Stairs', icon: StairsIcon, color: '#3f3f46' },
-  { key: 'entrances', label: 'Entrances', icon: DoorOpen, color: COLORS.entrance },
-  { key: 'exits', label: 'Emergency exits', icon: DoorOpen, color: COLORS.exit },
+  {
+    key: "ramps",
+    label: "Wheelchair ramps",
+    icon: WheelchairIcon,
+    color: COLORS.accessible,
+  },
+  {
+    key: "elevators",
+    label: "Elevators",
+    icon: ArrowUpDown,
+    color: COLORS.accessible,
+  },
+  { key: "stairs", label: "Stairs", icon: StairsIcon, color: "#3f3f46" },
+  {
+    key: "entrances",
+    label: "Entrances",
+    icon: DoorOpen,
+    color: COLORS.entrance,
+  },
+  {
+    key: "exits",
+    label: "Emergency exits",
+    icon: DoorOpen,
+    color: COLORS.exit,
+  },
 ];
 
 export function LayerPanel({
   layers,
   onToggle,
   view,
+  inline = false,
 }: {
   layers: Set<LayerKey>;
   onToggle: (k: LayerKey) => void;
   view: View;
+  inline?: boolean;
 }) {
   const [open, setOpen] = useState(false);
-  if (view.type !== 'building') return null;
+  if (view.type !== "building") return null;
   return (
-    <div className="absolute right-4 top-4 z-40 w-56 overflow-hidden rounded-xl border border-neutral-200 bg-white/95 shadow-[0_4px_16px_rgba(0,0,0,0.08)] backdrop-blur max-md:top-16 max-md:w-52">
-      <button
-        onClick={() => setOpen(!open)}
-        aria-expanded={open}
-        className="flex w-full items-center justify-between px-3 py-2.5 text-[13px] font-bold"
-      >
-        <span className="flex items-center gap-2">
-          <Layers className="h-4 w-4 text-cardinal" /> Map layers
-        </span>
-        <ChevronDown
-          className={`h-4 w-4 text-neutral-400 transition ${open ? '' : '-rotate-90'}`}
-        />
-      </button>
-      {open && (
-        <div className="border-t border-neutral-100 px-1.5 pb-2 pt-1">
+    <div
+      className={
+        inline
+          ? "mobile-layer-options"
+          : "desktop-map-control absolute right-4 top-4 z-40 w-56 overflow-hidden rounded-xl border border-neutral-200 bg-white/95 shadow-[0_4px_16px_rgba(0,0,0,0.08)] backdrop-blur max-md:top-16 max-md:w-52"
+      }
+    >
+      {!inline && (
+        <button
+          onClick={() => setOpen(!open)}
+          aria-expanded={open}
+          className="flex w-full items-center justify-between px-3 py-2.5 text-[13px] font-bold"
+        >
+          <span className="flex items-center gap-2">
+            <Layers className="h-4 w-4 text-cardinal" /> Map layers
+          </span>
+          <ChevronDown
+            className={`h-4 w-4 text-neutral-400 transition ${open ? "" : "-rotate-90"}`}
+          />
+        </button>
+      )}
+      {(inline || open) && (
+        <div
+          className={
+            inline
+              ? "mobile-layer-grid"
+              : "border-t border-neutral-100 px-1.5 pb-2 pt-1"
+          }
+        >
           {LAYER_META.map(({ key, label, icon: Icon, color }) => {
             const on = layers.has(key);
             return (
@@ -96,20 +132,20 @@ export function LayerPanel({
               >
                 <span
                   className="grid h-5 w-5 place-items-center rounded-full text-white transition"
-                  style={{ background: on ? color : '#d4d4d8' }}
+                  style={{ background: on ? color : "#d4d4d8" }}
                 >
                   <Icon className="h-3 w-3" />
                 </span>
                 <span
-                  className={`flex-1 text-[13px] ${on ? 'font-semibold text-neutral-800' : 'text-neutral-400'}`}
+                  className={`flex-1 text-[13px] ${on ? "font-semibold text-neutral-800" : "text-neutral-400"}`}
                 >
                   {label}
                 </span>
                 <span
-                  className={`relative h-4 w-7 rounded-full transition ${on ? 'bg-cardinal' : 'bg-neutral-200'}`}
+                  className={`relative h-4 w-7 rounded-full transition ${on ? "bg-cardinal" : "bg-neutral-200"}`}
                 >
                   <span
-                    className={`absolute top-0.5 h-3 w-3 rounded-full bg-white shadow transition-all ${on ? 'left-3.5' : 'left-0.5'}`}
+                    className={`absolute top-0.5 h-3 w-3 rounded-full bg-white shadow transition-all ${on ? "left-3.5" : "left-0.5"}`}
                   />
                 </span>
               </button>
@@ -130,6 +166,7 @@ export function FloorSelector({
   currentFloor,
   onSelect,
   onSelectAll,
+  inline = false,
 }: {
   code?: BuildingCode;
   levels: number[];
@@ -139,37 +176,50 @@ export function FloorSelector({
   currentFloor?: number;
   onSelect: (f: number) => void;
   onSelectAll: () => void;
+  inline?: boolean;
 }) {
   return (
-    <div className="absolute right-4 top-1/2 z-30 flex -translate-y-1/2 flex-col items-center gap-1 rounded-xl border border-neutral-200 bg-white p-1 shadow-[0_4px_16px_rgba(0,0,0,0.08)]">
-      <span className="px-1 pb-0.5 pt-1 text-[9px] font-bold uppercase tracking-[0.14em] text-neutral-400">
-        Floor
-      </span>
+    <div
+      className={
+        inline
+          ? "mobile-floor-options"
+          : "desktop-map-control absolute right-4 top-1/2 z-30 flex -translate-y-1/2 flex-col items-center gap-1 rounded-xl border border-neutral-200 bg-white p-1 shadow-[0_4px_16px_rgba(0,0,0,0.08)]"
+      }
+    >
+      {!inline && (
+        <span className="px-1 pb-0.5 pt-1 text-[9px] font-bold uppercase tracking-[0.14em] text-neutral-400">
+          Floor
+        </span>
+      )}
       <button
         onClick={onSelectAll}
         aria-label="All floors"
         aria-pressed={!!allFloors}
-        className={`grid h-9 w-9 place-items-center rounded-lg text-[13px] font-bold transition ${allFloors ? 'bg-cardinal text-white' : 'text-neutral-600 hover:bg-neutral-100'}`}
+        className={`grid h-9 w-9 place-items-center rounded-lg text-[13px] font-bold transition ${allFloors ? "bg-cardinal text-white" : "text-neutral-600 hover:bg-neutral-100"}`}
       >
         All
       </button>
-      {[...levels].reverse().map((f) => (
+      {(inline ? levels : [...levels].reverse()).map((f) => (
         <button
           key={f}
           onClick={() => onSelect(f)}
-          aria-label={`${floorName(f, code)}${f === currentFloor ? ' · Current location' : ''}`}
-          title={f === currentFloor ? `${floorName(f, code)} · Current location` : floorName(f, code)}
+          aria-label={`${floorName(f, code)}${f === currentFloor ? " · Current location" : ""}`}
+          title={
+            f === currentFloor
+              ? `${floorName(f, code)} · Current location`
+              : floorName(f, code)
+          }
           aria-pressed={!allFloors && f === floor}
           className={`relative grid h-9 w-9 place-items-center rounded-lg text-[14px] font-bold transition ${
             !allFloors && f === floor
-              ? 'bg-cardinal text-white'
+              ? "bg-cardinal text-white"
               : f === currentFloor
-                ? 'bg-gold/20 text-cardinal hover:bg-gold/30'
-                : 'text-neutral-600 hover:bg-neutral-100'
-          } ${f === currentFloor ? 'ring-2 ring-inset ring-gold' : ''}`}
+                ? "bg-gold/20 text-cardinal hover:bg-gold/30"
+                : "text-neutral-600 hover:bg-neutral-100"
+          } ${f === currentFloor ? "ring-2 ring-inset ring-gold" : ""}`}
         >
           {floorShort(f)}
-          {f === currentFloor && (
+          {f === currentFloor && !inline && (
             <span className="absolute right-full mr-2 whitespace-nowrap rounded-full bg-gold px-2 py-1 text-[10px] font-bold text-neutral-900 shadow-sm">
               Current location
             </span>
@@ -183,20 +233,31 @@ export function FloorSelector({
   );
 }
 
-export function Breadcrumb({ view, onCampus }: { view: View; onCampus: () => void }) {
-  if (view.type === 'campus') return null;
+export function Breadcrumb({
+  view,
+  onCampus,
+}: {
+  view: View;
+  onCampus: () => void;
+}) {
+  if (view.type === "campus") return null;
   return (
-    <div className="absolute left-4 top-4 z-30 flex max-w-[calc(100%-21rem)] items-center gap-2 rounded-full border border-neutral-200 bg-white/95 px-3 py-2 text-[13px] shadow-sm backdrop-blur max-md:max-w-[calc(100%-5.5rem)]">
-      <button onClick={onCampus} className="shrink-0 font-semibold text-cardinal hover:underline">
+    <div className="map-breadcrumb absolute left-4 top-4 z-30 flex max-w-[calc(100%-21rem)] items-center gap-2 rounded-full border border-neutral-200 bg-white/95 px-3 py-2 text-[13px] shadow-sm backdrop-blur max-md:max-w-[calc(100%-5.5rem)]">
+      <button
+        onClick={onCampus}
+        className="shrink-0 font-semibold text-cardinal hover:underline"
+      >
         All buildings
       </button>
       <ChevronRight className="h-3.5 w-3.5 shrink-0 text-neutral-300" />
       <span className="rounded bg-cardinal px-1.5 py-0.5 text-[11px] font-bold text-white">
         {view.code}
       </span>
-      <span className="truncate max-md:hidden">{BUILDING_BY_CODE[view.code].name}</span>
+      <span className="truncate max-md:hidden">
+        {BUILDING_BY_CODE[view.code].name}
+      </span>
       <span className="shrink-0 text-neutral-600">
-        {view.allFloors ? 'All floors' : floorName(view.floor, view.code)}
+        {view.allFloors ? "All floors" : floorName(view.floor, view.code)}
       </span>
     </div>
   );
@@ -241,7 +302,7 @@ export function RouteBar({
     <div className="absolute left-1/2 top-16 z-30 w-[min(520px,calc(100%-2rem))] -translate-x-1/2">
       <div className="flex items-center gap-3 rounded-xl bg-neutral-900 p-2 pl-3 text-white shadow-xl">
         <span
-          className={`grid h-9 w-9 shrink-0 place-items-center rounded-full ${step.icon === 'arrive' ? 'bg-cardinal' : step.icon === 'elevator' ? 'bg-[#1F5BA8]' : 'bg-white/10'}`}
+          className={`grid h-9 w-9 shrink-0 place-items-center rounded-full ${step.icon === "arrive" ? "bg-cardinal" : step.icon === "elevator" ? "bg-[#1F5BA8]" : "bg-white/10"}`}
         >
           <Icon className="h-4 w-4" />
         </span>
@@ -250,9 +311,11 @@ export function RouteBar({
             Step {active + 1} of {route.steps.length}
             {step.building
               ? ` · ${step.building} ${floorName(step.floor ?? 1).toLowerCase()}`
-              : ' · Outdoors'}
+              : " · Outdoors"}
           </div>
-          <div className="text-[14px] font-medium leading-snug">{step.text}</div>
+          <div className="text-[14px] font-medium leading-snug">
+            {step.text}
+          </div>
         </div>
         <div className="flex shrink-0 items-center gap-1">
           <button
