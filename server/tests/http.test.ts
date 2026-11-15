@@ -80,6 +80,30 @@ test("directory, place search, floor reads, routes and chat match public envelop
   assert.equal(chat.status, 200);
   assertContract("ChatResponse", await chat.json());
 });
+test("chat preserves all 32 history messages and rejects overflow before interpretation", async (t) => {
+  const history = Array.from({ length: 32 }, (_, index) => ({
+    role: index % 2 === 0 ? "user" as const : "assistant" as const,
+    content: index === 0 ? "I'm near LAW 110" : `Conversation message ${index}`,
+  }));
+  let calls = 0;
+  const services = makeServices(fixture(), {
+    interpret: async (_scope, request) => {
+      calls++;
+      assert.deepEqual(request.history, history);
+      return intent();
+    },
+  });
+  const fetch = await serve(t, services);
+  const response = await fetch("/chat", json(chatRequest({ history })));
+  assert.equal(response.status, 200);
+  assertContract("ChatResponse", await response.json());
+  assert.equal(calls, 1);
+  const overflow = await fetch("/chat", json(chatRequest({
+    history: [...history, { role: "user", content: "One message too many" }],
+  })));
+  assert.equal(overflow.status, 400);
+  assert.equal(calls, 1);
+});
 test("malformed requests, duplicate parameters, unknown fields, and string booleans fail consistently", async (t) => {
   const fetch = await serve(t);
   const cases: [string, RequestInit | undefined, number][] = [

@@ -33,7 +33,7 @@ export function ChatPanel({ conversation, messages, setMessages, draft, setDraft
     if (!text.trim() || activeRequest.current) return
     const controller = new AbortController(), current = ++sequence.current
     activeRequest.current = controller; setPending(true); setError(''); setClarification(null)
-    const history = messages.slice(-20).map(message => ({ role: message.role, content: message.text.slice(0, 4000) }))
+    const history = messages.slice(-32).map(message => ({ role: message.role, content: message.text.slice(0, 4000) }))
     setMessages(previous => [...previous, { role: 'user', text }]); setDraft('')
     try {
       if (!dataVersion.current) dataVersion.current = (await compassApi.building(context.buildingId!, undefined, controller.signal)).dataVersion

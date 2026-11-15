@@ -84,7 +84,7 @@ GET requests may omit `dataVersion` only for initial discovery. Capture the retu
 | GET `/buildings/{buildingId}/graph` | `dataVersion`; deployment must enable `EXPOSE_GRAPH` | `GraphResponse`; validated source graph for inspection. Normal clients use `/routes`. |
 | GET `/events`, `/events/{eventId}` | Deferred | 501 `FEATURE_DISABLED`. |
 
-Search text is at most 200 characters. Limits are integers 1–100, default 20. Query booleans accept exactly `true` or `false`. Repeated or unknown parameters are rejected. JSON bodies are limited to one MiB; chat text to 4,000 characters and history to 20 user/assistant messages of at most 4,000 characters each. Multipart chat returns `501 IMAGE_INPUT_DISABLED` before parsing uploads.
+Search text is at most 200 characters. Limits are integers 1–100, default 20. Query booleans accept exactly `true` or `false`. Repeated or unknown parameters are rejected. JSON bodies are limited to one MiB; chat text to 4,000 characters and history to 32 user/assistant messages of at most 4,000 characters each. Multipart chat returns `501 IMAGE_INPUT_DISABLED` before parsing uploads.
 
 Collection responses include `requestId`, `dataVersion`, `items`, and `nextCursor`. Detail responses contain their named record. Full field definitions and all 50 positive/negative examples are in `shared/contracts` and `shared/fixtures`; automated tests validate every example against the runtime schema.
 
@@ -154,6 +154,8 @@ The model cannot choose an invented room ID, fabricate geometry, verify accessib
 `context.origin` is the starting point. `context.selectedPlace` is a selection, not an origin. A newly named destination overrides a stale selection; selection is used only for an explicit reference such as “there.” An explicitly named building overrides the current viewport. Unresolved “outside” produces entrance choices rather than a guessed entrance.
 
 For an ambiguous room, send the chosen canonical code/ID in the next message, include the preceding question in bounded history, and optionally set `selectedPlace` to the candidate's place reference. For a missing origin, set `context.origin` to the confirmed start and repeat the original route request with a new `clientRequestId`. Do not put the starting location in `selectedPlace`. This is stateless; there is no hidden chat session or new clarification-token API.
+
+When `context.origin` is absent, chat can reuse the latest user-confirmed current location in the supplied history, including a room given in answer to a location question. New destinations do not clear that location; a newer explicit starting place or map origin takes precedence. Merely searching for or selecting a room does not establish it as the user's location. Historical locations still pass through normal dataset resolution before routing.
 
 Only `status=resolved` may change the map. `needs_clarification`, `not_found`, `no_route`, and `unsupported` return no actions. Both clients must discard a reply if a newer request or a different data version has replaced its context.
 

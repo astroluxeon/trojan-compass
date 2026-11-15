@@ -7967,7 +7967,7 @@
             "items": {
               "$ref": "#/components/schemas/ChatHistoryMessage"
             },
-            "maxItems": 20
+            "maxItems": 32
           },
           "context": {
             "$ref": "#/components/schemas/ChatContext"
