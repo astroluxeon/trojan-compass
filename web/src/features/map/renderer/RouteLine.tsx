@@ -5,7 +5,7 @@ import type { Group } from "three";
 import type { Line2 } from "three/examples/jsm/lines/Line2.js";
 import { routeChevrons } from "@/features/routing/route-scene";
 import { useReducedMotion } from "./useReducedMotion";
-import { useRouteAppearance } from "@/features/routing/components/RouteAppearance";
+import { COLORS } from "../types";
 
 /** Animated "marching ants" route polyline. */
 export function RouteLine({
@@ -22,11 +22,10 @@ export function RouteLine({
   overlay?: boolean;
 }) {
   const ref = useRef<Line2>(null);
-  const appearance = useRouteAppearance();
-  const color = customColor ?? appearance.color;
+  const color = customColor ?? COLORS.route;
   const arrows = useMemo(
-    () => routeChevrons(points, appearance.arrowStyle),
-    [points, appearance.arrowStyle],
+    () => routeChevrons(points),
+    [points],
   );
   const reducedMotion = useReducedMotion();
   useFrame((_, dt) => {
@@ -99,7 +98,7 @@ export function RouteLine({
 }
 
 export function EndPin({ position }: { position: [number, number, number] }) {
-  const { color } = useRouteAppearance();
+  const color = COLORS.route;
   const ref = useRef<Group>(null);
   const reducedMotion = useReducedMotion();
   useFrame(({ clock }) => {
@@ -137,7 +136,7 @@ export function EndPin({ position }: { position: [number, number, number] }) {
 }
 
 export function StartDot({ position }: { position: [number, number, number] }) {
-  const { color } = useRouteAppearance();
+  const color = COLORS.route;
   return (
     <group position={position}>
       <mesh position={[0, 0.12, 0]}>

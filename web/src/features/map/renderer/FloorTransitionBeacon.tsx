@@ -7,7 +7,6 @@ import {
   stairFlight,
   type FloorTransition,
 } from "@/features/routing/route-scene";
-import { useRouteAppearance } from "@/features/routing/components/RouteAppearance";
 import { floorName } from "../data/viewer-data";
 import { MapHtml } from "./MapHtml";
 import { useReducedMotion } from "./useReducedMotion";

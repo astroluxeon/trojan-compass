@@ -14,6 +14,11 @@ function showBuildingName(target, x, y) {
   buildingTooltip.hidden = !building
   if (!building) return
   buildingTooltip.textContent = building.dataset.placeName
+  if (!buildingCode({ name: building.dataset.placeName })) {
+    const footer = document.createElement('small')
+    footer.textContent = 'Floor Plan unavailable'
+    buildingTooltip.append(footer)
+  }
   buildingTooltip.style.left = `${Math.max(8, Math.min(x + 14, innerWidth - buildingTooltip.offsetWidth - 8))}px`
   buildingTooltip.style.top = `${Math.max(8, Math.min(y + 18, innerHeight - buildingTooltip.offsetHeight - 8))}px`
 }

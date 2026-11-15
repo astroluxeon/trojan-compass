@@ -10,6 +10,7 @@ import {
 } from "./integrations/ai/provider-adapter.js";
 import { createServices, prepareServices } from "./bootstrap/services.js";
 import { PreviewRoutingService } from "./modules/routing/preview/preview-routing.service.js";
+import { DemoCatalog } from "./modules/catalog/demo-catalog.js";
 
 const config = readConfig();
 const datasets =
@@ -23,11 +24,16 @@ const intent =
   config.aiProvider === "openai"
     ? createOpenAIAdapter(config.apiKey!, config.model!, config.aiConcurrency)
     : new DisabledIntentAdapter();
+const catalog = config.production ? undefined : await DemoCatalog.forSnapshot(datasets, {
+  requestId: "chat-catalog-startup",
+  dataVersion: datasets.currentVersion,
+});
 const services = createServices(
   datasets,
   () => datasets.currentVersion,
   config.cursorSecret,
   intent,
+  catalog,
 );
 await prepareServices(services, datasets.versions());
 const shutdown = new AbortController();

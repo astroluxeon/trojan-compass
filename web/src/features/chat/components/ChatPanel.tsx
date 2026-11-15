@@ -28,7 +28,6 @@ export function ChatPanel({
   const [pending, setPending] = useState(false);
   const [error, setError] = useState('');
   const [candidates, setCandidates] = useState<Candidate[]>([]);
-  const [candidatePrefix, setCandidatePrefix] = useState('Show');
   const latestDraft = useRef(draft);
   latestDraft.current = draft;
   return (
@@ -64,7 +63,7 @@ export function ChatPanel({
               className="rounded border border-cardinal/30 px-2 py-1 text-xs text-cardinal"
               onClick={() =>
                 setDraft(
-                  `${candidatePrefix} ${candidate.kind === 'place' ? candidate.location.placeId : candidate.buildingId}`
+                  `For my previous request: ${(messages.findLast((m) => m.role === 'user')?.text ?? '').slice(0, 2800)}. I choose ${candidate.kind === 'place' ? candidate.location.placeId : candidate.buildingId}.`
                 )
               }
             >
@@ -105,9 +104,6 @@ export function ChatPanel({
               { role: 'assistant', text: response.message },
             ]);
             setCandidates(response.clarification?.candidates ?? []);
-            setCandidatePrefix(
-              /\b(?:route|directions|navigate)\b/i.test(submitted) ? 'Route to' : 'Show'
-            );
             if (latestDraft.current.trim() === submitted) setDraft('');
           } catch (error) {
             setError(

@@ -134,20 +134,16 @@ test("aligned stairs fit the stairwell on either axis and meet both floor surfac
   assert.deepEqual(stairGeometry([0, 0, 0], [0, 0, 0]).parts, []);
 });
 
-test("arrow variants retain forward tips and add only their selected shape", () => {
+test("route chevrons have an open shape pointing forward", () => {
   const points: ScenePoint[] = [
     [0, 0, 0],
     [4, 0, 0],
   ];
   const chevron = routeChevrons(points)[0]!;
-  const triangle = routeChevrons(points, "triangle")[0]!;
-  const arrow = routeChevrons(points, "arrow")[0]!;
   assert.equal(chevron.length, 3);
-  assert.deepEqual(triangle[3], triangle[0]);
-  assert.deepEqual(arrow[3], chevron[1]);
-  assert.ok(arrow[4]![0] < arrow[1]![0]);
-  for (const shape of [chevron, triangle, arrow])
-    assert.deepEqual(shape[1], chevron[1]);
+  assert.ok(chevron[1]![0] > chevron[0]![0]);
+  assert.ok(chevron[1]![0] > chevron[2]![0]);
+  assert.notDeepEqual(chevron[0], chevron[2]);
 });
 test("selecting identically labeled restrooms preserves each unique ID", () => {
   const layout = getLayout("LAW", 4);

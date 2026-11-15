@@ -50,6 +50,11 @@ function renderPlaceName(target, name) {
     code.textContent = match[2].trim()
     target.append(' ', code)
   }
+  if (target === buildingTooltip && !buildingCode({ name })) {
+    const footer = document.createElement('small')
+    footer.textContent = 'Floor Plan unavailable'
+    target.append(footer)
+  }
 }
 const status = document.createElement('div')
 status.className = 'demo-status'

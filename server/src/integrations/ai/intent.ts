@@ -9,6 +9,10 @@ export type NavigationIntent = {
     | "find_place"
     | "show_floor"
     | "route"
+    | "find_restroom"
+    | "route_restroom"
+    | "find_stopover"
+    | "route_stopover"
     | "clarify"
     | "unsupported";
   query: string | null;
@@ -18,6 +22,10 @@ export type NavigationIntent = {
   requestedStepFree: boolean | null;
   reference: "none" | "selected_place" | "context_building";
   question: string | null;
+  restroomGoal: "nearest" | "on_way_out" | null;
+  exitQuery: string | null;
+  destinationQuery: string | null;
+  stopKind: "classroom" | "restroom" | "study_area" | "office" | null;
 };
 const text = { type: ["string", "null"], maxLength: 200, minLength: 1 };
 export const intentSchema = {
@@ -30,6 +38,10 @@ export const intentSchema = {
         "find_place",
         "show_floor",
         "route",
+        "find_restroom",
+        "route_restroom",
+        "find_stopover",
+        "route_stopover",
         "clarify",
         "unsupported",
       ],
@@ -41,6 +53,10 @@ export const intentSchema = {
     requestedStepFree: { type: ["boolean", "null"] },
     reference: { enum: ["none", "selected_place", "context_building"] },
     question: { type: ["string", "null"], maxLength: 300, minLength: 1 },
+    restroomGoal: { enum: ["nearest", "on_way_out", null] },
+    exitQuery: text,
+    destinationQuery: text,
+    stopKind: { enum: ["classroom", "restroom", "study_area", "office", null] },
   },
   required: [
     "kind",
@@ -51,6 +67,10 @@ export const intentSchema = {
     "requestedStepFree",
     "reference",
     "question",
+    "restroomGoal",
+    "exitQuery",
+    "destinationQuery",
+    "stopKind",
   ],
 };
 const check = ajv.compile(intentSchema);
@@ -71,5 +91,6 @@ export interface IntentAdapter {
   interpret(
     scope: RequestScope,
     request: ChatTextRequest,
+    retrievedRecords?: readonly import("../../modules/catalog/demo-catalog.js").CatalogRecord[],
   ): Promise<NavigationIntent>;
 }

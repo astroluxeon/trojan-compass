@@ -40,6 +40,17 @@ test('map projection aligns with saved Taper Hall marker', () => {
   assert.deepEqual(mapPoint(34.022798, -118.284647), [0, 0])
 })
 
+test('only LAW and Medicine Crow offer campus floor-plan entry', () => {
+  assert.deepEqual([...SUPPORTED_CODES].sort(), ['LAW', 'VKC'])
+  for (const code of ['DML', 'LVL', 'THH', 'TCC', 'SGM', 'SAL', 'KAP', 'ADM']) {
+    assert.equal(buildingCode({ name: `Building (${code})`, code }), null)
+    assert.equal(compassUrl(code), null)
+  }
+  assert.equal(buildingCode({ name: 'Musick Law Building (LAW)' }), 'LAW')
+  assert.equal(buildingCode({ name: 'Medicine Crow Center (DMC)' }), 'VKC')
+  assert.equal(buildingCode({ name: 'Von KleinSmid Center (VKC)' }), 'VKC')
+})
+
 test('campus previews preserve their return port and native iOS stays bundled', () => {
   const previous = Object.getOwnPropertyDescriptor(globalThis, 'location')
   try {

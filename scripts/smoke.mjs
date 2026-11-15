@@ -28,6 +28,10 @@ const services = createServices(
       requestedStepFree: null,
       reference: "none",
       question: null,
+      restroomGoal: null,
+      exitQuery: null,
+      destinationQuery: null,
+      stopKind: null,
     }),
   },
 );

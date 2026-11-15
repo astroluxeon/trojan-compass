@@ -11,6 +11,7 @@ import { RoutingService } from "../modules/routing/routing.service.js";
 import { SearchService } from "../modules/search/search.service.js";
 import { CursorCodec } from "../modules/search/cursor.js";
 import { ChatService } from "../modules/chat/chat.service.js";
+import type { DemoCatalog } from "../modules/catalog/demo-catalog.js";
 import { warmContracts } from "../lib/contracts.js";
 
 export type Services = {
@@ -26,6 +27,7 @@ export function createServices(
   currentVersion: () => string,
   cursorSecret: string,
   intent: IntentAdapter,
+  catalog?: DemoCatalog,
 ): Services {
   const graphs = new GraphStore(datasets);
   const reachability = new ReachabilityService(datasets, graphs);
@@ -35,7 +37,7 @@ export function createServices(
     reachability,
   );
   const routing = new RoutingService(datasets, graphs);
-  const chat = new ChatService({ datasets, search, routing }, intent);
+  const chat = new ChatService({ datasets, search, routing }, intent, catalog);
   return { datasets, search, routing, chat, currentVersion, graphs };
 }
 

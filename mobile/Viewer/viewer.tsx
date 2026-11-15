@@ -9,10 +9,6 @@ import { MapHtml } from "../../web/src/features/map/renderer/MapHtml";
 import { FloorTransitionBeacon } from "../../web/src/features/map/renderer/FloorTransitionBeacon";
 import { RouteLine } from "../../web/src/features/map/renderer/RouteLine";
 import {
-  RouteAppearance,
-  RouteAppearanceProvider,
-} from "../../web/src/features/routing/components/RouteAppearance";
-import {
   sceneRoute,
   routeUsesStair,
 } from "../../web/src/features/routing/route-scene";
@@ -235,11 +231,6 @@ function Viewer() {
               });
           }}
         />
-      )}
-      {s.route && (
-        <div className="absolute bottom-3 left-3 z-40 max-h-[45%] w-72 max-w-[calc(100%-1.5rem)] overflow-y-auto rounded-xl bg-white shadow-lg">
-          <RouteAppearance />
-        </div>
       )}
     </div>
   );
@@ -485,8 +476,6 @@ function LiveCamera({ s }: { s: State }) {
 }
 createRoot(document.getElementById("root")!).render(
   <ViewerBoundary>
-    <RouteAppearanceProvider>
-      <Viewer />
-    </RouteAppearanceProvider>
+    <Viewer />
   </ViewerBoundary>,
 );

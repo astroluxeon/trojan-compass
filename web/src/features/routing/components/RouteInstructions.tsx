@@ -1,6 +1,6 @@
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import type { Route } from "@trojan-compass/shared/api";
-import { useRouteAppearance } from "./RouteAppearance";
+import { COLORS } from "@/features/map/types";
 
 export function RouteInstructions({
   route,
@@ -14,8 +14,7 @@ export function RouteInstructions({
   onClear: () => void;
 }) {
   const current = route.steps[activeStep];
-  const { color } = useRouteAppearance();
-  const ink = color === "#ffcc00" ? "#806600" : color;
+  const color = COLORS.route;
   return (
     <section
       aria-label="Route directions"
@@ -51,7 +50,7 @@ export function RouteInstructions({
         {current?.text}
       </p>
       <p className="mt-2 text-[11px] leading-relaxed text-neutral-500">
-        <span className="font-semibold" style={{ color: ink }}>
+        <span className="font-semibold" style={{ color }}>
           Direction arrows
         </span>{" "}
         show where to walk.

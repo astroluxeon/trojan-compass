@@ -189,6 +189,8 @@ test("OpenAI adapter requests bounded schema output, disables storage/retries, a
   );
   assert.equal(captured.body.store, false);
   assert.equal(captured.options.maxRetries, 0);
+  assert.ok(Number.isInteger(captured.options.timeout));
+  assert.ok(captured.options.timeout > 0);
   assert.equal(captured.body.text.format.strict, true);
   const broken = new OpenAIIntentAdapter(
     {

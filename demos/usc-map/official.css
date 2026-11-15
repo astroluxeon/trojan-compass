@@ -1,5 +1,6 @@
 /* The supplied USC snapshot supplies the branding, sidebar, tiles, and base styles. */
 :root { --demo-sidebar-width: 350px; }
+.demo-building-tooltip small { display: block; margin-top: 5px; color: #737373; font-size: 11px; font-weight: 400; }
 #sidebar { position: fixed !important; top: 48px; bottom: 0; left: 0; height: auto !important; width: var(--demo-sidebar-width) !important; transform: translateX(-100%) !important; transition: transform .2s; }
 #base-sidebar-content { width: 100% !important; }
 body.demo-sidebar-open #base-sidebar-content { pointer-events: auto !important; }

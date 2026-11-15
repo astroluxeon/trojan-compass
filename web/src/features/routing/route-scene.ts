@@ -155,7 +155,6 @@ export function sceneRoute(route: Pick<Route, "legs">, code: BuildingCode) {
 /** Arrow tips follow ordered walking points, including reversed routes and short turns. */
 export function routeChevrons(
   points: ScenePoint[],
-  style: "chevron" | "triangle" | "arrow" = "chevron",
 ): ScenePoint[][] {
   const arrows: ScenePoint[][] = [];
   for (let i = 1; i < points.length && arrows.length < 64; i++) {
@@ -179,10 +178,6 @@ export function routeChevrons(
         [x + ux * size * 0.35, y, z + uz * size * 0.35],
         [x - ux * size + uz * size * 0.8, y, z - uz * size - ux * size * 0.8],
       ]);
-      const arrow = arrows.at(-1)!;
-      if (style === "triangle") arrow.push(arrow[0]!);
-      if (style === "arrow")
-        arrow.push(arrow[1]!, [x - ux * size * 1.8, y, z - uz * size * 1.8]);
     }
   }
   return arrows;

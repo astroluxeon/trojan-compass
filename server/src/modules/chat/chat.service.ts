@@ -21,6 +21,15 @@ import { assertContract, validateBody } from "../../lib/contracts.js";
 import { AppError, invalid } from "../../lib/errors.js";
 import { checkScope } from "../../lib/scope.js";
 import { normalize } from "../search/search.service.js";
+import type { CatalogRecord, DemoCatalog } from "../catalog/demo-catalog.js";
+import {
+  eligibleExit,
+  eligibleRestroom,
+  RestroomService,
+  routeViaRestroom,
+} from "./restroom.service.js";
+
+import { stopoverAnswer } from "./stopover.answer.js";
 
 const placeCandidate = (p: Place): Candidate => ({
   kind: "place",
@@ -29,7 +38,7 @@ const placeCandidate = (p: Place): Candidate => ({
 });
 const buildingCandidate = (b: BuildingSummary): Candidate => ({
   kind: "building",
-  label: `${b.code} — ${b.name}`,
+  label: `${b.code} â€” ${b.name}`,
   buildingId: b.id,
 });
 const location = (p: Place): LocationRef => ({
@@ -42,6 +51,7 @@ export class ChatService implements ChatPort {
   constructor(
     private readonly dependencies: ChatDependencies,
     private readonly intentAdapter: IntentAdapter,
+    private readonly catalog?: DemoCatalog,
   ) {}
   async respond(
     scope: RequestScope,
@@ -49,6 +59,7 @@ export class ChatService implements ChatPort {
   ): Promise<ChatResponse> {
     validateBody("ChatTextRequest", request);
     checkScope(scope);
+    this.catalog?.assertVersion(scope.dataVersion);
     if (typeof request.message !== "string" || !request.message.trim())
       throw invalid("A nonempty message is required.", "message");
     if (request.dataVersion !== scope.dataVersion)
@@ -65,8 +76,13 @@ export class ChatService implements ChatPort {
     await this.dependencies.datasets.assertSnapshot(scope);
     await this.validateContext(scope, request);
     const intent = validateIntent(
-      await this.intentAdapter.interpret(scope, request),
+      await this.intentAdapter.interpret(
+        scope,
+        request,
+        this.catalog?.search(request.message).slice(0, 8),
+      ),
     );
+    const resolvedRecords: CatalogRecord[] = [];
     const response = (
       status: ChatResponse["status"],
       message: string,
@@ -143,6 +159,25 @@ export class ChatService implements ChatPort {
           "ambiguous_destination",
           "Select a location or name the room you mean.",
         );
+      const records = this.catalog?.search(query) ?? [];
+      if (records.length > 1) {
+        return clarify(
+          "ambiguous_destination",
+          `Which demo class or event do you mean? ${records.map((r) => `${r.title} (${r.id})`).join("; ")}. Please use its record ID.`,
+        );
+      }
+      if (records.length === 1) {
+        const record = records[0]!;
+        const p = await this.dependencies.datasets.getPlace(
+          scope,
+          record.location.buildingId,
+          record.location.placeId,
+        );
+        if (p.floorId !== record.location.floorId)
+          throw new Error("Catalog location no longer matches map data");
+        resolvedRecords.push(record);
+        return p;
+      }
       let buildingId = await scopedBuilding(role === "destination");
       if (buildingId && typeof buildingId !== "string") return buildingId;
       // An explicit code in this turn overrides stale viewport context.
@@ -196,12 +231,177 @@ export class ChatService implements ChatPort {
         "I could not find that location in this dataset. Try a building code and room number.",
       );
     };
+    const restroomAnswer = async (): Promise<ChatResponse> => {
+      const mode = intent.requestedMode ?? request.preferences.mode;
+      const stepFree = intent.requestedStepFree ?? request.preferences.stepFree;
+      if (stepFree && mode === "stairs")
+        return response(
+          "unsupported",
+          "A step-free route cannot require stairs. Choose elevators or turn off step-free routing.",
+        );
+      let origin = request.context.origin;
+      if (intent.originQuery) {
+        const start = await place(intent.originQuery, false, "origin");
+        if ("status" in start) return start;
+        origin = location(start);
+      }
+      const hint = await scopedBuilding();
+      if (hint && typeof hint !== "string") return hint;
+      const buildingId = origin?.buildingId ?? hint;
+      if (!buildingId)
+        return clarify(
+          "ambiguous_building",
+          "Which building should I search for a washroom?",
+        );
+      if (origin && intent.buildingHint && hint !== origin.buildingId)
+        return response(
+          "unsupported",
+          "Choose a starting place in the building where you want a washroom.",
+        );
+      const places = await this.dependencies.datasets.listPlaces(
+        scope,
+        buildingId,
+      );
+      let restrooms = places.filter((p) => eligibleRestroom(p, stepFree));
+      const chosenId =
+        intent.reference === "selected_place"
+          ? request.context.selectedPlace?.placeId
+          : intent.query;
+      const chosen = places.find(
+        (p) => p.id === chosenId && p.kind === "restroom",
+      );
+      if (chosen) restrooms = restrooms.filter((p) => p.id === chosen.id);
+      if (!restrooms.length)
+        return response(
+          "not_found",
+          "No matching washroom is recorded in this building.",
+        );
+      const onWayOut = intent.restroomGoal === "on_way_out";
+      const wantsRoute = intent.kind === "route_restroom";
+      const focus = (p: Place): MapAction => ({
+        type: "focus_place",
+        buildingId: p.buildingId,
+        floorId: p.floorId,
+        placeId: p.id,
+      });
+      if (!origin) {
+        if (onWayOut || wantsRoute)
+          return clarify(
+            "missing_origin",
+            "Where are you starting? Name a room or select your current location so I can compare washroom routes.",
+          );
+        const sameFloor = restrooms.filter(
+          (p) =>
+            p.floorId === request.context.floorId &&
+            p.buildingId === request.context.buildingId,
+        );
+        const options = sameFloor.length ? sameFloor : restrooms;
+        if (options.length === 1)
+          return response(
+            "resolved",
+            `${options[0]!.displayLabel} is on floor ${options[0]!.floorId}. Tell me your starting location for a route.`,
+            [focus(options[0]!)],
+          );
+        return clarify(
+          "ambiguous_destination",
+          "These washrooms are mapped nearby in the building. Choose one to highlight, or tell me your starting room to find the closest by walking route.",
+          options.slice(0, 10).map((p) => ({
+            ...placeCandidate(p),
+            label: `${p.displayLabel} (${p.id})`,
+          })),
+        );
+      }
+      let exits = places.filter(eligibleExit);
+      if (onWayOut && intent.exitQuery) {
+        const matches = await this.dependencies.search.searchPlaces(scope, {
+          query:
+            intent.exitQuery
+              .replace(/\b(?:exit|entrance|door)\b/gi, "")
+              .trim() || intent.exitQuery,
+          buildingId,
+          kind: "entrance",
+          limit: 100,
+        });
+        const exact = matches.results.filter((r) => r.matchType === "exact");
+        const choices = (exact.length ? exact : matches.results)
+          .map((r) => r.place)
+          .filter(eligibleExit);
+        if (choices.length !== 1 || matches.nextCursor)
+          return clarify(
+            "ambiguous_outside",
+            "Choose the ordinary exit you mean. Emergency-only exits are not used for routine trips.",
+            (choices.length ? choices : exits).slice(0, 10).map(placeCandidate),
+          );
+        exits = choices;
+      }
+      if (onWayOut && !exits.length)
+        return response(
+          "no_route",
+          "This building has no mapped ordinary exit with confirmed exit permission.",
+        );
+      try {
+        const recommendation = await new RestroomService(
+          this.dependencies.routing,
+        ).recommend(scope, {
+          origin,
+          restrooms,
+          exits,
+          onWayOut,
+          clientRequestId: request.clientRequestId,
+          preferences: { mode, stepFree, accessProfile: "public" },
+        });
+        if (!recommendation)
+          return response(
+            "no_route",
+            "No washroom route matches your travel preferences and the available exit connections.",
+          );
+        const { restroom, first, exit } = recommendation;
+        const label = `${restroom.displayLabel} (${restroom.id})`;
+        const message = onWayOut
+          ? `${label} is the most convenient mapped washroom on your way to ${exit!.displayLabel}${intent.exitQuery ? "" : ", comparing the mapped ordinary exits"}. ${wantsRoute ? "The route stops at the washroom, then continues to that exit." : "I highlighted the washroom. Ask for directions via this washroom to the exit to draw the full trip."}`
+          : `${label} is the most convenient mapped washroom from your starting place. ${wantsRoute ? "Follow the route." : "I highlighted it on the map."}`;
+        return response(
+          "resolved",
+          message +
+            (first.metricsEstimated
+              ? " This suggestion uses the illustrative map; opening hours and restroom facilities are not verified."
+              : " Opening hours and restroom facilities are not verified."),
+          wantsRoute
+            ? [{ type: "show_route", route: routeViaRestroom(recommendation) }]
+            : [focus(restroom)],
+        );
+      } catch (error) {
+        if (error instanceof AppError && error.code === "FEATURE_DISABLED")
+          return response("unsupported", error.message);
+        if (error instanceof AppError && error.httpStatus === 422)
+          return response("no_route", error.message);
+        throw error;
+      }
+    };
     let result: ChatResponse;
     if (intent.kind === "unsupported")
       result = response(
         "unsupported",
         "I can help find USC buildings, floors, rooms, and available routes.",
       );
+    else if (
+      intent.kind === "find_restroom" ||
+      intent.kind === "route_restroom"
+    )
+      result = await restroomAnswer();
+    else if (
+      intent.kind === "find_stopover" ||
+      intent.kind === "route_stopover"
+    )
+      result = await stopoverAnswer({
+        scope,
+        request,
+        intent,
+        dependencies: this.dependencies,
+        place,
+        reply: response,
+        clarify,
+      });
     else if (intent.kind === "clarify")
       result = clarify(
         "ambiguous_destination",
@@ -275,6 +475,13 @@ export class ChatService implements ChatPort {
           clarify,
         );
     }
+    if (resolvedRecords.length && this.catalog)
+      result.message =
+        [...new Map(resolvedRecords.map((r) => [r.id, r])).values()]
+          .map((r) => this.catalog!.describe(r))
+          .join(" ") +
+        " " +
+        result.message;
     await this.validateActions(scope, result);
     const buildingIds = new Set(
       result.actions.flatMap((action) =>

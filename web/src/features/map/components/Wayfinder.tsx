@@ -34,7 +34,6 @@ import { Header } from "@/components/layout/Header";
 import { campusLink } from '../campus-link';
 import { FloorTools, type LocationField } from "./FloorTools";
 import { Breadcrumb, FloorSelector, LayerPanel } from "./MapOverlays";
-import { RouteAppearanceProvider } from "@/features/routing/components/RouteAppearance";
 
 const MapCanvas = dynamic(
   () => import("../renderer/MapCanvas").then((m) => m.MapCanvas),
@@ -53,10 +52,6 @@ const DEFAULT_LAYERS: LayerKey[] = [
   "entrances",
 ];
 export default function Wayfinder({ bundled = false }: { bundled?: boolean }) {
-  return <RouteAppearanceProvider><WayfinderContent bundled={bundled} /></RouteAppearanceProvider>;
-}
-
-function WayfinderContent({ bundled }: { bundled: boolean }) {
   const params = useSearchParams();
   const campusHref = campusLink(new URLSearchParams(params.toString()), bundled);
   const initial = useRef(params.toString());

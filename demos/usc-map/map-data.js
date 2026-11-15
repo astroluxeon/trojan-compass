@@ -1,4 +1,4 @@
-export const SUPPORTED_CODES = ['DML', 'LVL', 'THH', 'VKC', 'TCC', 'SGM', 'SAL', 'KAP', 'LAW']
+export const SUPPORTED_CODES = ['VKC', 'LAW']
 
 export function buildingCode(place) {
   const code = place.code || place.name.match(/\(([A-Z]+)\)$/)?.[1]

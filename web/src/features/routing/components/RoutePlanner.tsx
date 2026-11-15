@@ -5,7 +5,6 @@ import { LocationAutocomplete } from "@/features/search/components/LocationAutoc
 import { INPUT, ACTION } from "@/components/ui/form-styles";
 import type { RouteMode } from "@trojan-compass/shared";
 import type { LocationField } from "../types";
-import { RouteAppearance } from "./RouteAppearance";
 
 export function RoutePlanner({
   dataVersion,
@@ -47,7 +46,8 @@ export function RoutePlanner({
         setPending(true);
         onPendingChange?.(true);
         try {
-          await onDirections(travelMode, accessibleOnly);
+          // shortcut: accessibility selects elevators only; restore step-free checks when ramp access is ready.
+          await onDirections(travelMode, false);
           setNotice("");
         } catch (error) {
           if (error instanceof DOMException && error.name === "AbortError")
@@ -75,7 +75,7 @@ export function RoutePlanner({
         <span>
           <span className="block text-[13px] font-semibold">Accessibility</span>
           <span className="block text-[12px] text-neutral-500">
-            Step-free entrances and elevator access
+            Use elevators between floors
           </span>
         </span>
       </label>
@@ -125,7 +125,6 @@ export function RoutePlanner({
               id={`directions-${field}`}
               value={locations[field]}
               includeOutside={field === "from"}
-              accessibleOnly={accessibleOnly}
               onChange={(value) => {
                 onLocationChange(field, value);
                 onPick(null);
@@ -213,7 +212,6 @@ export function RoutePlanner({
           ))}
         </div>
       </fieldset>
-      <RouteAppearance />
       <button
         id="directions-submit"
         disabled={pending}
