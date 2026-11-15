@@ -1,5 +1,18 @@
-import { cellCenter, cellTitle, floorName, type FloorLayout } from '../data/floorplan'
+import { BUILDING_BY_CODE, type BuildingCode } from '../data/campus'
+import { accessibleEntrancePlace, cellCenter, cellTitle, findCell, findRoom, floorName, getLayout, type FloorLayout } from '../data/floorplan'
 import type { MapLocation } from './types'
+
+export function mapLocationFromQuery(query: string): MapLocation | null {
+  const code = query.trim().toUpperCase() as BuildingCode
+  const place = findRoom(query) ?? (BUILDING_BY_CODE[code] ? accessibleEntrancePlace(code) : undefined)
+  if (!place) return null
+  const cell = findCell(place.id)
+  const entrance = cell ? undefined : getLayout(place.building, place.floor).entrances.find(entry => entry.id === place.node)
+  const point = cell ? cellCenter(cell) : entrance ? [entrance.x, entrance.z] as const : null
+  if (!point) return null
+  const [x, z] = point
+  return { building: place.building, floor: place.floor, label: place.label, x, z }
+}
 
 /** Snap the carried mascot to entrances and rooms; keep open floor points where dropped. */
 export function mapLocationAt(layout: FloorLayout, x: number, z: number): MapLocation | null {

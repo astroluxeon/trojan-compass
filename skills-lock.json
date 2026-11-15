@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "skills": {
+    "scenario-blender-sculpting": {
+      "source": "scenario-labs/skills",
+      "sourceType": "github",
+      "skillPath": "skills/dcc/blender/scenario-blender-sculpting/SKILL.md",
+      "computedHash": "359e857f4c3aed3b759df0baee4b2052dfa01ca3f02de33328a75a9b5daeb35c"
+    }
+  }
+}

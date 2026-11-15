@@ -10,6 +10,7 @@
     "dev:campus": "npm run dev --workspace=@trojan-compass/campus-demo",
     "dev:demo": "concurrently -k -n campus,interiors \"npm run dev:campus\" \"npm run dev:web\"",
     "dev:api": "npm run dev --workspace=@trojan-compass/api",
+    "test": "npm run test --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "build": "npm run build --workspace=@trojan-compass/shared && npm run build --workspace=@trojan-compass/api && npm run build --workspace=@trojan-compass/web"
   },

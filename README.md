@@ -16,16 +16,18 @@ Next.js provides the React build tooling, so this workspace does not need Vite.
 
 ## Get started
 
-Use Node.js 22.9 or later and npm. From the repository root:
+Use Node.js 22.9 or later, npm, and Python 3. From the repository root:
 
 ```sh
 npm install
-npm run dev
+npm run dev:demo
 ```
 
-- Frontend: <http://localhost:3000>
-- API health: <http://127.0.0.1:4000/api/health>
-- Health through the frontend proxy: <http://localhost:3000/api/health>
+- Campus map: <http://localhost:3001>
+- Building interiors: <http://localhost:3000/?building=LAW&floor=1>
+
+The demo runs both frontend sites. The optional API starts separately with
+`npm run dev:api`; its health endpoint is <http://127.0.0.1:4000/api/health>.
 
 Defaults work without environment files. To customize, copy
 `apps/web/.env.example` to `apps/web/.env.local` and
@@ -35,6 +37,7 @@ changing environment variables. Keep the web API address aligned with the API po
 ```sh
 npm run dev:web       # frontend only
 npm run dev:api       # backend only
+npm test              # frontend regression tests in both demo sites
 npm run typecheck     # all workspace TypeScript checks
 npm run build         # check shared types and build both apps
 ```

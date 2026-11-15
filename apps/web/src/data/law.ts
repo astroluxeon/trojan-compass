@@ -18,7 +18,7 @@ export interface LawFloorSpec {
   rooms: RoomSpec[]
   /** Corridor centerlines as page-coordinate polylines. */
   walks: [number, number][][]
-  entrances?: { id: string; at: [number, number]; label: string; stepFree: boolean; entrance: boolean }[]
+  entrances?: { id: string; at: [number, number]; label: string; stepFree: boolean; ramp?: boolean; entrance: boolean }[]
 }
 
 // kind: r = room, o = open area, b = non-public block, w = restrooms, s:<core> = stairs, e:<core> = elevator
@@ -104,7 +104,7 @@ export const LAW_SPEC: LawFloorSpec[] = [
     ],
     entrances: [
       { id: 'entrance', at: [590, 535], label: 'north main entrance', stepFree: false, entrance: true },
-      { id: 'east', at: [808, 1050], label: 'east ramp entrance', stepFree: true, entrance: true },
+      { id: 'east', at: [808, 1050], label: 'east ramp entrance', stepFree: true, ramp: true, entrance: true },
       { id: 'west', at: [405, 1050], label: 'west entrance', stepFree: false, entrance: true },
     ],
   },

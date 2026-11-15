@@ -1,86 +1,30 @@
 import { useFrame, useThree } from '@react-three/fiber'
-import { useEffect, useMemo, useRef } from 'react'
-import { Group, Mesh, MeshBasicMaterial, Plane, Quaternion, Raycaster, Shape, Vector2, Vector3 } from 'three'
-import { cellCenter, cellTitle, floorY, type FloorLayout } from '../../data/floorplan'
+import { Grab, MapPin } from 'lucide-react'
+import { useEffect, useRef } from 'react'
+import { Group, Mesh, MeshBasicMaterial, Plane, Raycaster, Vector2, Vector3 } from 'three'
+import { cellCenter, cellTitle, floorName, floorY, metersPerUnit, type FloorLayout } from '../../data/floorplan'
 import { mapLocationAt } from '../../lib/map-location'
+import { advanceCarrySwing, createCarrySwing } from '../../lib/mascot-motion'
 import type { MapLocation } from '../../lib/types'
 import { MapHtml } from './MapHtml'
+import { TOMMY_HEIGHT_METERS, TOMMY_MODEL_HEIGHT, TOMMY_NAPE, TommyTrojanModel } from './TommyTrojanModel'
 
-const BRONZE = '#a67b3e'
-const GOLD = '#d2a858'
-type Point = [number, number, number]
-
-function Limb({ from, to, radius = 0.12 }: { from: Point; to: Point; radius?: number }) {
-  const start = new Vector3(...from)
-  const end = new Vector3(...to)
-  const direction = end.clone().sub(start)
-  const rotation = new Quaternion().setFromUnitVectors(new Vector3(0, 1, 0), direction.clone().normalize())
+export function CurrentLocationPin({ location, onSelect }: { location: MapLocation; onSelect: () => void }) {
   return (
-    <mesh position={start.add(end).multiplyScalar(0.5)} quaternion={rotation} castShadow>
-      <capsuleGeometry args={[radius, Math.max(0.01, direction.length() - radius * 2), 4, 10]} />
-      <meshStandardMaterial color={BRONZE} metalness={0.65} roughness={0.4} />
-    </mesh>
-  )
-}
-
-// Original miniature modeled after USC's photos: https://www.marshall.usc.edu/posts/marshall-welcomes-21-new-faculty-2024
-export function TommyTrojanModel() {
-  const crest = useMemo(() => new Shape()
-    .moveTo(-0.36, 0).quadraticCurveTo(-0.6, 0.48, 0.1, 0.65)
-    .quadraticCurveTo(0.48, 0.68, 0.5, 0.3).quadraticCurveTo(0.1, 0.42, -0.36, 0), [])
-  return (
-    <group rotation={[0, -0.35, 0]}>
-      <mesh position={[0, 0.06, 0]} receiveShadow castShadow>
-        <cylinderGeometry args={[0.52, 0.58, 0.12, 24]} />
-        <meshStandardMaterial color="#625139" roughness={0.85} />
-      </mesh>
-      <mesh position={[0.25, 0.21, 0.12]} castShadow><boxGeometry args={[0.4, 0.3, 0.5]} /><meshStandardMaterial color="#85745b" roughness={0.85} /></mesh>
-      <Limb from={[-0.23, 0.23, 0]} to={[-0.19, 0.86, -0.05]} radius={0.13} />
-      <Limb from={[-0.19, 0.86, -0.05]} to={[-0.17, 1.37, 0]} radius={0.18} />
-      <Limb from={[0.27, 0.4, 0.2]} to={[0.43, 0.93, 0.38]} radius={0.14} />
-      <Limb from={[0.43, 0.93, 0.38]} to={[0.2, 1.4, 0]} radius={0.19} />
-      {[-1, 1].map((side) => (
-        <group key={side}>
-          <mesh position={[side * 0.24, side === 1 ? 0.42 : 0.2, 0.16]} scale={[0.16, 0.1, 0.29]} castShadow><sphereGeometry args={[1, 12, 8]} /><meshStandardMaterial color="#72532e" metalness={0.7} roughness={0.4} /></mesh>
-          <mesh position={[side * 0.19, 1.84, 0.16]} scale={[0.22, 0.22, 0.16]} castShadow><sphereGeometry args={[1, 12, 10]} /><meshStandardMaterial color={BRONZE} metalness={0.6} roughness={0.4} /></mesh>
-          {[1.47, 1.62].map((y) => <mesh key={y} position={[side * 0.1, y, 0.18]} scale={[0.11, 0.09, 0.08]}><sphereGeometry args={[1, 10, 8]} /><meshStandardMaterial color={BRONZE} metalness={0.6} roughness={0.4} /></mesh>)}
-        </group>
-      ))}
-      <mesh position={[0, 1.68, 0]} scale={[0.35, 0.46, 0.22]} castShadow><sphereGeometry args={[1, 16, 12]} /><meshStandardMaterial color={BRONZE} metalness={0.65} roughness={0.38} /></mesh>
-      <mesh position={[0, 1.29, 0]}><cylinderGeometry args={[0.27, 0.34, 0.3, 12]} /><meshStandardMaterial color="#76512b" metalness={0.5} roughness={0.55} /></mesh>
-      {Array.from({ length: 10 }, (_, index) => (
-        <group key={index} rotation={[0, index * Math.PI / 5, 0]}>
-          <mesh position={[0, 1.21, 0.3]} rotation={[-0.15, 0, 0]} castShadow><boxGeometry args={[0.15, 0.32, 0.05]} /><meshStandardMaterial color={BRONZE} metalness={0.65} roughness={0.5} /></mesh>
-        </group>
-      ))}
-      <Limb from={[-0.36, 1.98, 0]} to={[-0.61, 1.54, 0.09]} radius={0.15} />
-      <Limb from={[-0.61, 1.54, 0.09]} to={[-0.78, 1.2, 0.26]} radius={0.115} />
-      <Limb from={[0.35, 1.98, 0]} to={[0.64, 1.83, 0.2]} radius={0.16} />
-      <Limb from={[0.64, 1.83, 0.2]} to={[0.64, 2.08, 0.45]} radius={0.12} />
-      <group position={[0.65, 1.96, 0.48]} rotation={[0, -0.3, -0.2]}>
-        <mesh rotation={[Math.PI / 2, 0, 0]} scale={[1, 1, 1.12]} castShadow><cylinderGeometry args={[0.45, 0.45, 0.09, 32]} /><meshStandardMaterial color={BRONZE} metalness={0.75} roughness={0.32} /></mesh>
-        <mesh position={[0, 0, 0.055]}><torusGeometry args={[0.42, 0.025, 6, 32]} /><meshStandardMaterial color={GOLD} metalness={0.75} roughness={0.3} /></mesh>
-        <mesh position={[0, 0, 0.07]} scale={[1, 1, 0.4]}><sphereGeometry args={[0.1, 12, 8]} /><meshStandardMaterial color={GOLD} metalness={0.75} roughness={0.3} /></mesh>
-      </group>
-      <group position={[-0.8, 1.21, 0.3]} rotation={[0, 0, -0.9]}>
-        <mesh position={[0, -0.37, 0]} castShadow><cylinderGeometry args={[0.06, 0.005, 0.76, 4]} /><meshStandardMaterial color="#d3b87d" metalness={0.8} roughness={0.25} /></mesh>
-        <mesh><boxGeometry args={[0.26, 0.05, 0.07]} /><meshStandardMaterial color={GOLD} metalness={0.7} roughness={0.35} /></mesh>
-      </group>
-      <Limb from={[0, 2.02, 0]} to={[0, 2.26, 0]} radius={0.12} />
-      <group position={[0, 2.36, 0]} rotation={[0, -0.2, 0]}>
-        <mesh scale={[0.2, 0.25, 0.19]} castShadow><sphereGeometry args={[1, 16, 12]} /><meshStandardMaterial color={BRONZE} metalness={0.6} roughness={0.4} /></mesh>
-        <mesh position={[0, 0.1, -0.01]} castShadow><sphereGeometry args={[0.25, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2]} /><meshStandardMaterial color={GOLD} metalness={0.7} roughness={0.35} /></mesh>
-        <mesh position={[0, 0.06, 0.23]}><boxGeometry args={[0.05, 0.2, 0.06]} /><meshStandardMaterial color={GOLD} metalness={0.7} roughness={0.35} /></mesh>
-        {[-1, 1].map((side) => <mesh key={side} position={[side * 0.2, -0.12, 0.06]} rotation={[0, 0, side * -0.2]}><boxGeometry args={[0.05, 0.26, 0.16]} /><meshStandardMaterial color={GOLD} metalness={0.7} roughness={0.35} /></mesh>)}
-        <mesh position={[-0.05, 0.22, 0]} rotation={[0, Math.PI / 2, 0]} castShadow><extrudeGeometry args={[crest, { depth: 0.1, bevelEnabled: false }]} /><meshStandardMaterial color="#5a3d22" metalness={0.5} roughness={0.6} /></mesh>
-      </group>
-    </group>
+    <MapHtml position={[location.x, floorY(location.floor) + 0.08, location.z]} center zIndexRange={[25, 21]}>
+      <button type="button" onClick={onSelect} aria-label={`Current location: ${location.label} · ${floorName(location.floor)}`}
+        className="flex -translate-y-1/2 flex-col items-center rounded-lg outline-offset-2 focus-visible:outline-2 focus-visible:outline-cardinal">
+        <MapPin className="h-8 w-8 fill-gold text-cardinal drop-shadow" />
+        <span className="whitespace-nowrap rounded-full bg-gold px-2 py-0.5 text-[10px] font-bold text-neutral-900 shadow-sm">Current location · {floorName(location.floor)}</span>
+      </button>
+    </MapHtml>
   )
 }
 
 export function TommyTrojanMarker({ location, onGrab }: { location: MapLocation; onGrab: () => void }) {
+  const scale = TOMMY_HEIGHT_METERS / (TOMMY_MODEL_HEIGHT * metersPerUnit(location.building))
   const body = useRef<Group>(null)
-  const fall = useRef({ height: 1.8, velocity: 0 })
+  const fall = useRef({ height: scale * 0.7, velocity: 0 })
   useFrame((_, delta) => {
     const state = fall.current
     const dt = Math.min(delta, 1 / 30)
@@ -94,11 +38,11 @@ export function TommyTrojanMarker({ location, onGrab }: { location: MapLocation;
   })
   return (
     <group position={[location.x, floorY(location.floor) + 0.04, location.z]}>
-      <mesh rotation={[-Math.PI / 2, 0, 0]}><ringGeometry args={[0.63, 0.75, 32]} /><meshBasicMaterial color="#990000" transparent opacity={0.7} depthWrite={false} /></mesh>
-      <group ref={body} onPointerDown={(event) => { event.stopPropagation(); onGrab() }}><TommyTrojanModel /></group>
-      <MapHtml position={[0, 0, 0.6]} center zIndexRange={[25, 21]}>
-        <button onPointerDown={onGrab} onClick={onGrab} aria-label="Move Tommy Trojan to a new current location" className="whitespace-nowrap rounded-full bg-cardinal px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
-          <span role="img" aria-label={`Tommy Trojan · Current location: ${location.label}`}>You are here</span>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} scale={scale}><ringGeometry args={[0.26, 0.3, 32]} /><meshBasicMaterial color="#990000" transparent opacity={0.7} depthWrite={false} /></mesh>
+      <group ref={body} onPointerDown={(event) => { event.stopPropagation(); onGrab() }}><group scale={scale}><TommyTrojanModel /></group></group>
+      <MapHtml position={[0, 0, scale * 0.38]} center zIndexRange={[25, 21]}>
+        <button onPointerDown={onGrab} onClick={onGrab} aria-label="Move Trojan guide to a new current location" className="whitespace-nowrap rounded-full bg-cardinal px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
+          <span role="img" aria-label={`Trojan guide · Current location: ${location.label}`}>You are here</span>
         </button>
       </MapHtml>
     </group>
@@ -106,15 +50,22 @@ export function TommyTrojanMarker({ location, onGrab }: { location: MapLocation;
 }
 
 export function TommyTrojanPlacement({ layout, onDrop }: { layout: FloorLayout; onDrop: (location: MapLocation) => void }) {
+  const scale = TOMMY_HEIGHT_METERS / (TOMMY_MODEL_HEIGHT * metersPerUnit(layout.building))
+  const gripHeight = (TOMMY_NAPE[1] + 0.45) * scale
   const { camera, gl } = useThree()
   const preview = useRef<Group>(null)
   const body = useRef<Group>(null)
   const ring = useRef<Mesh>(null)
-  const pointer = useRef<{ x: number; z: number; valid: boolean } | null>(null)
+  const pointer = useRef<{ x: number; z: number; grabX: number; grabZ: number; valid: boolean } | null>(null)
+  const previousGrip = useRef<{ x: number; z: number } | null>(null)
+  const swing = useRef(createCarrySwing())
+  const gripIcon = useRef<HTMLSpanElement>(null)
   useEffect(() => {
     const ray = new Raycaster()
     const plane = new Plane(new Vector3(0, 1, 0), -floorY(layout.floor))
     const point = new Vector3()
+    const gripPlane = new Plane(new Vector3(0, 1, 0), -(floorY(layout.floor) + 0.05 + gripHeight))
+    const gripPoint = new Vector3()
     const root = gl.domElement.closest('[data-floor-map]')
     function resolve(event: PointerEvent) {
       if (!root?.contains(event.target as Node)) return null
@@ -131,19 +82,21 @@ export function TommyTrojanPlacement({ layout, onDrop }: { layout: FloorLayout; 
       if (entrance) return { building: layout.building, floor: layout.floor, label: `${layout.building} ${entrance.label}`, x: entrance.x, z: entrance.z }
       if (button) return null
       const location = mapLocationAt(layout, point.x, point.z)
-      pointer.current = { x: location?.x ?? point.x, z: location?.z ?? point.z, valid: !!location }
       return location
     }
     const move = (event: PointerEvent) => {
       const location = resolve(event)
       if (!root?.contains(event.target as Node)) pointer.current = null
-      else if (location) pointer.current = { x: location.x, z: location.z, valid: true }
+      else if (ray.ray.intersectPlane(gripPlane, gripPoint)) pointer.current = {
+        x: location?.x ?? point.x, z: location?.z ?? point.z,
+        grabX: gripPoint.x, grabZ: gripPoint.z, valid: !!location,
+      }
     }
     const drop = (event: PointerEvent) => {
       if (event.button !== 0 || event.target !== gl.domElement) return
       const location = resolve(event)
       if (location) {
-        // The release places Tommy; its following click must not select a ghost floor.
+        // The release places the guide; its following click must not select a ghost floor.
         const swallowClick = (click: MouseEvent) => click.stopImmediatePropagation()
         gl.domElement.addEventListener('click', swallowClick, { capture: true, once: true })
         window.setTimeout(() => gl.domElement.removeEventListener('click', swallowClick, true), 500)
@@ -153,25 +106,35 @@ export function TommyTrojanPlacement({ layout, onDrop }: { layout: FloorLayout; 
     window.addEventListener('pointermove', move)
     window.addEventListener('pointerup', drop)
     return () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', drop) }
-  }, [camera, gl, layout, onDrop])
-  useFrame(({ clock }, delta) => {
+  }, [camera, gl, layout, onDrop, gripHeight])
+  useFrame((_, delta) => {
     if (!preview.current) return
     const target = pointer.current
     preview.current.visible = !!target
-    if (!target) return
-    const previousX = preview.current.position.x
+    if (gripIcon.current) gripIcon.current.style.opacity = target ? '1' : '0'
+    if (!target) { previousGrip.current = null; return }
     preview.current.position.set(target.x, floorY(layout.floor) + 0.05, target.z)
     if (body.current) {
-      body.current.position.y = 0.9 + Math.sin(clock.elapsedTime * 4) * 0.08
-      body.current.rotation.z += (Math.max(-0.18, Math.min(0.18, (previousX - target.x) * 0.15)) - body.current.rotation.z) * Math.min(1, delta * 10)
+      // Keep the nape under the pointer; the rest of the suit swings below that pivot.
+      body.current.position.set(target.grabX - target.x, gripHeight, target.grabZ - target.z)
+      const previous = previousGrip.current ?? { x: target.grabX, z: target.grabZ }
+      const dt = Math.max(delta, 1 / 240)
+      advanceCarrySwing(swing.current, (target.grabX - previous.x) / dt, (target.grabZ - previous.z) / dt, delta)
+      body.current.rotation.set(.28 + swing.current.x, swing.current.z * .15, swing.current.z)
+      previousGrip.current = { x: target.grabX, z: target.grabZ }
     }
     if (ring.current) (ring.current.material as MeshBasicMaterial).color.set(target.valid ? '#990000' : '#a3a3a3')
   })
   return (
     <group ref={preview} visible={false}>
-      <mesh ref={ring} rotation={[-Math.PI / 2, 0, 0]}><ringGeometry args={[0.6, 0.78, 32]} /><meshBasicMaterial color="#990000" transparent opacity={0.65} depthWrite={false} /></mesh>
-      <mesh rotation={[-Math.PI / 2, 0, 0]}><circleGeometry args={[0.56, 32]} /><meshBasicMaterial color="#000000" transparent opacity={0.12} depthWrite={false} /></mesh>
-      <group ref={body}><TommyTrojanModel /></group>
+      <mesh ref={ring} rotation={[-Math.PI / 2, 0, 0]} scale={scale}><ringGeometry args={[0.27, 0.34, 32]} /><meshBasicMaterial color="#990000" transparent opacity={0.65} depthWrite={false} /></mesh>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} scale={scale}><circleGeometry args={[0.25, 32]} /><meshBasicMaterial color="#000000" transparent opacity={0.12} depthWrite={false} /></mesh>
+      <group ref={body}>
+        <group scale={scale}><group position={[-TOMMY_NAPE[0], -TOMMY_NAPE[1], -TOMMY_NAPE[2]]}><TommyTrojanModel carried /></group></group>
+        <MapHtml center style={{ pointerEvents: 'none' }} zIndexRange={[30, 26]}>
+          <span ref={gripIcon} aria-hidden="true" style={{ opacity: 0 }} className="block -translate-x-2 -translate-y-2 text-cardinal drop-shadow-sm"><Grab className="h-3 w-3 fill-white" /></span>
+        </MapHtml>
+      </group>
     </group>
   )
 }

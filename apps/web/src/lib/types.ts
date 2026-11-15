@@ -1,6 +1,6 @@
 import type { BuildingCode } from '../data/campus'
 
-export type LayerKey = 'classrooms' | 'events' | 'mensRestrooms' | 'womensRestrooms' | 'accessible' | 'stairs' | 'elevators' | 'exits' | 'entrances'
+export type LayerKey = 'classrooms' | 'events' | 'mensRestrooms' | 'womensRestrooms' | 'accessible' | 'ramps' | 'stairs' | 'elevators' | 'exits' | 'entrances'
 
 export type View = { type: 'campus' } | { type: 'building'; code: BuildingCode; floor: number; allFloors?: boolean }
 
@@ -12,7 +12,7 @@ export interface MapLocation {
   z: number
 }
 
-export const ALL_LAYERS: LayerKey[] = ['classrooms', 'events', 'mensRestrooms', 'womensRestrooms', 'accessible', 'stairs', 'elevators', 'exits', 'entrances']
+export const ALL_LAYERS: LayerKey[] = ['classrooms', 'events', 'mensRestrooms', 'womensRestrooms', 'accessible', 'ramps', 'stairs', 'elevators', 'exits', 'entrances']
 
 export const COLORS = {
   cardinal: '#990000',

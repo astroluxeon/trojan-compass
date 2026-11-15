@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { cellCenter, cellTitle, getLayout } from '../src/data/floorplan'
-import { mapLocationAt } from '../src/lib/map-location'
+import { mapLocationAt, mapLocationFromQuery } from '../src/lib/map-location'
 
 test('Tommy drops snap to rooms and entrances, preserve open areas, and reject invalid points', () => {
   const layout = getLayout('LAW', 1)
@@ -25,4 +25,17 @@ test('Tommy drops snap to rooms and entrances, preserve open areas, and reject i
     }
   }
   assert.ok(openPoint, 'floor has selectable open areas')
+})
+
+test('typed room and building codes resolve to map locations, while unresolved text clears them', () => {
+  const room = getLayout('LAW', 1).cells.find(cell => cell.id === 'LAW-101')!
+  const [x, z] = cellCenter(room)
+  for (const query of ['LAW 101', 'law101', 'LAW-101']) {
+    assert.deepEqual(mapLocationFromQuery(query), { building: 'LAW', floor: 1, label: 'LAW 101', x, z })
+  }
+  assert.equal(mapLocationFromQuery('LAW 2-Lincoln')?.floor, 2)
+  const entrance = getLayout('LAW', 1).entrances.find(entry => entry.entrance && entry.stepFree)!
+  assert.deepEqual(mapLocationFromQuery('law'), { building: 'LAW', floor: 1, label: `LAW ${entrance.label}`, x: entrance.x, z: entrance.z })
+  assert.equal(mapLocationFromQuery('THH 201')?.building, 'THH')
+  for (const query of ['', 'LAW 10', 'XYZ', 'Outside the building', 'custom location']) assert.equal(mapLocationFromQuery(query), null)
 })

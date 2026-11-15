@@ -17,8 +17,9 @@ import type { IndoorLeg } from '../../lib/routing'
 import { COLORS, type LayerKey, type MapLocation } from '../../lib/types'
 import { MapBadge } from './Badge'
 import { RestroomIcon } from './RestroomIcon'
+import { WheelchairIcon } from './WheelchairIcon'
 import { EndPin, RouteLine, StartDot } from './RouteLine'
-import { TommyTrojanMarker, TommyTrojanPlacement } from './TommyTrojan'
+import { CurrentLocationPin, TommyTrojanMarker, TommyTrojanPlacement } from './TommyTrojan'
 
 interface Props {
   code: BuildingCode
@@ -41,7 +42,7 @@ const WALL_H = 0.85
 const WALL_COLOR = '#c9c9ce'
 
 export function BuildingScene(props: Props) {
-  const { code, floor, leg, isFinalLeg } = props
+  const { code, floor, leg, isFinalLeg, currentLocation } = props
   const levels = getLevels(code)
   const routePts = leg?.points.map((p) => [p.x, p.y + 0.35, p.z] as [number, number, number])
   const last = routePts?.at(-1)
@@ -66,8 +67,12 @@ export function BuildingScene(props: Props) {
           />
         ),
       )}
-      {!props.placingCurrentLocation && props.currentLocation?.building === code && (props.allFloors || props.currentLocation.floor === floor) && (
-        <TommyTrojanMarker key={`${props.currentLocation.x}-${props.currentLocation.z}-${props.currentLocation.floor}`} location={props.currentLocation} onGrab={props.onMoveCurrentLocation} />
+      {!props.placingCurrentLocation && currentLocation?.building === code && (
+        props.allFloors || currentLocation.floor === floor ? (
+          <TommyTrojanMarker key={`${currentLocation.x}-${currentLocation.z}-${currentLocation.floor}`} location={currentLocation} onGrab={props.onMoveCurrentLocation} />
+        ) : (
+          <CurrentLocationPin location={currentLocation} onSelect={() => props.onSelectFloor(currentLocation.floor)} />
+        )
       )}
       {props.placingCurrentLocation && props.onSelectLocation && (
         <TommyTrojanPlacement layout={getLayout(code, floor)} onDrop={props.onSelectLocation} />
@@ -146,20 +151,20 @@ function GhostFloor({ code, floor, above, inRoute, interactive, onClick }: { cod
   )
 }
 
-function Wall({ from, to, thick = 0.12 }: { from: [number, number]; to: [number, number]; thick?: number }) {
+function Wall({ from, to, thick = 0.12, color = WALL_COLOR }: { from: [number, number]; to: [number, number]; thick?: number; color?: string }) {
   const len = Math.hypot(to[0] - from[0], to[1] - from[1])
   if (len < 0.05) return null
   const horizontal = Math.abs(to[1] - from[1]) < 1e-6
   return (
     <mesh position={[(from[0] + to[0]) / 2, WALL_H / 2, (from[1] + to[1]) / 2]} castShadow receiveShadow>
       <boxGeometry args={horizontal ? [len + thick, WALL_H, thick] : [thick, WALL_H, len + thick]} />
-      <meshStandardMaterial color={WALL_COLOR} roughness={0.9} />
+      <meshStandardMaterial color={color} roughness={0.9} polygonOffset={color === COLORS.gold} polygonOffsetFactor={-1} polygonOffsetUnits={-1} />
     </mesh>
   )
 }
 
 /** Four walls around a cell, leaving a door gap on the side that holds the door point. */
-function CellWalls({ c }: { c: Cell }) {
+function CellWalls({ c, color }: { c: Cell; color?: string }) {
   const { x0, x1, z0, z1 } = c
   const [dx, dz] = c.door
   const gap = Math.min(c.kind === 'elevator' ? 1.6 : 1.1, Math.min(x1 - x0, z1 - z0) * 0.6)
@@ -173,18 +178,18 @@ function CellWalls({ c }: { c: Cell }) {
   return (
     <>
       {sides.map((s, i) => {
-        if (!s.door) return <Wall key={i} from={s.a} to={s.b} />
+        if (!s.door) return <Wall key={i} from={s.a} to={s.b} color={color} />
         if (s.along === 'x')
           return (
             <group key={i}>
-              <Wall from={s.a} to={[dx - gap / 2, s.a[1]]} />
-              <Wall from={[dx + gap / 2, s.a[1]]} to={s.b} />
+              <Wall from={s.a} to={[dx - gap / 2, s.a[1]]} color={color} />
+              <Wall from={[dx + gap / 2, s.a[1]]} to={s.b} color={color} />
             </group>
           )
         return (
           <group key={i}>
-            <Wall from={s.a} to={[s.a[0], dz - gap / 2]} />
-            <Wall from={[s.a[0], dz + gap / 2]} to={s.b} />
+            <Wall from={s.a} to={[s.a[0], dz - gap / 2]} color={color} />
+            <Wall from={[s.a[0], dz + gap / 2]} to={s.b} color={color} />
           </group>
         )
       })}
@@ -263,7 +268,7 @@ function ActiveFloor({ code, floor, layers, highlights, selectedCell, onSelectCe
               <planeGeometry args={[w, d]} />
               <meshStandardMaterial color={color} transparent={!!hl && !selected} opacity={hl && !selected ? (c.open ? 0.45 : 0.85) : 1} />
             </mesh>
-            {!c.open && <CellWalls c={c} />}
+            {!c.open && <CellWalls c={c} color={selected ? COLORS.gold : undefined} />}
             {c.kind === 'stairs' && <Stairs c={c} />}
             {c.kind === 'elevator' && (
               <mesh position={[cx, 0.6, cz]} castShadow>
@@ -362,7 +367,7 @@ function FloorMarkers({
       if (layers.has('accessible')) badges.push(<MapBadge key="a" color={COLORS.accessible} title="Accessible restroom"><Accessibility className={icon} /></MapBadge>)
     }
     if (c.kind === 'elevator') {
-      if (layers.has('elevators')) badges.push(<MapBadge key="e" color="#3f3f46" title={c.name}><ArrowUpDown className={icon} /></MapBadge>)
+      if (layers.has('elevators')) badges.push(<MapBadge key="e" color={COLORS.accessible} title={c.name}><ArrowUpDown className={icon} /></MapBadge>)
       if (layers.has('accessible')) badges.push(<MapBadge key="a" color={COLORS.accessible} title="Step-free access"><Accessibility className={icon} /></MapBadge>)
     }
     if (c.kind === 'stairs') {
@@ -373,6 +378,7 @@ function FloorMarkers({
   }
   for (const e of layout.entrances) {
     const b: ReactNode[] = []
+    if (layers.has('ramps') && e.ramp) b.push(<MapBadge key="r" color={COLORS.accessible} title={`Wheelchair ramp · ${e.label}`}><WheelchairIcon className={icon} /></MapBadge>)
     if (layers.has(e.entrance ? 'entrances' : 'exits') || onSelectLocation) b.push(<MapBadge key="x" color={e.entrance ? COLORS.entrance : COLORS.exit} title={e.label}><DoorOpen className={icon} /></MapBadge>)
     if (layers.has('accessible') && e.stepFree) b.push(<MapBadge key="a" color={COLORS.accessible} title="Step-free entrance"><Accessibility className={icon} /></MapBadge>)
     if (layers.has('accessible') && !e.stepFree) b.push(<MapBadge key="w" color="#B45309" title="Steps at this entrance"><TriangleAlert className={icon} /></MapBadge>)

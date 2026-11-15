@@ -1,9 +1,10 @@
 import { CameraControls } from '@react-three/drei'
-import { Canvas } from '@react-three/fiber'
+import { Canvas, useThree } from '@react-three/fiber'
 import { useEffect, useRef } from 'react'
 import type { BuildingCode } from '../../data/campus'
-import { floorY, getLevels, planBounds, type Cell } from '../../data/floorplan'
+import type { Cell } from '../../data/floorplan'
 import type { Route } from '../../lib/routing'
+import { buildingFrame, roomFacingAngle } from '../../lib/map-camera'
 import type { LayerKey, MapLocation, View } from '../../lib/types'
 import { BuildingScene } from './BuildingScene'
 import { LabelLayerContext } from './MapHtml'
@@ -24,20 +25,16 @@ interface Props {
   onSelectFloor: (floor: number) => void
 }
 
-function frame(controls: CameraControls, view: View, animate = true) {
+function frame(controls: CameraControls, view: View, animate = true, selectedCell?: string, aspect = 1, fov = 32) {
+  controls.maxDistance = 160
   if (view.type === 'campus') {
     controls.setLookAt(40, 62, 70, 0, 0, 3, animate)
   } else {
-    const levels = getLevels(view.code)
-    const bottom = floorY(levels[0] ?? 1)
-    const top = floorY(levels.at(-1) ?? 1)
-    const y = view.allFloors ? (bottom + top) / 2 : floorY(view.floor)
-    const b = planBounds(view.code)
-    const cx = (b.x0 + b.x1) / 2
-    const cz = (b.z0 + b.z1) / 2
-    // Scale the camera distance to the floor plan size (template plan is 24 x 12).
-    const k = Math.max((b.x1 - b.x0) / 25, (b.z1 - b.z0) / 13, view.allFloors ? (top - bottom) / 12 : 0)
-    controls.setLookAt(cx + 4 * k, y + 31 * k, cz + 33 * k, cx, y - 1, cz + 1, animate)
+    const initialAngle = view.allFloors ? 0.08 : Math.atan2(4, 33)
+    const azimuth = roomFacingAngle(view.code, selectedCell, animate ? controls.azimuthAngle : initialAngle)
+    const fitted = buildingFrame(view.code, aspect, fov, azimuth, view.allFloors ? 1.18 : Math.atan2(33, 32), view.allFloors ? undefined : view.floor)
+    controls.maxDistance = Math.max(160, fitted.distance * 1.5)
+    controls.setLookAt(...fitted.position.toArray(), ...fitted.target.toArray(), animate)
   }
 }
 
@@ -111,7 +108,7 @@ export function MapCanvas(props: Props) {
           maxPolarAngle={Math.PI / 2.3}
           smoothTime={0.45}
         />
-        <CameraRig view={view} controls={controls} />
+        <CameraRig view={view} controls={controls} selectedCell={props.selectedCell} />
       </Canvas>
       </LabelLayerContext.Provider>
       {/* Labels opt back into pointer events individually, so the layer never blocks the canvas. */}
@@ -122,14 +119,17 @@ export function MapCanvas(props: Props) {
 }
 
 /** Lives inside the Canvas so the CameraControls ref is attached before framing. */
-function CameraRig({ view, controls }: { view: View; controls: React.RefObject<CameraControls | null> }) {
+function CameraRig({ view, controls, selectedCell }: { view: View; controls: React.RefObject<CameraControls | null>; selectedCell?: string }) {
   const first = useRef(true)
+  const size = useThree((state) => state.size)
+  const camera = useThree((state) => state.camera)
+  const focusView = view.type === 'building' && selectedCell ? view : null
   const viewKey = view.type === 'campus' ? 'campus' : `${view.code}-${view.allFloors ? 'all' : view.floor}`
   useEffect(() => {
     if (!controls.current) return
-    frame(controls.current, view, !first.current)
+    frame(controls.current, view, !first.current, selectedCell, size.width / size.height, 'fov' in camera ? Number(camera.fov) : 32)
     first.current = false
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [viewKey])
+  }, [viewKey, focusView, selectedCell, size.width, size.height])
   return null
 }

@@ -1,29 +1,41 @@
 import {
-  Accessibility,
   ArrowUpDown,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
   DoorOpen,
   Footprints,
+  Flag,
   Layers,
+  LogOut,
   MapPin,
+  TreePine,
   X,
 } from 'lucide-react'
 import { useEffect, useState, type ComponentType } from 'react'
 import { BUILDING_BY_CODE } from '../../data/campus'
 import { floorName, floorShort } from '../../data/floorplan'
-import type { Route } from '../../lib/routing'
+import type { Route, StepIcon } from '../../lib/routing'
 import { COLORS, type LayerKey, type View } from '../../lib/types'
-import { STEP_ICONS } from './Directions'
 import { RestroomIcon } from '../map/RestroomIcon'
+import { WheelchairIcon } from '../map/WheelchairIcon'
+
+const STEP_ICONS: Record<StepIcon, typeof DoorOpen> = {
+  start: DoorOpen,
+  walk: Footprints,
+  stairs: Footprints,
+  elevator: ArrowUpDown,
+  arrive: Flag,
+  outdoor: TreePine,
+  exit: LogOut,
+}
 
 const LAYER_META: { key: LayerKey; label: string; icon: ComponentType<{ className?: string }>; color: string }[] = [
   { key: 'classrooms', label: 'Classrooms', icon: MapPin, color: '#262626' },
   { key: 'mensRestrooms', label: 'Men’s restrooms', icon: (props) => <RestroomIcon {...props} men />, color: COLORS.restroom },
   { key: 'womensRestrooms', label: 'Women’s restrooms', icon: (props) => <RestroomIcon {...props} women />, color: COLORS.restroom },
-  { key: 'accessible', label: 'Accessible paths', icon: Accessibility, color: COLORS.accessible },
-  { key: 'elevators', label: 'Elevators', icon: ArrowUpDown, color: '#3f3f46' },
+  { key: 'ramps', label: 'Wheelchair ramps', icon: WheelchairIcon, color: COLORS.accessible },
+  { key: 'elevators', label: 'Elevators', icon: ArrowUpDown, color: COLORS.accessible },
   { key: 'stairs', label: 'Stairs', icon: Footprints, color: '#3f3f46' },
   { key: 'entrances', label: 'Entrances', icon: DoorOpen, color: COLORS.entrance },
   { key: 'exits', label: 'Emergency exits', icon: DoorOpen, color: COLORS.exit },
@@ -73,6 +85,7 @@ export function FloorSelector({
   floor,
   allFloors,
   routeFloors,
+  currentFloor,
   onSelect,
   onSelectAll,
 }: {
@@ -80,6 +93,7 @@ export function FloorSelector({
   floor: number
   allFloors?: boolean
   routeFloors: number[]
+  currentFloor?: number
   onSelect: (f: number) => void
   onSelectAll: () => void
 }) {
@@ -98,13 +112,15 @@ export function FloorSelector({
         <button
           key={f}
           onClick={() => onSelect(f)}
-          aria-label={floorName(f)}
+          aria-label={`${floorName(f)}${f === currentFloor ? ' · Current location' : ''}`}
+          title={f === currentFloor ? `${floorName(f)} · Current location` : floorName(f)}
           aria-pressed={!allFloors && f === floor}
           className={`relative grid h-9 w-9 place-items-center rounded-lg text-[14px] font-bold transition ${
-            !allFloors && f === floor ? 'bg-cardinal text-white' : 'text-neutral-600 hover:bg-neutral-100'
-          }`}
+            !allFloors && f === floor ? 'bg-cardinal text-white' : f === currentFloor ? 'bg-gold/20 text-cardinal hover:bg-gold/30' : 'text-neutral-600 hover:bg-neutral-100'
+          } ${f === currentFloor ? 'ring-2 ring-inset ring-gold' : ''}`}
         >
           {floorShort(f)}
+          {f === currentFloor && <span className="absolute right-full mr-2 whitespace-nowrap rounded-full bg-gold px-2 py-1 text-[10px] font-bold text-neutral-900 shadow-sm">Current location</span>}
           {routeFloors.includes(f) && f !== floor && <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-cardinal" />}
         </button>
       ))}

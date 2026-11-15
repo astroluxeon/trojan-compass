@@ -346,7 +346,12 @@ export function computeRoute(from: Place, to: Place, mode: RouteMode): Route | n
   }
   const doorFor = (code: BuildingCode) => (mode === 'elevator' ? accessibleEntrancePlace(code) : entrancePlace(code)).node
 
-  if (from.building === to.building) {
+  if (from.building === to.building && from.node === to.node) {
+    const path = shortestPath(from.building, from.node, to.node, mode)
+    if (!path.length) return null
+    steps.push({ icon: 'arrive', text: `You are already at ${to.label}.`, building: to.building, floor: to.floor })
+    legs.push(toLeg(to.building, path))
+  } else if (from.building === to.building) {
     if (!indoor(from.building, from.node, to.node)) return null
   } else {
     const entA = from.kind === 'entrance' ? from.node : doorFor(from.building)
@@ -374,6 +379,13 @@ export function computeRoute(from: Place, to: Place, mode: RouteMode): Route | n
 
 export function formatDuration(seconds: number) {
   return `${Math.max(1, Math.round(seconds / 60))} min`
+}
+
+export function isStepFreePlace(place: Place): boolean {
+  const entrance = accessibleEntrancePlace(place.building)
+  if (!isStepFreeEntrance(entrance.node)) return false
+  const route = computeRoute(entrance, place, 'elevator')
+  return !!route && !route.usesStairs && !route.entranceSteps
 }
 
 export { floorName }

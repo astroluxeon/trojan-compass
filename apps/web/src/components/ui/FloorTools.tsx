@@ -1,5 +1,7 @@
-import { ChevronDown, ChevronRight, MapPin, MessageCircle, Route, Search, Send, Sparkles, X } from 'lucide-react'
+import { Accessibility, ArrowUpDown, ChevronDown, ChevronRight, Footprints, MapPin, MessageCircle, Route, Search, Send, Sparkles, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import type { RouteMode } from '../../lib/routing'
+import { LocationAutocomplete } from './LocationAutocomplete'
 
 const TOOLS = [
   { id: 'search', label: 'Search', description: 'Find a building or room', icon: Search },
@@ -23,6 +25,8 @@ export function FloorTools({ locations, onLocationChange, picking, onPick, onSea
   const [width, setWidth] = useState(336)
   const drag = useRef<{ x: number; width: number } | null>(null)
   const [query, setQuery] = useState('')
+  const [travelMode, setTravelMode] = useState<RouteMode>('stairs')
+  const [accessibleOnly, setAccessibleOnly] = useState(false)
   const lastPick = useRef<LocationField | null>(null)
   const [draft, setDraft] = useState('')
   const [messages, setMessages] = useState<{ role: 'assistant' | 'user'; text: string }[]>([
@@ -56,9 +60,15 @@ export function FloorTools({ locations, onLocationChange, picking, onPick, onSea
     conversation.current?.scrollTo({ top: conversation.current.scrollHeight })
   }, [messages, active])
 
+  function selectTool(next: Tool | null) {
+    if (active === 'directions' && next !== 'directions') onLocationChange('from', '')
+    onPick(null)
+    lastPick.current = null
+    setActive(next)
+  }
+
   function close() {
-    if (picking) { onPick(null); return }
-    setActive(null)
+    selectTool(null)
     if (menu.current) menu.current.open = false
     menu.current?.querySelector('summary')?.focus()
   }
@@ -75,8 +85,7 @@ export function FloorTools({ locations, onLocationChange, picking, onPick, onSea
           {TOOLS.map(({ id, label, description, icon: Icon }) => (
             <button key={id} aria-controls="floor-tools-sidebar" aria-expanded={active === id}
               onClick={() => {
-                setActive(id)
-                onPick(null)
+                selectTool(id)
                 setNotice('')
                 if (menu.current) menu.current.open = false
                 if (active === id) sidebar.current?.querySelector<HTMLInputElement | HTMLTextAreaElement>('input, textarea')?.focus()
@@ -129,28 +138,40 @@ export function FloorTools({ locations, onLocationChange, picking, onPick, onSea
                 setNotice(onSearch(query) ? '' : 'No matching building or room. Try LAW 101 or THH 201.')
               }}>
                 <p className="text-[13px] leading-relaxed text-neutral-500">Find your next class, meeting, or study spot.</p>
-                <label className="block text-[12px] font-semibold text-neutral-700">Building and room code<input value={query} onChange={(event) => { setQuery(event.target.value); setNotice('') }} placeholder="e.g. LAW 101" autoComplete="off" required className={INPUT} /></label>
+                <div>
+                  <label htmlFor="room-search" className="block text-[12px] font-semibold text-neutral-700">Building and room code</label>
+                  <LocationAutocomplete id="room-search" value={query} onChange={(value) => { setQuery(value); setNotice('') }} placeholder="e.g. LAW 101" required className={INPUT} />
+                </div>
                 <button className={ACTION}><Search className="h-4 w-4" /> Search rooms</button>
               </form>
             )}
             {active === 'directions' && (
               <form className="space-y-4" onSubmit={(event) => { event.preventDefault(); setNotice('Route planning is coming soon. Your locations are ready to try.') }}>
-                <p className="text-[13px] leading-relaxed text-neutral-500">Where are you headed?</p>
+                <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-neutral-200 p-3">
+                  <input type="checkbox" checked={accessibleOnly} onChange={(event) => {
+                    setAccessibleOnly(event.target.checked)
+                    if (event.target.checked) setTravelMode('elevator')
+                  }} className="h-4 w-4 shrink-0 accent-cardinal" />
+                  <Accessibility className="h-4 w-4 shrink-0 text-cardinal" />
+                  <span><span className="block text-[13px] font-semibold">Accessibility</span><span className="block text-[12px] text-neutral-500">Step-free entrances and elevator access</span></span>
+                </label>
                 {picking && (
                   <div role="status" className="rounded-lg bg-cardinal-50 p-3 text-[12px] text-cardinal">
                     <p className="font-bold">Select {picking === 'from' ? 'current location' : 'destination'}</p>
-                    <p className="mt-1">{picking === 'from' ? 'Carry Tommy over a room, entrance, or open floor area. Release or click to put him down.' : 'Click a room, entrance, or open floor area on the map.'} You can change floors first.</p>
+                    <p className="mt-1">{picking === 'from' ? 'Carry the Trojan guide over a room, entrance, or open floor area. Release or click to put him down.' : 'Click a room, entrance, or open floor area on the map.'} You can change floors first.</p>
                     <button type="button" onClick={() => onPick(null)} className="mt-2 rounded px-2 py-1 font-semibold hover:bg-white">Cancel</button>
                   </div>
                 )}
                 {([
-                  { field: 'from', label: 'Current location', placeholder: 'e.g. LAW 101 or main entrance' },
+                  { field: 'from', label: 'Current location', placeholder: 'e.g. LAW 101 or OUTSIDE' },
                   { field: 'to', label: 'Destination', placeholder: 'e.g. TCC 201' },
                 ] as const).map(({ field, label, placeholder }) => (
                   <div key={field}>
                     <label htmlFor={`directions-${field}`} className="block text-[12px] font-semibold text-neutral-700">{label}</label>
                     <div className="relative mt-1.5">
-                      <input id={`directions-${field}`} value={locations[field]} onChange={(event) => onLocationChange(field, event.target.value)} placeholder={placeholder} className={`${INPUT} mt-0 pr-11`} />
+                      <LocationAutocomplete id={`directions-${field}`} value={locations[field]} includeOutside={field === 'from'} accessibleOnly={accessibleOnly}
+                        onChange={(value) => { onLocationChange(field, value); onPick(null) }} placeholder={placeholder}
+                        aria-describedby={field === 'from' ? 'current-location-hint' : undefined} className={`${INPUT} mt-0 pr-11`} />
                       <button type="button" aria-pressed={picking === field} aria-label={`Select ${label.toLowerCase()} on map`} title={`Select ${label.toLowerCase()} on map`}
                         onPointerDown={field === 'from' ? (event) => {
                           if (event.button !== 0 || event.pointerType !== 'mouse' || window.matchMedia('(max-width: 767px)').matches) return
@@ -162,8 +183,23 @@ export function FloorTools({ locations, onLocationChange, picking, onPick, onSea
                         onClick={() => { lastPick.current = field; onPick(field); setNotice('') }}
                         className={`absolute inset-y-1 right-1 grid w-9 touch-none place-items-center rounded-md text-cardinal transition hover:bg-cardinal-50 focus-visible:outline-2 focus-visible:outline-cardinal ${picking === field ? 'bg-cardinal-50 ring-1 ring-cardinal/30' : ''}`}><MapPin className="h-4 w-4" /></button>
                     </div>
+                    {field === 'from' && <p id="current-location-hint" className="mt-1.5 text-[12px] leading-relaxed text-neutral-500">Outside? Type “outside” or choose “Outside the building” to start at an entrance.</p>}
                   </div>
                 ))}
+                <fieldset>
+                  <legend className="mb-1.5 text-[12px] font-semibold text-neutral-700">Travel between floors</legend>
+                  <div className="grid grid-cols-2 gap-2">
+                    {([
+                      { value: 'stairs', label: 'Stairs', icon: Footprints },
+                      { value: 'elevator', label: 'Elevators', icon: ArrowUpDown },
+                    ] as const).map(({ value, label, icon: Icon }) => (
+                      <label key={value} className={`flex cursor-pointer items-center justify-center gap-2 rounded-lg border px-3 py-2.5 text-[13px] font-semibold transition focus-within:ring-2 focus-within:ring-cardinal/30 ${travelMode === value ? 'border-cardinal bg-cardinal-50 text-cardinal' : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50'} ${accessibleOnly && value === 'stairs' ? 'cursor-not-allowed opacity-40' : ''}`}>
+                        <input type="radio" name="directions-travel-mode" value={value} checked={travelMode === value} disabled={accessibleOnly && value === 'stairs'} onChange={() => setTravelMode(value)} className="sr-only" />
+                        <Icon className="h-4 w-4" />{label}
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
                 <button className={ACTION}><MapPin className="h-4 w-4" /> Get directions</button>
               </form>
             )}

@@ -36,6 +36,7 @@ export interface Entrance {
   z: number
   label: string
   stepFree: boolean
+  ramp?: boolean
   /** False for exit-only doors. */
   entrance: boolean
 }
@@ -231,7 +232,7 @@ function lawLayout(floor: number): FloorLayout {
   }
   const entrances: Entrance[] = (spec.entrances ?? []).map((e) => {
     const [x, z] = toScene(e.at[0], e.at[1])
-    return { id: `LAW:${floor}:${e.id}`, x, z, label: e.label, stepFree: e.stepFree, entrance: e.entrance }
+    return { id: `LAW:${floor}:${e.id}`, x, z, label: e.label, stepFree: e.stepFree, ramp: e.ramp, entrance: e.entrance }
   })
   return { building, floor, cells, slabs: spec.slabs.map(rectToScene), walkNodes: [...nodes.values()], walkEdges: edges, entrances }
 }
@@ -349,16 +350,16 @@ export function getBuildingPlaces(building: BuildingCode): Place[] {
 }
 
 export function findPlace(id: string): Place | undefined {
-  const code = id.slice(0, 3) as BuildingCode
+  const code = id.slice(0, 3).toUpperCase() as BuildingCode
   if (!BUILDING_BY_CODE[code]) return undefined
-  return getBuildingPlaces(code).find((p) => p.id === id)
+  return getBuildingPlaces(code).find((p) => p.id.toLowerCase() === id.toLowerCase())
 }
 
 export function findRoom(query: string): Place | undefined {
   const compact = query.toUpperCase().replace(/[\s-]+/g, '')
   const code = compact.slice(0, 3) as BuildingCode
   if (!BUILDING_BY_CODE[code]) return undefined
-  return getBuildingPlaces(code).find((place) => place.kind === 'room' && place.id.replace(/-/g, '') === compact)
+  return getBuildingPlaces(code).find((place) => place.kind === 'room' && place.id.toUpperCase().replace(/-/g, '') === compact)
 }
 
 export function findCell(id: string): Cell | undefined {

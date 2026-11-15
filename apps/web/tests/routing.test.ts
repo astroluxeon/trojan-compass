@@ -34,3 +34,20 @@ test('cross-building demo route includes an outdoor leg', () => {
   assert.ok(route.legs.some(leg => leg.kind === 'outdoor'))
   assert.equal(route.usesStairs, false)
 })
+
+test('routes to the same place have an arrival step and a point on the correct floor', () => {
+  for (const place of getBuildingPlaces('LAW')) {
+    const route = computeRoute(place, place, 'fastest')!
+    assert.ok(route)
+    assert.equal(route.steps.length, 1)
+    assert.equal(route.steps[0]?.icon, 'arrive')
+    assert.equal(route.steps[0]?.building, place.building)
+    assert.equal(route.steps[0]?.floor, place.floor)
+    assert.equal(route.legs[0]?.kind, 'indoor')
+    assert.equal(route.meters, 0)
+    assert.equal(route.seconds, 0)
+  }
+  const room = findPlace('LAW-101')!
+  const invalid = { ...room, node: 'missing' }
+  assert.equal(computeRoute(invalid, invalid, 'fastest'), null)
+})
