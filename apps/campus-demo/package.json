@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "python -m http.server 3001 --bind 127.0.0.1 --directory .",
+    "dev": "python -m http.server 3001 --bind :: --directory .",
     "test": "node --test map-data.test.mjs"
   }
 }

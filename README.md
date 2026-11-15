@@ -29,6 +29,12 @@ npm run dev:demo
 The demo runs both frontend sites. The optional API starts separately with
 `npm run dev:api`; its health endpoint is <http://127.0.0.1:4000/api/health>.
 
+Keep `npm run dev:demo` running while using the demo. Stop any separately running
+`dev:web` or `dev:campus` process before starting it to avoid port conflicts.
+Opening port 3000 without a building redirects to the campus map on port 3001,
+so both sites must be running. The campus server accepts IPv4 and IPv6 localhost
+connections; the interior server stays on port 3000.
+
 Defaults work without environment files. To customize, copy
 `apps/web/.env.example` to `apps/web/.env.local` and
 `apps/api/.env.example` to `apps/api/.env`. Restart the affected process after
