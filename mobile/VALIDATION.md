@@ -1,3 +1,7 @@
+> Historical validation from the original Swift branch, before the repository migration.
+> Current integration checks and limitations are recorded in [the integration review](../docs/mobile-integration.md).
+> Earlier compilation and UI results below do not validate the merged application.
+
 # Validation — November 14, 2026
 
 ## Current default: original website replica

@@ -19,4 +19,19 @@ final class ReplicaTests: XCTestCase {
         XCTAssertEqual(url.path, "/campus/index.html")
         XCTAssertNil(url.query)
     }
+    @MainActor
+    func testAPITransportPreservesContractAndRejectsOtherOrigins() throws {
+        let base = URL(string: "https://compass.test/api")!
+        let request = try ReplicaController.apiRequest(["path": "/api/routes?dataVersion=v1",
+            "method": "POST", "body": "{\"from\":{\"buildingId\":\"LAW\"}}"], baseURL: base)
+        XCTAssertEqual(request.url?.absoluteString, "https://compass.test/api/routes?dataVersion=v1")
+        XCTAssertEqual(request.httpMethod, "POST")
+        XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), "application/json")
+        XCTAssertEqual(String(data: try XCTUnwrap(request.httpBody), encoding: .utf8), "{\"from\":{\"buildingId\":\"LAW\"}}")
+        for path in ["https://other.test/api/routes", "//other.test/api/routes", "/api/../private", "/api/%2e%2e/private"] {
+            XCTAssertThrowsError(try ReplicaController.apiRequest(["path": path, "method": "GET"], baseURL: base))
+        }
+        XCTAssertThrowsError(try ReplicaController.apiRequest(["path": "/api/routes", "method": "DELETE"], baseURL: base))
+        XCTAssertEqual(ReplicaController.bundledURL(for: URL(string: "compass-web://bundle/")!)?.path, "/campus/index.html")
+    }
 }

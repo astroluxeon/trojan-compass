@@ -142,6 +142,9 @@ extension CompassStore {
             if let route {
                 payload["route"] = ["legs": route.legs.compactMap { leg -> [String: Any]? in
                     if case .indoor(let l) = leg { return ["id": l.id, "kind": l.kind, "buildingId": l.buildingId, "floorId": l.floorId, "points": l.points.map(point)] }
+                    if case .vertical(let l) = leg { return ["id": l.id, "kind": l.kind, "buildingId": l.buildingId,
+                        "fromFloorId": l.fromFloorId, "toFloorId": l.toFloorId, "connectorKind": l.connectorKind,
+                        "connectorId": l.connectorId, "points": l.points.map(point)] }
                     return nil
                 }]
             }

@@ -77,7 +77,7 @@ for ident, way in sorted(ways.items(), key=lambda item: int(item[0])):
         roads.append({'id': ident + (f'-{index}' if index else ''),
                       'name': tags.get('name', ''), 'kind': kind, 'points': line})
 
-target = ROOT / 'apps/campus-demo/surrounding-roads.json'
+target = ROOT / 'demos/usc-map/surrounding-roads.json'
 target.write_text(json.dumps({
     'source': 'OpenStreetMap contributors', 'license': 'ODbL 1.0',
     'sourceURL': 'https://www.openstreetmap.org/copyright',

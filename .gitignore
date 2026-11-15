@@ -24,6 +24,11 @@ coverage/
 !.env.example
 .DS_Store
 
+### Derived routing and mobile local state ###
+server/.cache/
+mobile/**/DerivedData/
+mobile/**/xcuserdata/
+
 ### Swift / Xcode ###
 .build/
 .swiftpm/

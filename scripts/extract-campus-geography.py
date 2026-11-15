@@ -12,7 +12,7 @@ import sys
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
-TARGET = ROOT / 'apps/campus-demo/campus-geography.json'
+TARGET = ROOT / 'demos/usc-map/campus-geography.json'
 geo = json.loads(TARGET.read_text())
 xml = ET.parse(sys.argv[1]).getroot()
 nodes = {n.get('id'): [float(n.get('lat')), float(n.get('lon'))] for n in xml.findall('node')}

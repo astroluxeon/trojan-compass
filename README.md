@@ -1,141 +1,60 @@
 # Trojan Compass
 
-A hackathon project to help USC first years and transfer students find unfamiliar
-classrooms, club meetings, campus events, and exams through a 3D building map.
-Planned features include toilets, stairs, elevators, accessible paths, highlighted
-doors/entrances, emergency exit markers, and an AI navigation assistant.
+USC building exploration with one Express/TypeScript backend for Next.js web and an embedded Swift iPhone client. The existing Three.js viewer, camera controls, floor selection, guide animation, campus demo and saved room links are retained.
 
-## Stack
+## Run
 
-- **Web:** Next.js App Router, React, TypeScript.
-- **3D:** Three.js, React Three Fiber, and Drei installed for the future viewer.
-- **API:** Node.js, Express, TypeScript.
-- **Workspace:** npm workspaces with shared TypeScript contracts.
-
-Next.js provides the React build tooling, so this workspace does not need Vite.
-
-## Get started
-
-Use Node.js 22.9 or later, npm, and Python 3. From the repository root:
+Use Node.js 22.9 or later and npm. The optional saved campus demo also needs Python 3.
 
 ```sh
 npm install
-npm run dev:demo
+npm run dev           # web :3000 and API :4000
+npm run dev:demo      # also starts saved campus demo :3001
 ```
 
-- Campus map: <http://localhost:3001>
-- Building interiors: <http://localhost:3000/?building=LAW&floor=1>
+Open http://localhost:3000/?building=LAW&floor=1. Search `LAW 101`, calculate directions from `LAW 101` to `LAW 107`, or configure AI below and ask chat `Show LAW 101` and `Route from LAW 101 to LAW 107`.
 
-The demo runs both frontend sites. The optional API starts separately with
-`npm run dev:api`; its health endpoint is <http://127.0.0.1:4000/api/health>.
+Copy `server/.env.example` to `server/.env` and `web/.env.example` to `web/.env.local` when changing addresses. Restart after changes. Public API and viewer URLs must be reachable from the consuming device. The web proxy uses `API_BASE_URL`; iPhone uses `COMPASS_VIEWER_URL` in Xcode. Never publish provider credentials in a frontend environment variable.
 
-Defaults work without environment files. To customize, copy
-`apps/web/.env.example` to `apps/web/.env.local` and
-`apps/api/.env.example` to `apps/api/.env`. Restart the affected process after
-changing environment variables. Keep the web API address aligned with the API port.
+## Implemented behavior
+
+The backend serves directory, building, floor, place and procedural scene reads; normalized building/place search; versioned indoor routes with geometry and instructions; and chat clarification and structured actions. HTTP input and output are validated against the agreed OpenAPI schema. Dataset responses include their snapshot, pagination and stable ETags. Errors use the shared envelope.
+
+The web loads prepared geometry from that backend and executes the same actions as the mobile viewer. It does not perform search ranking or pathfinding. Scene changes are staged before committing; failed requests preserve the previous map and drafts. The legacy generated browser datasets and search/pathfinding copies have been removed.
+
+Chat is disabled until `AI_PROVIDER=openai`, `OPENAI_API_KEY` and `OPENAI_MODEL` are configured in the server environment. The provider uses a strict intent schema; our search and routing services resolve all records and paths. With AI disabled, the API returns an explicit `FEATURE_DISABLED` error and the chat draft is preserved. Provider behavior is tested with injected responses; live model quality requires a configured provider. See [backend setup](docs/backend-guide.md).
+
+## Data and scope
+
+`server/data/snapshots/current.json` selects the active snapshot, currently `usc-interiors-2026-11-14`. The original `usc-demo-2026-11-14` baseline is retained. Both contain nine buildings: LAW is traced from the existing Gould plan, while the new snapshot adds inferred reconstructions for the other interiors. Horizontal scales are estimated (LAW 2.4 meters per old scene unit; other interiors 2), and floor spacing is assumed to be 3.4 meters. Geometry, place coordinates and route points use building-local meters with Y up.
+
+These are unverified illustrative routes. Accessibility remains unknown; step-free requests fail explicitly rather than falling back to stairs. Cross-building routes fail with `OUTDOOR_NETWORK_UNAVAILABLE` because no authoritative outdoor network is supplied. Events and image input are disabled; graph inspection is off by default. There are no accounts or public editing. [Integration review](docs/integration-review.md) lists the five known LAW destination/mode gaps and the regression coverage.
+
+## Repository
+
+- `web/`: Next.js client, existing renderer and feature panels.
+- `mobile/`: SwiftUI/WKWebView iPhone project, shared fixture decoders and Mac verification instructions.
+- `server/`: HTTP modules, snapshot repository, search, graph construction, routing and chat.
+- `shared/contracts/`: authoritative OpenAPI YAML and generated equivalent JSON.
+- `shared/typescript/`: generated compile-time wire models; runtime validation stays on the server.
+- `shared/fixtures/`: synthetic contract examples, separate from published demo snapshots.
+- `docs/`: architecture, ownership, decisions, migration and verification.
+- `demos/usc-map/`: retained saved USC campus map.
+- `scripts/`: contract generation and existing asset tooling.
+
+Package names remain `@trojan-compass/web`, `@trojan-compass/api` and `@trojan-compass/shared`. Mobile is not an npm workspace.
+
+## Checks
 
 ```sh
-npm run dev:web       # frontend only
-npm run dev:api       # backend only
-npm test              # frontend regression tests in both demo sites
-npm run typecheck     # all workspace TypeScript checks
-npm run build         # check shared types and build both apps
+npm test
+npm run typecheck
+npm run build
+npm run smoke             # after building, with the default proxy port 4000 free
+npm run contract:generate  # after intentional OpenAPI changes
+npm run data:extract       # explicit prototype extraction; do not overwrite published versions after release
 ```
 
-After building, start each service in its own terminal:
+For production, set `NODE_ENV=production`, a stable `CURSOR_SECRET`, reviewed `DATASET_ROOT`, public viewer/API origins and any AI settings before running `npm run start --workspace=@trojan-compass/api` and `npm run start --workspace=@trojan-compass/web`. The bundled unverified dataset is intentionally rejected by production admission. Include `server/data/` and `shared/contracts/` in the deployment alongside server build output. Dataset resolution does not depend on the shell working directory.
 
-```sh
-npm run start --workspace=@trojan-compass/api
-npm run start --workspace=@trojan-compass/web
-```
-
-## Structure
-
-```text
-trojan-compass/
-├── apps/
-│   ├── web/
-│   │   ├── public/
-│   │   │   ├── models/                 # building GLB/GLTF assets
-│   │   │   └── images/
-│   │   └── src/
-│   │       ├── app/                    # home, /map, /events
-│   │       ├── components/ui/          # shared UI
-│   │       ├── features/
-│   │       │   ├── map/                # 3D viewer, floors, highlights
-│   │       │   ├── search/             # rooms and amenities
-│   │       │   ├── routing/            # route controls and accessibility
-│   │       │   ├── events/             # event discovery
-│   │       │   └── chat/               # AI navigation interface
-│   │       └── lib/                    # API helpers
-│   └── api/src/
-│       ├── config/                    # environment settings
-│       ├── modules/
-│       │   ├── buildings/             # metadata, room and amenity lookup
-│       │   ├── routing/               # graph paths and accessibility
-│       │   ├── events/                # events and classroom destinations
-│       │   └── chat/                  # natural language/image intent
-│       ├── lib/                       # AI adapter and data loader
-│       ├── middleware/
-│       ├── app.ts                     # Express app and health endpoint
-│       └── server.ts                  # process entry point
-├── packages/shared/src/types/         # building, place, route, event, chat
-├── data/
-│   ├── buildings/                     # floor metadata and routing graphs
-│   └── events/                        # demo event records
-└── docs/                              # architecture and endpoint plan
-```
-
-## UI development
-
-### Two-site campus demo
-
-Run `npm run dev:demo` to start both frontend sites together, or run these in
-separate terminals:
-
-```sh
-npm run dev:web       # Trojan Compass interiors, http://localhost:3000
-npm run dev:campus    # USC campus map replica, http://localhost:3001 (Python 3)
-```
-
-Start at <http://localhost:3001>. Click a building footprint or search for a building
-such as `LAW`. The nine supported buildings open their matching Trojan Compass
-interior on port 3000. "All buildings" returns to port 3001. Opening port 3000
-without a building also returns to the campus demo.
-
-`apps/campus-demo` reuses the supplied saved USC page and its map tiles, with a
-local copy of the public building directory and footprints from
-<https://maps.usc.edu/?id=1928>. It is a local demonstration, not the official site.
-The saved map covers University Park Campus; Health Sciences, extra categories,
-tours and Street View link to or point users to the official site. Unsupported
-buildings show an availability message instead of opening the wrong interior.
-No USC application scripts, analytics, or backend services run in the replica.
-
-Edit `demo.js` and `demo.css`, then refresh port 3001 to see changes. Port 3000
-continues to support automatic updates. Run the demo checks with
-`npm test --workspace=@trojan-compass/campus-demo`.
-
-The Figma mockup is integrated into the existing Next.js web workspace. Building
-links such as `/?building=LAW&floor=1` open the interactive interior viewer.
-Run `npm run dev:web` from the root and edit files in `apps/web/src` for live reload.
-Port 3001 is reserved for the campus demo; keep the interior viewer on port 3000
-so links between the two sites work.
-
-- `components/Wayfinder.tsx`: page state, navigation, and panel composition.
-- `components/ui/`: USC header, toast, floor controls, and map overlays.
-- `components/map/`: Three.js campus and floor scenes.
-- `data/campus.ts`, `data/floorplan.ts`, `data/law.ts`: mockup data and floor geometry.
-- `app/globals.css`: Tailwind theme, colors, and global styles.
-
-The imported viewer uses local sample events, generated classroom layouts, and a
-LAW plan traced by the mockup author. Routes and accessibility details are demo
-behavior, not verified campus directions. The Express API and shared contracts
-remain in place; the viewer does not yet fetch them. AI chat is still a placeholder.
-
-Run the routing smoke tests with:
-
-```sh
-node --import tsx --test apps/web/tests/routing.test.ts
-```
-
-The header monogram asset comes from [USC Brand and Identity](https://identity.usc.edu/identity/logos-marks/) ([original PNG](https://identity.usc.edu/wp-content/uploads/2022/08/TheMonogram.png)).
+See [ownership](docs/ownership.md), [decisions](docs/decisions.md), [API status](docs/api.md), and [verification](docs/verification.md). iOS compilation/device testing requires macOS and Xcode; it cannot be established by the Windows web build.

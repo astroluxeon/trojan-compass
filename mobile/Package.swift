@@ -6,7 +6,7 @@ let package = Package(
     platforms: [.iOS(.v17), .macOS(.v14)],
     products: [.executable(name: "TrojanCompass", targets: ["TrojanCompass"])],
     targets: [
-        .executableTarget(name: "TrojanCompass", path: "TrojanCompass", exclude: ["Info.plist"],
+        .executableTarget(name: "TrojanCompass", path: "TrojanCompass", exclude: ["Info.plist", "Info-Debug.plist"],
                           resources: [.copy("Resources")]),
         .testTarget(name: "CompassTests", dependencies: ["TrojanCompass"],
                     path: "Tests", exclude: ["VerifyFixtures.swift", "StateChecks.swift"])

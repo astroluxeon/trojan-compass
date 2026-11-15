@@ -1,5 +1,5 @@
-@import '../../apps/web/src/app/globals.css';
-@source '../../apps/web/src';
+@import '../../web/src/app/globals.css';
+@source '../../web/src';
 @source './interior.tsx';
 
 html, body, #root { width: 100%; height: 100%; margin: 0; overflow: hidden; }

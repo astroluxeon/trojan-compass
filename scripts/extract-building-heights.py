@@ -12,7 +12,7 @@ import sys
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
-CAMPUS = ROOT / 'apps/campus-demo'
+CAMPUS = ROOT / 'demos/usc-map'
 places = json.loads((CAMPUS / 'locations.json').read_text())
 geo = json.loads((CAMPUS / 'campus-geography.json').read_text())
 xml = ET.parse(sys.argv[1]).getroot()

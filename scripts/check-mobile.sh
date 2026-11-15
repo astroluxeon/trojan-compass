@@ -20,7 +20,7 @@ python3 - "$COMPASS_REPO_ROOT" "$COMPASS_BUILD_DIR" <<'PY'
 from pathlib import Path
 import json,sys
 repo,build=map(Path,sys.argv[1:])
-index=json.loads((repo/'mobile/fixture-index.json').read_text())
+index=json.loads((repo/'shared/fixtures/fixture-index.json').read_text())
 for row in index:
     row['file']='Resources/Fixtures/'+Path(row['file']).name
 (build/'fixture-index.json').write_text(json.dumps(index))
