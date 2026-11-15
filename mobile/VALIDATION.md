@@ -82,6 +82,17 @@ Native interactive checks using the bundle origin (not localhost):
 - Added two-pointer pinch/pan handling and drag-click suppression. No automated or
   physical multi-touch test was available; verify this gesture on an iPhone.
 
+## Campus search-bar revision
+
+- Removed the campus tab bar in favor of one 44px search field with a small map
+  options button. Copied the exact building-view USC logo and Source Sans font;
+  matched its divider and Trojan Compass wordmark styling.
+- Native preview verified `LAW` search opens the bundled LAW interior and that the
+  building view still has Search/Chat/Directions/Floors/Layers. Returned to campus
+  and checked the options sheet and collapse behavior.
+- JavaScript syntax and replica asset checks passed. Confirmed the building-view
+  source and generated interior bundle have no changes in this revision.
+
 ## Shared foundation checks retained from the preceding implementation
 
 All **46 positive handoff fixtures** decoded, including unknown-action and

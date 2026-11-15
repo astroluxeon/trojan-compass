@@ -4,7 +4,11 @@ export function setupMobileCampus({ search, categories, panel, resetMap, showRes
   const media = matchMedia('(max-width: 767px)')
   const header = document.createElement('header')
   header.className = 'campus-mobile-header'
-  const brand = document.querySelector('#header .logo a').cloneNode(true)
+  const brand = document.createElement('a')
+  brand.href = '#map'
+  brand.setAttribute('aria-label', 'Trojan Compass campus map')
+  brand.innerHTML = '<img src="./assets/usc-monogram.png" alt="USC"><span class="campus-brand-divider" aria-hidden="true"></span><span class="campus-brand-name">Trojan <span>Compass</span></span>'
+  brand.onclick = e => { e.preventDefault(); resetMap(); close() }
   const campuses = document.createElement('nav')
   campuses.setAttribute('aria-label', 'Campus')
   const upc = button('UPC', () => { resetMap(); close() })
@@ -33,30 +37,26 @@ export function setupMobileCampus({ search, categories, panel, resetMap, showRes
   const content = document.createElement('div')
   content.className = 'campus-sheet-content'
   sheet.append(grip, content)
-  const nav = document.createElement('nav')
-  nav.className = 'campus-bottom-nav'
-  nav.setAttribute('aria-label', 'Campus map tools')
-  const icons = {
-    search: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/>',
-    filters: '<path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="2.5" fill="white"/><circle cx="15" cy="17" r="2.5" fill="white"/>',
-    campus: '<path d="m3 9 9-5 9 5H3Zm2 3v7m5-7v7m4-7v7m5-7v7M3 21h18"/>',
-    more: '<circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>',
-  }
-  const tabs = new Map()
-  for (const [id, label] of [['search', 'Search'], ['filters', 'Filters'], ['campus', 'Campus'], ['more', 'More']]) {
-    const tab = button('', () => {
-      if (active === id) { close(); return }
-      open(id)
-    })
-    tab.setAttribute('aria-label', label)
-    tab.setAttribute('aria-expanded', 'false')
-    tab.innerHTML = `<span class="campus-tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icons[id]}</svg></span><span>${label}</span>`
-    tabs.set(id, tab)
-    nav.append(tab)
-  }
-  dock.append(sheet, nav)
+  const input = search.querySelector('input')
+  const results = search.querySelector('.demo-results')
+  input.placeholder = 'Search Trojan Compass'
+  const bar = document.createElement('div')
+  bar.className = 'campus-search-bar'
+  const lens = document.createElement('span')
+  lens.className = 'campus-search-lens'
+  lens.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg>'
+  const options = button('', () => { if (active) close(); else open('options') })
+  options.className = 'campus-search-options'
+  options.setAttribute('aria-label', 'Map options')
+  options.setAttribute('aria-expanded', 'false')
+  options.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="2.5" fill="white"/><circle cx="15" cy="17" r="2.5" fill="white"/></svg>'
+  bar.append(lens, options)
+  const searchTray = document.createElement('div')
+  searchTray.className = 'campus-search-tray'
+  searchTray.append(bar)
+  dock.append(sheet, searchTray)
   document.body.append(header, dock)
-  const homes = new Map([search, categories, panel].map(node => {
+  const homes = new Map([input, results, categories, panel].map(node => {
     const marker = document.createComment('Original campus control position')
     node.before(marker)
     return [node, marker]
@@ -65,36 +65,41 @@ export function setupMobileCampus({ search, categories, panel, resetMap, showRes
   let returnFocus = null
 
   function restore() {
-    for (const [node, marker] of homes) marker.after(node)
+    for (const [node, marker] of homes) {
+      if (node !== input || !media.matches) marker.after(node)
+    }
+    if (media.matches && input.parentElement !== bar) bar.insertBefore(input, options)
     panel.hidden = true
   }
   function close() {
     restore()
     sheet.hidden = true
     active = null
-    for (const tab of tabs.values()) if (tab.hasAttribute('aria-expanded')) tab.setAttribute('aria-expanded', 'false')
+    options.setAttribute('aria-expanded', 'false')
+    input.blur()
     returnFocus?.focus({ preventScroll: true })
     returnFocus = null
     resizeMap()
   }
   function open(id, title, preserveResults = false) {
     if (!media.matches) return
-    const previousTab = tabs.get(active)
     restore()
     content.replaceChildren()
     active = id
-    returnFocus = tabs.get(id) ?? (document.activeElement === hsc ? hsc : previousTab ?? hsc)
+    returnFocus = options
     sheet.dataset.tool = id
-    sheet.setAttribute('aria-label', title ?? ({search:'Search campus locations',filters:'Campus filters',campus:'Choose campus',more:'More map tools'}[id] ?? 'Map information'))
+    sheet.setAttribute('aria-label', title ?? ({search:'Search campus locations',options:'Map options',filters:'Campus filters',campus:'Choose campus',more:'More map tools'}[id] ?? 'Map information'))
     sheet.hidden = false
-    for (const [key, tab] of tabs) if (tab.hasAttribute('aria-expanded')) {
-      tab.setAttribute('aria-expanded', String(id === key))
-      if (id === key) tab.setAttribute('aria-controls', sheet.id)
-      else tab.removeAttribute('aria-controls')
-    }
+    options.setAttribute('aria-expanded', 'true')
+    options.setAttribute('aria-controls', sheet.id)
     if (id === 'search') {
-      content.append(search)
-      if (!preserveResults && !search.querySelector('input').value.trim()) showResults(buildings.filter(b => /\((LAW|THH|TCC|VKC)\)/.test(b.name)).slice(0, 4))
+      content.append(results)
+      if (!preserveResults && !input.value.trim()) showResults(buildings.filter(b => /\((LAW|THH|TCC|VKC)\)/.test(b.name)).slice(0, 4))
+    } else if (id === 'options') {
+      const actions = document.createElement('div')
+      actions.className = 'campus-option-actions'
+      actions.append(button('Filters', () => open('filters')), button('Campus', () => open('campus')), button('More', () => open('more')))
+      content.append(actions)
     } else if (id === 'filters') {
       const controls = []
       const sync = () => controls.forEach(({ source, target }) => target.setAttribute('aria-checked', source.getAttribute('aria-checked')))
@@ -153,7 +158,7 @@ export function setupMobileCampus({ search, categories, panel, resetMap, showRes
       panel.hidden = false
       panel.dataset.mobileTitle = ['share'].includes(id) ? 'hidden' : 'visible'
     }
-    grip.focus({ preventScroll: true })
+    if (id !== 'search') grip.focus({ preventScroll: true })
     resizeMap()
   }
   function resizeMap() {
@@ -165,16 +170,16 @@ export function setupMobileCampus({ search, categories, panel, resetMap, showRes
   })
   document.addEventListener('campus:results', () => {
     if (media.matches && active === 'filters') {
-      search.querySelector('input').value = ''
+      input.value = ''
       open('search', undefined, true)
     }
   })
   document.addEventListener('keydown', e => { if (media.matches && e.key === 'Escape' && active) close() })
   for (const [id, action] of [
-    ['search-link', () => { open('search'); search.querySelector('input').focus() }],
+    ['search-link', () => { open('search'); input.focus() }],
     ['locations-and-tours-link', () => open('filters')],
     ['map-link', () => { close(); document.querySelector('#map').focus() }],
-    ['tool-bar-link', () => tabs.get('search').focus()],
+    ['tool-bar-link', () => input.focus()],
   ]) document.getElementById(id)?.addEventListener('click', e => {
     if (media.matches) { e.preventDefault(); action() }
   })
@@ -185,9 +190,11 @@ export function setupMobileCampus({ search, categories, panel, resetMap, showRes
     const sidebar = document.querySelector('#sidebar')
     sidebar.inert = true
     sidebar.setAttribute('aria-hidden', 'true')
-    categories.hidden = !!search.querySelector('input').value.trim()
+    categories.hidden = !!input.value.trim()
     resizeMap()
   }
+  input.addEventListener('focus', () => { if (media.matches && active !== 'search') open('search') })
+  input.addEventListener('input', () => { if (media.matches && active !== 'search') open('search', undefined, true) })
   media.addEventListener('change', adapt)
   adapt()
 }
