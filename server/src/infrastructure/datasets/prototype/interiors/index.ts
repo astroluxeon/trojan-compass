@@ -7,6 +7,7 @@ import { TCC_RECONSTRUCTION } from './tcc.js'
 import { SGM_RECONSTRUCTION } from './sgm.js'
 import { SAL_RECONSTRUCTION } from './sal.js'
 import { KAP_RECONSTRUCTION } from './kap.js'
+import { SCA_RECONSTRUCTION } from './sca.js'
 
 export const INTERIORS: Record<string, Reconstruction> = {
   DML: DML_RECONSTRUCTION,
@@ -17,4 +18,5 @@ export const INTERIORS: Record<string, Reconstruction> = {
   SGM: SGM_RECONSTRUCTION,
   SAL: SAL_RECONSTRUCTION,
   KAP: KAP_RECONSTRUCTION,
+  SCA: SCA_RECONSTRUCTION,
 }

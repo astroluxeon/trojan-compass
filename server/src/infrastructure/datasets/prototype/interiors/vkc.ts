@@ -11,8 +11,8 @@ export const VKC_RECONSTRUCTION: Reconstruction = {
     "Medicine Crow"
   ],
   "floorCountStatus": "confirmed",
-  "floorCountNotes": "City historic report describes three stories over basement; supersedes original generic four stories.",
-  "shapeSource": "demos/usc-map/locations.json: DMC paths; https://cityclerk.lacity.org/onlinedocs/2013/13-1464-s8_rpt_chc_10-28-2013.pdf",
+  "floorCountNotes": "City historic report describes three stories over basement; supersedes original generic four stories. Current USC Libraries calls LIPA ground floor; equivalence to the modeled basement is unresolved: https://libraries.usc.edu/locations/library-international-and-public-affairs .",
+  "shapeSource": "apps/campus-demo/locations.json: DMC paths; https://cityclerk.lacity.org/onlinedocs/2013/13-1464-s8_rpt_chc_10-28-2013.pdf",
   "shapeNotes": "https://cityclerk.lacity.org/onlinedocs/2013/13-1464-s8_rpt_chc_10-28-2013.pdf | U-shaped occupied wings within campus DMC envelope. Courtyard proportions and wing widths inferred, tower excluded.",
   "orientationDegrees": -27.9,
   "footprint": [
@@ -464,7 +464,7 @@ export const VKC_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Basement number and use inferred; B-prefix follows supplied basement numbering where available."
           }
@@ -476,7 +476,7 @@ export const VKC_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Basement number and use inferred; B-prefix follows supplied basement numbering where available."
           }
@@ -488,7 +488,7 @@ export const VKC_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Basement number and use inferred; B-prefix follows supplied basement numbering where available."
           }
@@ -500,7 +500,7 @@ export const VKC_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Basement number and use inferred; B-prefix follows supplied basement numbering where available."
           }
@@ -512,7 +512,7 @@ export const VKC_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Basement number and use inferred; B-prefix follows supplied basement numbering where available."
           }
@@ -524,7 +524,7 @@ export const VKC_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Basement number and use inferred; B-prefix follows supplied basement numbering where available."
           }
@@ -536,7 +536,7 @@ export const VKC_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Basement number and use inferred; B-prefix follows supplied basement numbering where available."
           }
@@ -548,7 +548,7 @@ export const VKC_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Basement number and use inferred; B-prefix follows supplied basement numbering where available."
           }
@@ -560,7 +560,7 @@ export const VKC_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Basement number and use inferred; B-prefix follows supplied basement numbering where available."
           }
@@ -626,7 +626,7 @@ export const VKC_RECONSTRUCTION: Reconstruction = {
         "sources": [
           "https://cityclerk.lacity.org/onlinedocs/2013/13-1464-s8_rpt_chc_10-28-2013.pdf"
         ],
-        "notes": "Position, boundary and door inferred. Whole floor geometry inferred. U-shaped wings retained; campus DMC path is only an outer envelope. Nonoccupied globe tower not modeled as an occupied floor. Old inferred fourth-floor rooms removed."
+        "notes": "Position, boundary and door inferred. Whole floor geometry inferred. U-shaped wings retained; campus DMC path is only an outer envelope. Nonoccupied globe tower not modeled as an occupied floor. Old inferred fourth-floor rooms removed. Unverified reconstruction retained only as an optional demo; drawing geometry has not been inspected or traced."
       },
       "entranceEvidence": {},
       "voids": [
@@ -1739,7 +1739,7 @@ export const VKC_RECONSTRUCTION: Reconstruction = {
         "sources": [
           "https://cityclerk.lacity.org/onlinedocs/2013/13-1464-s8_rpt_chc_10-28-2013.pdf"
         ],
-        "notes": "Position, boundary and door inferred. Whole floor geometry inferred. U-shaped wings retained; campus DMC path is only an outer envelope. Nonoccupied globe tower not modeled as an occupied floor. Old inferred fourth-floor rooms removed."
+        "notes": "Position, boundary and door inferred. Whole floor geometry inferred. U-shaped wings retained; campus DMC path is only an outer envelope. Nonoccupied globe tower not modeled as an occupied floor. Old inferred fourth-floor rooms removed. Unverified reconstruction retained only as an optional demo; drawing geometry has not been inspected or traced."
       },
       "entranceEvidence": {
         "entrance": {
@@ -1747,7 +1747,7 @@ export const VKC_RECONSTRUCTION: Reconstruction = {
           "positionStatus": "inferred",
           "identityStatus": "inferred",
           "sources": [
-            "demos/usc-map/locations.json"
+            "apps/campus-demo/locations.json"
           ],
           "notes": "Position, boundary and door inferred. Door location and step-free property inferred; not a verified accessible entrance or emergency exit.",
           "accessibilityStatus": "inferred"
@@ -1757,7 +1757,7 @@ export const VKC_RECONSTRUCTION: Reconstruction = {
           "positionStatus": "inferred",
           "identityStatus": "inferred",
           "sources": [
-            "demos/usc-map/locations.json"
+            "apps/campus-demo/locations.json"
           ],
           "notes": "Position, boundary and door inferred. Door location and step-free property inferred; not a verified accessible entrance or emergency exit.",
           "accessibilityStatus": "inferred"
@@ -2778,7 +2778,7 @@ export const VKC_RECONSTRUCTION: Reconstruction = {
         "sources": [
           "https://cityclerk.lacity.org/onlinedocs/2013/13-1464-s8_rpt_chc_10-28-2013.pdf"
         ],
-        "notes": "Position, boundary and door inferred. Whole floor geometry inferred. U-shaped wings retained; campus DMC path is only an outer envelope. Nonoccupied globe tower not modeled as an occupied floor. Old inferred fourth-floor rooms removed."
+        "notes": "Position, boundary and door inferred. Whole floor geometry inferred. U-shaped wings retained; campus DMC path is only an outer envelope. Nonoccupied globe tower not modeled as an occupied floor. Old inferred fourth-floor rooms removed. Unverified reconstruction retained only as an optional demo; drawing geometry has not been inspected or traced."
       },
       "entranceEvidence": {},
       "voids": [
@@ -3205,7 +3205,7 @@ export const VKC_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -3217,7 +3217,7 @@ export const VKC_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -3229,7 +3229,7 @@ export const VKC_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -3241,7 +3241,7 @@ export const VKC_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -3253,7 +3253,7 @@ export const VKC_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -3265,7 +3265,7 @@ export const VKC_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -3277,7 +3277,7 @@ export const VKC_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -3289,7 +3289,7 @@ export const VKC_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -3301,7 +3301,7 @@ export const VKC_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -3313,7 +3313,7 @@ export const VKC_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -3379,7 +3379,7 @@ export const VKC_RECONSTRUCTION: Reconstruction = {
         "sources": [
           "https://cityclerk.lacity.org/onlinedocs/2013/13-1464-s8_rpt_chc_10-28-2013.pdf"
         ],
-        "notes": "Position, boundary and door inferred. Whole floor geometry inferred. U-shaped wings retained; campus DMC path is only an outer envelope. Nonoccupied globe tower not modeled as an occupied floor. Old inferred fourth-floor rooms removed."
+        "notes": "Position, boundary and door inferred. Whole floor geometry inferred. U-shaped wings retained; campus DMC path is only an outer envelope. Nonoccupied globe tower not modeled as an occupied floor. Old inferred fourth-floor rooms removed. Unverified reconstruction retained only as an optional demo; drawing geometry has not been inspected or traced."
       },
       "entranceEvidence": {},
       "voids": [

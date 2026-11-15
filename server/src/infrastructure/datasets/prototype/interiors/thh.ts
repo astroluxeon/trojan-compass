@@ -9,9 +9,9 @@ export const THH_RECONSTRUCTION: Reconstruction = {
     "Mark Taper Hall"
   ],
   "floorCountStatus": "inferred",
-  "floorCountNotes": "Basement and floors 1–3 evidenced by room records; fourth floor retained as inferred from campus.ts.",
-  "shapeSource": "demos/usc-map/locations.json: THH paths; demos/usc-map/locations.json",
-  "shapeNotes": "demos/usc-map/locations.json | North/south end wings and narrow spine reconstructed from polygon; small ledges suppressed.",
+  "floorCountNotes": "Basement and four above-ground levels modeled. Official USC room420 and fourth-floor descriptions support the fourth floor; total building coverage still not independently surveyed.",
+  "shapeSource": "apps/campus-demo/locations.json: THH paths; apps/campus-demo/locations.json",
+  "shapeNotes": "apps/campus-demo/locations.json | North/south end wings and narrow spine reconstructed from polygon; small ledges suppressed. Fourth-floor evidence: https://bpb-us-w1.wpmucdn.com/sites.usc.edu/dist/2/756/files/2024/02/Student-Handbook-2024-1895d2652a85e2d3.pdf",
   "orientationDegrees": -28,
   "footprint": [
     [
@@ -500,7 +500,7 @@ export const THH_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Basement number and use inferred; B-prefix follows supplied basement numbering where available."
           }
@@ -512,7 +512,7 @@ export const THH_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Basement number and use inferred; B-prefix follows supplied basement numbering where available."
           }
@@ -524,7 +524,7 @@ export const THH_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Basement number and use inferred; B-prefix follows supplied basement numbering where available."
           }
@@ -536,7 +536,7 @@ export const THH_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Basement number and use inferred; B-prefix follows supplied basement numbering where available."
           }
@@ -548,7 +548,7 @@ export const THH_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Basement number and use inferred; B-prefix follows supplied basement numbering where available."
           }
@@ -560,7 +560,7 @@ export const THH_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Basement number and use inferred; B-prefix follows supplied basement numbering where available."
           }
@@ -572,7 +572,7 @@ export const THH_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Basement number and use inferred; B-prefix follows supplied basement numbering where available."
           }
@@ -584,7 +584,7 @@ export const THH_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Basement number and use inferred; B-prefix follows supplied basement numbering where available."
           }
@@ -650,7 +650,7 @@ export const THH_RECONSTRUCTION: Reconstruction = {
         "sources": [
           "https://roomfinder.usc.edu/ (indexed classroom table, retrieved 2026-11-14)"
         ],
-        "notes": "Position, boundary and door inferred. Whole floor geometry inferred. Basement and floors 1–3 supported by room codes. Floor 4 retained from supplied demo; count/outline at upper levels inferred. Lecture hall sizes are schematic."
+        "notes": "Position, boundary and door inferred. Whole floor geometry inferred. Basement and floors 1–3 supported by room codes. Fourth-floor existence supported by newly found USC sources; its partitions and outline remain inferred. Lecture hall sizes are schematic. Unverified reconstruction retained only as an optional demo; drawing geometry has not been inspected or traced."
       },
       "entranceEvidence": {},
       "voids": []
@@ -1560,7 +1560,7 @@ export const THH_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -1572,7 +1572,7 @@ export const THH_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -1638,7 +1638,7 @@ export const THH_RECONSTRUCTION: Reconstruction = {
         "sources": [
           "https://roomfinder.usc.edu/ (indexed classroom table, retrieved 2026-11-14)"
         ],
-        "notes": "Position, boundary and door inferred. Whole floor geometry inferred. Basement and floors 1–3 supported by room codes. Floor 4 retained from supplied demo; count/outline at upper levels inferred. Lecture hall sizes are schematic."
+        "notes": "Position, boundary and door inferred. Whole floor geometry inferred. Basement and floors 1–3 supported by room codes. Fourth-floor existence supported by newly found USC sources; its partitions and outline remain inferred. Lecture hall sizes are schematic. Unverified reconstruction retained only as an optional demo; drawing geometry has not been inspected or traced."
       },
       "entranceEvidence": {
         "entrance": {
@@ -1646,7 +1646,7 @@ export const THH_RECONSTRUCTION: Reconstruction = {
           "positionStatus": "inferred",
           "identityStatus": "inferred",
           "sources": [
-            "demos/usc-map/locations.json"
+            "apps/campus-demo/locations.json"
           ],
           "notes": "Position, boundary and door inferred. Door location and step-free property inferred; not a verified accessible entrance or emergency exit.",
           "accessibilityStatus": "inferred"
@@ -1656,7 +1656,7 @@ export const THH_RECONSTRUCTION: Reconstruction = {
           "positionStatus": "inferred",
           "identityStatus": "inferred",
           "sources": [
-            "demos/usc-map/locations.json"
+            "apps/campus-demo/locations.json"
           ],
           "notes": "Position, boundary and door inferred. Door location and step-free property inferred; not a verified accessible entrance or emergency exit.",
           "accessibilityStatus": "inferred"
@@ -2474,7 +2474,7 @@ export const THH_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -2486,7 +2486,7 @@ export const THH_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -2552,7 +2552,7 @@ export const THH_RECONSTRUCTION: Reconstruction = {
         "sources": [
           "https://roomfinder.usc.edu/ (indexed classroom table, retrieved 2026-11-14)"
         ],
-        "notes": "Position, boundary and door inferred. Whole floor geometry inferred. Basement and floors 1–3 supported by room codes. Floor 4 retained from supplied demo; count/outline at upper levels inferred. Lecture hall sizes are schematic."
+        "notes": "Position, boundary and door inferred. Whole floor geometry inferred. Basement and floors 1–3 supported by room codes. Fourth-floor existence supported by newly found USC sources; its partitions and outline remain inferred. Lecture hall sizes are schematic. Unverified reconstruction retained only as an optional demo; drawing geometry has not been inspected or traced."
       },
       "entranceEvidence": {},
       "voids": []
@@ -3054,7 +3054,7 @@ export const THH_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -3066,7 +3066,7 @@ export const THH_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -3078,7 +3078,7 @@ export const THH_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -3090,7 +3090,7 @@ export const THH_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -3102,7 +3102,7 @@ export const THH_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -3114,7 +3114,7 @@ export const THH_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -3126,7 +3126,7 @@ export const THH_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -3138,7 +3138,7 @@ export const THH_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -3150,7 +3150,7 @@ export const THH_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -3216,7 +3216,7 @@ export const THH_RECONSTRUCTION: Reconstruction = {
         "sources": [
           "https://roomfinder.usc.edu/ (indexed classroom table, retrieved 2026-11-14)"
         ],
-        "notes": "Position, boundary and door inferred. Whole floor geometry inferred. Basement and floors 1–3 supported by room codes. Floor 4 retained from supplied demo; count/outline at upper levels inferred. Lecture hall sizes are schematic."
+        "notes": "Position, boundary and door inferred. Whole floor geometry inferred. Basement and floors 1–3 supported by room codes. Fourth-floor existence supported by newly found USC sources; its partitions and outline remain inferred. Lecture hall sizes are schematic. Unverified reconstruction retained only as an optional demo; drawing geometry has not been inspected or traced."
       },
       "entranceEvidence": {},
       "voids": []
@@ -3631,7 +3631,7 @@ export const THH_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -3643,7 +3643,7 @@ export const THH_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -3655,7 +3655,7 @@ export const THH_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -3667,7 +3667,7 @@ export const THH_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -3679,7 +3679,7 @@ export const THH_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -3691,7 +3691,7 @@ export const THH_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -3703,7 +3703,7 @@ export const THH_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -3715,7 +3715,7 @@ export const THH_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -3727,7 +3727,7 @@ export const THH_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -3739,7 +3739,7 @@ export const THH_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -3805,7 +3805,7 @@ export const THH_RECONSTRUCTION: Reconstruction = {
         "sources": [
           "https://roomfinder.usc.edu/ (indexed classroom table, retrieved 2026-11-14)"
         ],
-        "notes": "Position, boundary and door inferred. Whole floor geometry inferred. Basement and floors 1–3 supported by room codes. Floor 4 retained from supplied demo; count/outline at upper levels inferred. Lecture hall sizes are schematic."
+        "notes": "Position, boundary and door inferred. Whole floor geometry inferred. Basement and floors 1–3 supported by room codes. Fourth-floor existence supported by newly found USC sources; its partitions and outline remain inferred. Lecture hall sizes are schematic. Unverified reconstruction retained only as an optional demo; drawing geometry has not been inspected or traced."
       },
       "entranceEvidence": {},
       "voids": []

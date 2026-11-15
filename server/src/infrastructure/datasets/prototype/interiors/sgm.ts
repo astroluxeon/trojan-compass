@@ -10,8 +10,8 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
   ],
   "floorCountStatus": "inferred",
   "floorCountNotes": "At least 10 floors evidenced by clinic directions. Exactly 10 modeled; total floor count not verified.",
-  "shapeSource": "demos/usc-map/locations.json: SGM paths; demos/usc-map/locations.json",
-  "shapeNotes": "demos/usc-map/locations.json | Irregular ground podium, narrow connector and southern wing retained. North tower setback at floor 3 is inferred.",
+  "shapeSource": "apps/campus-demo/locations.json: SGM paths; apps/campus-demo/locations.json",
+  "shapeNotes": "apps/campus-demo/locations.json | Irregular ground podium, narrow connector and southern wing retained. North tower setback at floor 3 is inferred.",
   "orientationDegrees": -27.8,
   "footprint": [
     [
@@ -592,7 +592,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -604,7 +604,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -616,7 +616,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -628,7 +628,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -640,7 +640,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -652,7 +652,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -664,7 +664,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -676,7 +676,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -688,7 +688,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -754,7 +754,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
         "sources": [
           "https://dornsife.usc.edu/usc-psc/client-hub/directions-to-sgm/"
         ],
-        "notes": "Position, boundary and door inferred. Whole floor geometry inferred. Ten occupied levels implemented because USC identifies clinic on 10th floor. Tower/podium split at floor 3 inferred; highest occupied level, basement and mechanical levels unresolved."
+        "notes": "Position, boundary and door inferred. Whole floor geometry inferred. Ten occupied levels implemented because USC identifies clinic on 10th floor. Tower/podium split at floor 3 inferred; highest occupied level, basement and mechanical levels unresolved. Unverified reconstruction retained only as an optional demo; drawing geometry has not been inspected or traced."
       },
       "entranceEvidence": {
         "entrance": {
@@ -762,7 +762,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
           "positionStatus": "inferred",
           "identityStatus": "inferred",
           "sources": [
-            "demos/usc-map/locations.json"
+            "apps/campus-demo/locations.json"
           ],
           "notes": "Position, boundary and door inferred. Door location and step-free property inferred; not a verified accessible entrance or emergency exit.",
           "accessibilityStatus": "inferred"
@@ -772,7 +772,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
           "positionStatus": "inferred",
           "identityStatus": "inferred",
           "sources": [
-            "demos/usc-map/locations.json"
+            "apps/campus-demo/locations.json"
           ],
           "notes": "Position, boundary and door inferred. Door location and step-free property inferred; not a verified accessible entrance or emergency exit.",
           "accessibilityStatus": "inferred"
@@ -1237,7 +1237,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -1249,7 +1249,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -1261,7 +1261,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -1273,7 +1273,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -1285,7 +1285,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -1297,7 +1297,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -1309,7 +1309,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -1321,7 +1321,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -1333,7 +1333,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -1345,7 +1345,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -1411,7 +1411,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
         "sources": [
           "https://dornsife.usc.edu/usc-psc/client-hub/directions-to-sgm/"
         ],
-        "notes": "Position, boundary and door inferred. Whole floor geometry inferred. Ten occupied levels implemented because USC identifies clinic on 10th floor. Tower/podium split at floor 3 inferred; highest occupied level, basement and mechanical levels unresolved."
+        "notes": "Position, boundary and door inferred. Whole floor geometry inferred. Ten occupied levels implemented because USC identifies clinic on 10th floor. Tower/podium split at floor 3 inferred; highest occupied level, basement and mechanical levels unresolved. Unverified reconstruction retained only as an optional demo; drawing geometry has not been inspected or traced."
       },
       "entranceEvidence": {},
       "voids": []
@@ -1800,7 +1800,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -1812,7 +1812,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -1824,7 +1824,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -1836,7 +1836,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -1848,7 +1848,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -1860,7 +1860,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -1872,7 +1872,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -1884,7 +1884,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -1896,7 +1896,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -1908,7 +1908,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -1974,7 +1974,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
         "sources": [
           "https://dornsife.usc.edu/usc-psc/client-hub/directions-to-sgm/"
         ],
-        "notes": "Position, boundary and door inferred. Whole floor geometry inferred. Ten occupied levels implemented because USC identifies clinic on 10th floor. Tower/podium split at floor 3 inferred; highest occupied level, basement and mechanical levels unresolved."
+        "notes": "Position, boundary and door inferred. Whole floor geometry inferred. Ten occupied levels implemented because USC identifies clinic on 10th floor. Tower/podium split at floor 3 inferred; highest occupied level, basement and mechanical levels unresolved. Unverified reconstruction retained only as an optional demo; drawing geometry has not been inspected or traced."
       },
       "entranceEvidence": {},
       "voids": []
@@ -2363,7 +2363,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -2375,7 +2375,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -2387,7 +2387,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -2399,7 +2399,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -2411,7 +2411,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -2423,7 +2423,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -2435,7 +2435,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -2447,7 +2447,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -2459,7 +2459,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -2471,7 +2471,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -2537,7 +2537,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
         "sources": [
           "https://dornsife.usc.edu/usc-psc/client-hub/directions-to-sgm/"
         ],
-        "notes": "Position, boundary and door inferred. Whole floor geometry inferred. Ten occupied levels implemented because USC identifies clinic on 10th floor. Tower/podium split at floor 3 inferred; highest occupied level, basement and mechanical levels unresolved."
+        "notes": "Position, boundary and door inferred. Whole floor geometry inferred. Ten occupied levels implemented because USC identifies clinic on 10th floor. Tower/podium split at floor 3 inferred; highest occupied level, basement and mechanical levels unresolved. Unverified reconstruction retained only as an optional demo; drawing geometry has not been inspected or traced."
       },
       "entranceEvidence": {},
       "voids": []
@@ -2926,7 +2926,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -2938,7 +2938,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -2950,7 +2950,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -2962,7 +2962,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -2974,7 +2974,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -2986,7 +2986,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -2998,7 +2998,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -3010,7 +3010,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -3022,7 +3022,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -3034,7 +3034,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -3100,7 +3100,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
         "sources": [
           "https://dornsife.usc.edu/usc-psc/client-hub/directions-to-sgm/"
         ],
-        "notes": "Position, boundary and door inferred. Whole floor geometry inferred. Ten occupied levels implemented because USC identifies clinic on 10th floor. Tower/podium split at floor 3 inferred; highest occupied level, basement and mechanical levels unresolved."
+        "notes": "Position, boundary and door inferred. Whole floor geometry inferred. Ten occupied levels implemented because USC identifies clinic on 10th floor. Tower/podium split at floor 3 inferred; highest occupied level, basement and mechanical levels unresolved. Unverified reconstruction retained only as an optional demo; drawing geometry has not been inspected or traced."
       },
       "entranceEvidence": {},
       "voids": []
@@ -3502,7 +3502,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -3514,7 +3514,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -3526,7 +3526,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -3538,7 +3538,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -3550,7 +3550,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -3562,7 +3562,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -3574,7 +3574,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -3586,7 +3586,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -3598,7 +3598,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -3664,7 +3664,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
         "sources": [
           "https://dornsife.usc.edu/usc-psc/client-hub/directions-to-sgm/"
         ],
-        "notes": "Position, boundary and door inferred. Whole floor geometry inferred. Ten occupied levels implemented because USC identifies clinic on 10th floor. Tower/podium split at floor 3 inferred; highest occupied level, basement and mechanical levels unresolved."
+        "notes": "Position, boundary and door inferred. Whole floor geometry inferred. Ten occupied levels implemented because USC identifies clinic on 10th floor. Tower/podium split at floor 3 inferred; highest occupied level, basement and mechanical levels unresolved. Unverified reconstruction retained only as an optional demo; drawing geometry has not been inspected or traced."
       },
       "entranceEvidence": {},
       "voids": []
@@ -4053,7 +4053,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -4065,7 +4065,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -4077,7 +4077,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -4089,7 +4089,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -4101,7 +4101,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -4113,7 +4113,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -4125,7 +4125,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -4137,7 +4137,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -4149,7 +4149,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -4161,7 +4161,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -4227,7 +4227,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
         "sources": [
           "https://dornsife.usc.edu/usc-psc/client-hub/directions-to-sgm/"
         ],
-        "notes": "Position, boundary and door inferred. Whole floor geometry inferred. Ten occupied levels implemented because USC identifies clinic on 10th floor. Tower/podium split at floor 3 inferred; highest occupied level, basement and mechanical levels unresolved."
+        "notes": "Position, boundary and door inferred. Whole floor geometry inferred. Ten occupied levels implemented because USC identifies clinic on 10th floor. Tower/podium split at floor 3 inferred; highest occupied level, basement and mechanical levels unresolved. Unverified reconstruction retained only as an optional demo; drawing geometry has not been inspected or traced."
       },
       "entranceEvidence": {},
       "voids": []
@@ -4616,7 +4616,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -4628,7 +4628,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -4640,7 +4640,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -4652,7 +4652,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -4664,7 +4664,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -4676,7 +4676,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -4688,7 +4688,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -4700,7 +4700,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -4712,7 +4712,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -4724,7 +4724,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -4790,7 +4790,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
         "sources": [
           "https://dornsife.usc.edu/usc-psc/client-hub/directions-to-sgm/"
         ],
-        "notes": "Position, boundary and door inferred. Whole floor geometry inferred. Ten occupied levels implemented because USC identifies clinic on 10th floor. Tower/podium split at floor 3 inferred; highest occupied level, basement and mechanical levels unresolved."
+        "notes": "Position, boundary and door inferred. Whole floor geometry inferred. Ten occupied levels implemented because USC identifies clinic on 10th floor. Tower/podium split at floor 3 inferred; highest occupied level, basement and mechanical levels unresolved. Unverified reconstruction retained only as an optional demo; drawing geometry has not been inspected or traced."
       },
       "entranceEvidence": {},
       "voids": []
@@ -5179,7 +5179,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -5191,7 +5191,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -5203,7 +5203,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -5215,7 +5215,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -5227,7 +5227,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -5239,7 +5239,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -5251,7 +5251,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -5263,7 +5263,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -5275,7 +5275,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -5287,7 +5287,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -5353,7 +5353,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
         "sources": [
           "https://dornsife.usc.edu/usc-psc/client-hub/directions-to-sgm/"
         ],
-        "notes": "Position, boundary and door inferred. Whole floor geometry inferred. Ten occupied levels implemented because USC identifies clinic on 10th floor. Tower/podium split at floor 3 inferred; highest occupied level, basement and mechanical levels unresolved."
+        "notes": "Position, boundary and door inferred. Whole floor geometry inferred. Ten occupied levels implemented because USC identifies clinic on 10th floor. Tower/podium split at floor 3 inferred; highest occupied level, basement and mechanical levels unresolved. Unverified reconstruction retained only as an optional demo; drawing geometry has not been inspected or traced."
       },
       "entranceEvidence": {},
       "voids": []
@@ -5372,7 +5372,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
       "rooms": [
         [
           "1001",
-          "Psychology Services Center",
+          "Unidentified demo space",
           "r",
           [
             1149.99,
@@ -5740,11 +5740,11 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
           "evidence": {
             "numberStatus": "inferred",
             "positionStatus": "inferred",
-            "identityStatus": "confirmed",
+            "identityStatus": "inferred",
             "sources": [
               "https://dornsife.usc.edu/usc-psc/client-hub/directions-to-sgm/"
             ],
-            "notes": "Position, boundary and door inferred. 10th-floor clinic confirmed. Number 1001 and clinic subdivision inferred; no claim of public/unrestricted access."
+            "notes": "Position, boundary and door inferred. Old assignment of the clinic to invented1001 is withdrawn. Official clinic suite is1030, listed in the evidence catalog without guessed coordinates."
           }
         },
         {
@@ -5754,7 +5754,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -5766,7 +5766,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -5778,7 +5778,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -5790,7 +5790,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -5802,7 +5802,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -5814,7 +5814,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -5826,7 +5826,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -5838,7 +5838,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -5850,7 +5850,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -5916,7 +5916,7 @@ export const SGM_RECONSTRUCTION: Reconstruction = {
         "sources": [
           "https://dornsife.usc.edu/usc-psc/client-hub/directions-to-sgm/"
         ],
-        "notes": "Position, boundary and door inferred. Whole floor geometry inferred. Ten occupied levels implemented because USC identifies clinic on 10th floor. Tower/podium split at floor 3 inferred; highest occupied level, basement and mechanical levels unresolved."
+        "notes": "Position, boundary and door inferred. Whole floor geometry inferred. Ten occupied levels implemented because USC identifies clinic on 10th floor. Tower/podium split at floor 3 inferred; highest occupied level, basement and mechanical levels unresolved. Unverified reconstruction retained only as an optional demo; drawing geometry has not been inspected or traced."
       },
       "entranceEvidence": {},
       "voids": []

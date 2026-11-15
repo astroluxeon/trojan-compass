@@ -13,9 +13,11 @@ export interface Evidence {
 /** Uses LAW's page-coordinate tuples, slab union and corridor polylines. */
 export interface ReconstructedFloorSpec extends LawFloorSpec {
   name: string
+  /** Coverage of the supplied drawing, independent of coordinate precision. */
+  planScope?: 'full' | 'partial' | 'inferred'
   evidence: Evidence
   /** Parallel to rooms. Explicit IDs preserve the old demo links. */
-  records: { id: string; evidence: Evidence; capacity?: number; restroom?: 'men' | 'women' | 'both' }[]
+  records: { id: string; evidence: Evidence; door?: [number, number]; doorEvidence?: Evidence; capacity?: number; restroom?: 'men' | 'women' | 'both' }[]
   entranceEvidence: Record<string, Evidence>
   /** Non-walkable exterior spaces in scene coordinates. */
   voids: { id: string; name: string; rect: [number, number, number, number]; evidence: Evidence }[]
@@ -25,6 +27,9 @@ export interface Reconstruction {
   code: string
   name: string
   aliases: string[]
+  /** Drawing-derived does not mean current, surveyed or navigation-verified. */
+  geometryStatus?: 'traced' | 'partial' | 'inferred'
+  geometryNotes?: string
   floorCountStatus: 'confirmed' | 'inferred'
   floorCountNotes: string
   shapeSource: string

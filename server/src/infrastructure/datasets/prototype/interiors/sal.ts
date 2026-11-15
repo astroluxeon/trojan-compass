@@ -7,10 +7,10 @@ export const SAL_RECONSTRUCTION: Reconstruction = {
   "aliases": [
     "Henry Salvatori Computer Science Center"
   ],
-  "floorCountStatus": "confirmed",
-  "floorCountNotes": "Historic resource description: three stories over basement; north volume one story.",
-  "shapeSource": "demos/usc-map/locations.json: SAL paths; https://planning.lacity.gov/eir/USC/FEIR/files/USC%20Appendix%20C-1%20Supplemental%20Historic%20Resources%20Report.pdf",
-  "shapeNotes": "https://planning.lacity.gov/eir/USC/FEIR/files/USC%20Appendix%20C-1%20Supplemental%20Historic%20Resources%20Report.pdf | Campus polygon simplified to southern block with corner/tongue projection and lower north volume; no GFS records imported.",
+  "floorCountStatus": "inferred",
+  "floorCountNotes": "Historical floor count only; current interior is unresolved during announced renovation for Industrial and Systems Engineering, planned opening December2026.",
+  "shapeSource": "apps/campus-demo/locations.json: SAL paths; https://planning.lacity.gov/eir/USC/FEIR/files/USC%20Appendix%20C-1%20Supplemental%20Historic%20Resources%20Report.pdf",
+  "shapeNotes": "https://planning.lacity.gov/eir/USC/FEIR/files/USC%20Appendix%20C-1%20Supplemental%20Historic%20Resources%20Report.pdf | Campus polygon simplified to southern block with corner/tongue projection and lower north volume; no GFS records imported. Renovation source: https://viterbischool.usc.edu/news/2025/12/a-state-of-the-art-new-home-for-industrial-and-systems-engineering-at-usc/ . Historical CS room uses may be stale.",
   "orientationDegrees": -28,
   "footprint": [
     [
@@ -455,7 +455,7 @@ export const SAL_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Basement number and use inferred; B-prefix follows supplied basement numbering where available."
           }
@@ -467,7 +467,7 @@ export const SAL_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Basement number and use inferred; B-prefix follows supplied basement numbering where available."
           }
@@ -479,7 +479,7 @@ export const SAL_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Basement number and use inferred; B-prefix follows supplied basement numbering where available."
           }
@@ -491,7 +491,7 @@ export const SAL_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Basement number and use inferred; B-prefix follows supplied basement numbering where available."
           }
@@ -503,7 +503,7 @@ export const SAL_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Basement number and use inferred; B-prefix follows supplied basement numbering where available."
           }
@@ -515,7 +515,7 @@ export const SAL_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Basement number and use inferred; B-prefix follows supplied basement numbering where available."
           }
@@ -527,7 +527,7 @@ export const SAL_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Basement number and use inferred; B-prefix follows supplied basement numbering where available."
           }
@@ -539,7 +539,7 @@ export const SAL_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Basement number and use inferred; B-prefix follows supplied basement numbering where available."
           }
@@ -551,7 +551,7 @@ export const SAL_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Basement number and use inferred; B-prefix follows supplied basement numbering where available."
           }
@@ -563,7 +563,7 @@ export const SAL_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Basement number and use inferred; B-prefix follows supplied basement numbering where available."
           }
@@ -629,7 +629,7 @@ export const SAL_RECONSTRUCTION: Reconstruction = {
         "sources": [
           "https://planning.lacity.gov/eir/USC/FEIR/files/USC%20Appendix%20C-1%20Supplemental%20Historic%20Resources%20Report.pdf"
         ],
-        "notes": "Position, boundary and door inferred. Whole floor geometry inferred. Three-story southern block plus one-story northern volume and basement supported by historic description. Auditorium placement in north block inferred."
+        "notes": "Position, boundary and door inferred. Whole floor geometry inferred. Three-story southern block plus one-story northern volume and basement supported by historic description. Auditorium placement in north block inferred. Unverified reconstruction retained only as an optional demo; drawing geometry has not been inspected or traced."
       },
       "entranceEvidence": {},
       "voids": []
@@ -1060,7 +1060,7 @@ export const SAL_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -1072,7 +1072,7 @@ export const SAL_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -1084,7 +1084,7 @@ export const SAL_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -1096,7 +1096,7 @@ export const SAL_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -1108,7 +1108,7 @@ export const SAL_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -1120,7 +1120,7 @@ export const SAL_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -1132,7 +1132,7 @@ export const SAL_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -1144,7 +1144,7 @@ export const SAL_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -1156,7 +1156,7 @@ export const SAL_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -1222,7 +1222,7 @@ export const SAL_RECONSTRUCTION: Reconstruction = {
         "sources": [
           "https://planning.lacity.gov/eir/USC/FEIR/files/USC%20Appendix%20C-1%20Supplemental%20Historic%20Resources%20Report.pdf"
         ],
-        "notes": "Position, boundary and door inferred. Whole floor geometry inferred. Three-story southern block plus one-story northern volume and basement supported by historic description. Auditorium placement in north block inferred."
+        "notes": "Position, boundary and door inferred. Whole floor geometry inferred. Three-story southern block plus one-story northern volume and basement supported by historic description. Auditorium placement in north block inferred. Unverified reconstruction retained only as an optional demo; drawing geometry has not been inspected or traced."
       },
       "entranceEvidence": {
         "entrance": {
@@ -1230,7 +1230,7 @@ export const SAL_RECONSTRUCTION: Reconstruction = {
           "positionStatus": "inferred",
           "identityStatus": "inferred",
           "sources": [
-            "demos/usc-map/locations.json"
+            "apps/campus-demo/locations.json"
           ],
           "notes": "Position, boundary and door inferred. Door location and step-free property inferred; not a verified accessible entrance or emergency exit.",
           "accessibilityStatus": "inferred"
@@ -1240,7 +1240,7 @@ export const SAL_RECONSTRUCTION: Reconstruction = {
           "positionStatus": "inferred",
           "identityStatus": "inferred",
           "sources": [
-            "demos/usc-map/locations.json"
+            "apps/campus-demo/locations.json"
           ],
           "notes": "Position, boundary and door inferred. Door location and step-free property inferred; not a verified accessible entrance or emergency exit.",
           "accessibilityStatus": "inferred"
@@ -1624,7 +1624,7 @@ export const SAL_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -1636,7 +1636,7 @@ export const SAL_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -1648,7 +1648,7 @@ export const SAL_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -1660,7 +1660,7 @@ export const SAL_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -1672,7 +1672,7 @@ export const SAL_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -1684,7 +1684,7 @@ export const SAL_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -1696,7 +1696,7 @@ export const SAL_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -1708,7 +1708,7 @@ export const SAL_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -1720,7 +1720,7 @@ export const SAL_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -1732,7 +1732,7 @@ export const SAL_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -1798,7 +1798,7 @@ export const SAL_RECONSTRUCTION: Reconstruction = {
         "sources": [
           "https://planning.lacity.gov/eir/USC/FEIR/files/USC%20Appendix%20C-1%20Supplemental%20Historic%20Resources%20Report.pdf"
         ],
-        "notes": "Position, boundary and door inferred. Whole floor geometry inferred. Three-story southern block plus one-story northern volume and basement supported by historic description. Auditorium placement in north block inferred."
+        "notes": "Position, boundary and door inferred. Whole floor geometry inferred. Three-story southern block plus one-story northern volume and basement supported by historic description. Auditorium placement in north block inferred. Unverified reconstruction retained only as an optional demo; drawing geometry has not been inspected or traced."
       },
       "entranceEvidence": {},
       "voids": []
@@ -2179,7 +2179,7 @@ export const SAL_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -2191,7 +2191,7 @@ export const SAL_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -2203,7 +2203,7 @@ export const SAL_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -2215,7 +2215,7 @@ export const SAL_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -2227,7 +2227,7 @@ export const SAL_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -2239,7 +2239,7 @@ export const SAL_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -2251,7 +2251,7 @@ export const SAL_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -2263,7 +2263,7 @@ export const SAL_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -2275,7 +2275,7 @@ export const SAL_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -2287,7 +2287,7 @@ export const SAL_RECONSTRUCTION: Reconstruction = {
             "positionStatus": "inferred",
             "identityStatus": "inferred",
             "sources": [
-              "Original server/src/infrastructure/datasets/prototype/floorplan.ts template (unverified demo IDs only)"
+              "Original apps/web/src/data/floorplan.ts template (unverified demo IDs only)"
             ],
             "notes": "Position, boundary and door inferred. Retained legacy demo number; number and use inferred."
           }
@@ -2353,7 +2353,7 @@ export const SAL_RECONSTRUCTION: Reconstruction = {
         "sources": [
           "https://planning.lacity.gov/eir/USC/FEIR/files/USC%20Appendix%20C-1%20Supplemental%20Historic%20Resources%20Report.pdf"
         ],
-        "notes": "Position, boundary and door inferred. Whole floor geometry inferred. Three-story southern block plus one-story northern volume and basement supported by historic description. Auditorium placement in north block inferred."
+        "notes": "Position, boundary and door inferred. Whole floor geometry inferred. Three-story southern block plus one-story northern volume and basement supported by historic description. Auditorium placement in north block inferred. Unverified reconstruction retained only as an optional demo; drawing geometry has not been inspected or traced."
       },
       "entranceEvidence": {},
       "voids": []
