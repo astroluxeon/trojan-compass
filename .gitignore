@@ -6,8 +6,12 @@
 
 ### VS Code ###
 .vscode/
+
+### Local agent and Graphify files ###
 /graphify-out/
 /.agents/
+/AGENTS.md
+/.graphifyignore
 
 ### Node / build output ###
 node_modules/
