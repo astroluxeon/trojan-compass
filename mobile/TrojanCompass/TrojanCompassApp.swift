@@ -1,0 +1,16 @@
+import SwiftUI
+
+@main
+struct TrojanCompassApp: App {
+    @StateObject private var store = CompassStore()
+    var body: some Scene {
+        WindowGroup { CompassRoot(store: store).tint(CompassTheme.cardinal).preferredColorScheme(.light) }
+    }
+}
+
+enum CompassTheme {
+    static let cardinal = Color(red: 0.6, green: 0, blue: 0)
+    static let gold = Color(red: 1, green: 0.8, blue: 0)
+    static let paper = Color(red: 0.97, green: 0.96, blue: 0.94)
+    static let blue = Color(red: 0.12, green: 0.36, blue: 0.66)
+}

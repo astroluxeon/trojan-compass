@@ -12,11 +12,14 @@
     "dev:api": "npm run dev --workspace=@trojan-compass/api",
     "test": "npm run test --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "build": "npm run build --workspace=@trojan-compass/shared && npm run build --workspace=@trojan-compass/api && npm run build --workspace=@trojan-compass/web"
+    "build": "npm run build --workspace=@trojan-compass/shared && npm run build --workspace=@trojan-compass/api && npm run build --workspace=@trojan-compass/web",
+    "build:mobile-viewer": "node mobile/Viewer/build.mjs"
   },
   "devDependencies": {
+    "@tailwindcss/cli": "^4.3.5",
     "@types/node": "^24.0.0",
     "concurrently": "^9.2.1",
+    "esbuild": "^0.28.2",
     "typescript": "^5.9.3"
   }
 }

@@ -23,3 +23,10 @@ coverage/
 .env.*
 !.env.example
 .DS_Store
+
+### Swift / Xcode ###
+.build/
+.swiftpm/
+DerivedData/
+xcuserdata/
+*.xcuserstate
